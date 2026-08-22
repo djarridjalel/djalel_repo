@@ -67,12 +67,13 @@
   }
 
   /* --- 1 · ring ------------------------------------------------ */
-  .l1{mix-blend-mode:difference;}
+  /* pure white, no blend — unlike the monogram, this one sits on top
+     of the scene rather than inverting against it. */
   .l1 img{
     position:absolute;
     left:81%; top:34.5%;
     width:10%; height:auto;
-    aspect-ratio:160/328;   /* the proportion tuned at 1600w — held, not sheared */
+    aspect-ratio:1/1;       /* the source is a true circle */
     min-width:86px;
   }
 
@@ -103,7 +104,7 @@
     position:absolute;
     left:20.5%; top:44.5%;
     width:81%; height:auto;
-    aspect-ratio:1296/764;  /* as above; source plate is 2.36 */
+    aspect-ratio:1800/764;  /* the source plate's own proportion */
   }
 
   /* --- scrim ---------------------------------------------------
@@ -192,14 +193,14 @@
 
     /* clear of the headline's right edge */
     .l2 img{left:53%;  top:21%;  height:63%;}
-    .l1 img{left:62%;  top:50%;  width:26%;  aspect-ratio:507/1640;}
+    .l1 img{left:62%;  top:50%;  width:26%;}
 
     /* light kept left of the monogram so it can't screen over the blend */
     .l3 img{left:-18%; top:-16%; height:92%;  transform:rotate(-19deg);}
     .l4 img{left:4%;   top:-22%; height:84%;  transform:rotate(12deg);}
     .l6 img{left:20%;  top:-12%; height:78%;  transform:rotate(-9deg);}
 
-    .l5 img{left:-22%; top:43%;  width:190%; aspect-ratio:741/764;}
+    .l5 img{left:-22%; top:43%;  width:190%;}
 
     /* type sits on a controlled ground rather than on rock texture */
     .scrim{
