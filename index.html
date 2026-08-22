@@ -42,7 +42,7 @@
     position:relative;
     width:100%;
     height:100svh;
-    min-height:560px;
+    min-height:min(560px, 100svh);  /* never taller than the viewport itself */
     overflow:hidden;
     background:var(--ink);
     isolation:isolate;          /* contain the blend modes to the hero */
@@ -172,11 +172,71 @@
   .rail a{color:inherit; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.28);}
   .rail a:hover{color:#fff; border-bottom-color:#fff;}
 
-  @media (max-width:720px){
-    .rail{text-align:left;}
-    .l2 img{left:50%; top:4%; height:74%;}
-    .l1 img{left:70%; top:30%; width:17%;}
-    .l5 img{left:-10%; top:46%; width:130%;}
+  /* ============================================================
+     PORTRAIT
+     Keyed to aspect, not width — a 768px iPad in portrait has the
+     same problem a phone does, and a phone in landscape does not.
+
+     The plate is reframed rather than just re-cropped: cover-fitting
+     3:2 art into a tall frame moves the visible slice to the middle
+     of the photo, where the sky is dark. The monogram is a difference
+     blend, so a dark backdrop inverts it to light and it dissolves.
+     Shifting object-position brings the bright horizon back under it,
+     and dropping the shape lower lets it cross both the bright band
+     and the dark rock — the two-tone read the desktop composition has.
+     ============================================================ */
+  @media (max-aspect-ratio:4/5){
+    .l0 img{object-position:64% 46%; transform:scale(1.05);}
+
+    /* clear of the headline's right edge */
+    .l2 img{left:53%;  top:21%;  height:63%;}
+    .l1 img{left:62%;  top:50%;  width:26%;}
+
+    /* light kept left of the monogram so it can't screen over the blend */
+    .l3 img{left:-18%; top:-16%; height:92%;  transform:rotate(-19deg);}
+    .l4 img{left:4%;   top:-22%; height:84%;  transform:rotate(12deg);}
+    .l6 img{left:20%;  top:-12%; height:78%;  transform:rotate(-9deg);}
+
+    .l5 img{left:-22%; top:43%;  width:190%;}
+
+    /* type sits on a controlled ground rather than on rock texture */
+    .scrim{
+      background:
+        radial-gradient(66% 26% at 42% 52%, rgba(0,0,0,.46) 0%, rgba(0,0,0,.16) 52%, rgba(0,0,0,0) 82%),
+        linear-gradient(to bottom, rgba(0,0,0,.34) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 46%, rgba(0,0,0,.72) 88%, rgba(0,0,0,.86) 100%);
+    }
+
+    .headline{
+      top:0;
+      justify-self:start;
+      text-align:left;
+      max-width:16ch;
+      font-size:clamp(1.7rem, 7.2vw, 2.6rem);
+      line-height:1.12;
+      /* balance produces a one-word first line at ~360px; greedy fill
+         keeps the rag predictable across every phone width */
+      text-wrap:normal;
+    }
+
+    .footrow{flex-direction:column; align-items:flex-start; gap:14px;}
+    .wordmark{font-size:1.05rem;}
+    /* sized so the relocation line holds on one row — a wrapped
+       orphan reads as a bug, not a line break */
+    .rail{
+      text-align:left;
+      font-size:.6rem;
+      letter-spacing:.08em;
+      line-height:1.9;
+      color:rgba(255,255,255,.72);
+      text-wrap:nowrap;
+    }
+    .wide-only{display:none;}
+  }
+
+  /* very small phones — pull the type in a step */
+  @media (max-aspect-ratio:4/5) and (max-width:360px){
+    .headline{font-size:1.58rem; max-width:17ch;}
+    .rail{font-size:.55rem; letter-spacing:.06em;}
   }
 
   /* motion is an enhancement; the rest state is the composition. */
@@ -233,7 +293,7 @@
       <div class="wordmark"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></div>
       <div class="rail">
         Djalel Djarri · Creative Director<br>
-        Pharma &amp; parapharma brand systems<br>
+        <span class="wide-only">Pharma &amp; parapharma brand systems<br></span>
         Open to relocation — Geneva / Zurich / Lausanne
       </div>
     </div>
