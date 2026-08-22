@@ -1,0 +1,793 @@
+<title>Ops Pulse</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+  :root {
+    --bg: #EAEEEF;
+    --surface: #FFFFFF;
+    --surface-sunken: #F2F4F5;
+    --border: #D6DCDE;
+    --ink: #172023;
+    --ink-soft: #3E4A4E;
+    --muted: #6B777B;
+    --faint: #97A2A5;
+
+    --accent: #216B66;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #DBEBE8;
+    --accent-soft-ink: #1A5450;
+
+    --good: #227A4F;
+    --good-soft: #DDF0E4;
+    --warning: #93650A;
+    --warning-soft: #F6EAD1;
+    --critical: #B3362B;
+    --critical-soft: #F7DFDC;
+
+    --shadow: 0 1px 2px rgba(23, 32, 35, 0.06), 0 8px 24px -12px rgba(23, 32, 35, 0.18);
+    --radius: 14px;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10161A;
+      --surface: #161E22;
+      --surface-sunken: #10161A;
+      --border: #263136;
+      --ink: #E9EFF0;
+      --ink-soft: #C1CBCD;
+      --muted: #8B9A9D;
+      --faint: #5C6B6F;
+
+      --accent: #5CC2B9;
+      --accent-ink: #0A1F1D;
+      --accent-soft: #1B3634;
+      --accent-soft-ink: #8DDCD4;
+
+      --good: #57C889;
+      --good-soft: #16301F;
+      --warning: #E0B34D;
+      --warning-soft: #3A2E13;
+      --critical: #EA7A6C;
+      --critical-soft: #3A1D19;
+
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10161A;
+    --surface: #161E22;
+    --surface-sunken: #10161A;
+    --border: #263136;
+    --ink: #E9EFF0;
+    --ink-soft: #C1CBCD;
+    --muted: #8B9A9D;
+    --faint: #5C6B6F;
+
+    --accent: #5CC2B9;
+    --accent-ink: #0A1F1D;
+    --accent-soft: #1B3634;
+    --accent-soft-ink: #8DDCD4;
+
+    --good: #57C889;
+    --good-soft: #16301F;
+    --warning: #E0B34D;
+    --warning-soft: #3A2E13;
+    --critical: #EA7A6C;
+    --critical-soft: #3A1D19;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 12px 32px -16px rgba(0, 0, 0, 0.6);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    font-size: 15px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 28px 20px 64px;
+  }
+
+  .mono { font-family: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+  .tab { font-variant-numeric: tabular-nums; }
+
+  header.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: "Space Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 8px;
+  }
+
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--good);
+    flex: none;
+  }
+  .dot.pulse { animation: pulse 2.2s ease-in-out infinite; }
+  @media (prefers-reduced-motion: reduce) { .dot.pulse { animation: none; } }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(87, 200, 137, 0.5); }
+    50% { box-shadow: 0 0 0 5px rgba(87, 200, 137, 0); }
+  }
+
+  h1 {
+    font-family: "Space Mono", monospace;
+    font-weight: 700;
+    font-size: 28px;
+    letter-spacing: -0.01em;
+    margin: 0 0 4px;
+    text-wrap: balance;
+  }
+
+  .sub {
+    color: var(--muted);
+    font-size: 14px;
+    max-width: 46ch;
+  }
+
+  .top-right {
+    text-align: right;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .top-right .refresh-btn {
+    margin-top: 8px;
+  }
+
+  button.ghost {
+    font-family: "Space Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.04em;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-soft);
+    padding: 6px 11px;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  button.ghost:hover { border-color: var(--accent); color: var(--accent); }
+  button.ghost:focus-visible, a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  .section-label {
+    font-family: "Space Mono", monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--faint);
+    margin: 30px 0 12px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+  @media (max-width: 700px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 18px 20px 16px;
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+  }
+
+  .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .badge-glyph {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--surface-sunken);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Space Mono", monospace;
+    font-weight: 700;
+    font-size: 13px;
+    flex: none;
+  }
+
+  .card-title h2 {
+    font-size: 15.5px;
+    margin: 0;
+    font-weight: 700;
+  }
+  .card-title .service-sub {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  .pill {
+    font-family: "Space Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.03em;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .pill.good { background: var(--good-soft); color: var(--good); }
+  .pill.warning { background: var(--warning-soft); color: var(--warning); }
+  .pill.critical { background: var(--critical-soft); color: var(--critical); }
+  .pill.muted { background: var(--surface-sunken); color: var(--muted); }
+
+  .kv {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 7px 14px;
+    font-size: 13px;
+    margin: 4px 0 12px;
+  }
+  .kv dt {
+    color: var(--muted);
+    font-family: "Space Mono", monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding-top: 2px;
+  }
+  .kv dd {
+    margin: 0;
+    color: var(--ink-soft);
+    overflow-wrap: anywhere;
+  }
+  .kv dd a { color: var(--accent); text-decoration: none; }
+  .kv dd a:hover { text-decoration: underline; }
+
+  .recent-list {
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+  .recent-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+  }
+  .recent-row .rdot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .recent-row .rdot.good { background: var(--good); }
+  .recent-row .rdot.warning { background: var(--warning); }
+  .recent-row .rdot.critical { background: var(--critical); }
+  .recent-row .rdot.muted { background: var(--faint); }
+  .recent-row .rmsg { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .recent-row .rtime { color: var(--faint); font-family: "Space Mono", monospace; font-size: 11px; flex: none; }
+
+  .card-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--faint);
+  }
+  .card-foot .src { font-family: "Space Mono", monospace; }
+
+  .state-msg {
+    font-size: 13.5px;
+    color: var(--muted);
+    background: var(--surface-sunken);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 4px 0 12px;
+  }
+  .state-msg strong { color: var(--ink-soft); }
+  .state-msg code {
+    font-family: "Space Mono", monospace;
+    font-size: 11.5px;
+    background: var(--bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+  }
+
+  .skel {
+    background: linear-gradient(90deg, var(--surface-sunken) 25%, var(--border) 37%, var(--surface-sunken) 63%);
+    background-size: 400% 100%;
+    border-radius: 6px;
+    animation: shimmer 1.6s ease infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { .skel { animation: none; } }
+  @keyframes shimmer { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+  .placeholder-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 10px;
+  }
+  @media (max-width: 700px) { .placeholder-row { grid-template-columns: 1fr; } }
+
+  .card.placeholder {
+    border-style: dashed;
+    box-shadow: none;
+    background: var(--surface-sunken);
+  }
+  .card.placeholder .card-head { margin-bottom: 10px; }
+  .sample-chip {
+    font-family: "Space Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    color: var(--faint);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 2px 8px;
+  }
+  .placeholder .sample-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: var(--faint);
+    padding: 6px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .placeholder .sample-row:last-of-type { border-bottom: none; }
+  .placeholder .cta {
+    margin-top: 12px;
+    font-size: 12.5px;
+    color: var(--muted);
+  }
+  .placeholder .cta a { color: var(--accent); }
+
+  footer.note {
+    margin-top: 30px;
+    font-size: 12px;
+    color: var(--faint);
+    border-top: 1px solid var(--border);
+    padding-top: 14px;
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="eyebrow"><span class="dot pulse" id="live-dot"></span>Live · connected accounts</div>
+      <h1>Ops Pulse</h1>
+      <div class="sub">Djalel's status board — deployment and database health, read straight from Vercel and Supabase.</div>
+    </div>
+    <div class="top-right">
+      <div>Last full refresh: <span class="tab" id="last-refresh">—</span></div>
+      <div class="refresh-btn"><button class="ghost" id="refresh-all">↻ Refresh all</button></div>
+    </div>
+  </header>
+
+  <div class="section-label">Tracking now</div>
+  <div class="grid" id="live-grid">
+
+    <section class="card" id="card-vercel" aria-live="polite">
+      <div class="card-head">
+        <div class="card-title">
+          <div class="badge-glyph">▲</div>
+          <div>
+            <h2>Deployments</h2>
+            <div class="service-sub">Vercel · potfolio</div>
+          </div>
+        </div>
+        <span class="pill muted" id="vercel-pill">loading</span>
+      </div>
+      <div id="vercel-body">
+        <div class="skel" style="height:14px;width:70%;margin-bottom:8px;"></div>
+        <div class="skel" style="height:14px;width:50%;margin-bottom:8px;"></div>
+        <div class="skel" style="height:14px;width:60%;"></div>
+      </div>
+      <div class="card-foot">
+        <span class="src">source: vercel · list_deployments</span>
+        <span id="vercel-updated">—</span>
+      </div>
+    </section>
+
+    <section class="card" id="card-supabase" aria-live="polite">
+      <div class="card-head">
+        <div class="card-title">
+          <div class="badge-glyph">◨</div>
+          <div>
+            <h2>Database health</h2>
+            <div class="service-sub">Supabase · djarridjalel's Project</div>
+          </div>
+        </div>
+        <span class="pill muted" id="supabase-pill">loading</span>
+      </div>
+      <div id="supabase-body">
+        <div class="skel" style="height:14px;width:65%;margin-bottom:8px;"></div>
+        <div class="skel" style="height:14px;width:55%;margin-bottom:8px;"></div>
+        <div class="skel" style="height:14px;width:45%;"></div>
+      </div>
+      <div class="card-foot">
+        <span class="src">source: supabase · list_projects / get_advisors / list_tables</span>
+        <span id="supabase-updated">—</span>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="section-label">Not connected yet — sample layout</div>
+  <div class="placeholder-row">
+
+    <section class="card placeholder">
+      <div class="card-head">
+        <div class="card-title">
+          <div class="badge-glyph">▤</div>
+          <div>
+            <h2>Calendar</h2>
+            <div class="service-sub">Today's schedule</div>
+          </div>
+        </div>
+        <span class="sample-chip">SAMPLE DATA</span>
+      </div>
+      <div class="sample-row"><span>09:30 — Standup</span><span>30m</span></div>
+      <div class="sample-row"><span>13:00 — 1:1 with manager</span><span>25m</span></div>
+      <div class="sample-row"><span>16:00 — Review deploy</span><span>45m</span></div>
+      <div class="cta">Add a Google Calendar (or Outlook) connector and I'll swap this for your real day.</div>
+    </section>
+
+    <section class="card placeholder">
+      <div class="card-head">
+        <div class="card-title">
+          <div class="badge-glyph">✉</div>
+          <div>
+            <h2>Inbox</h2>
+            <div class="service-sub">Unread &amp; needs-reply</div>
+          </div>
+        </div>
+        <span class="sample-chip">SAMPLE DATA</span>
+      </div>
+      <div class="sample-row"><span>12 unread</span><span>—</span></div>
+      <div class="sample-row"><span>3 flagged as needs-reply</span><span>—</span></div>
+      <div class="sample-row"><span>Oldest unread: 2 days</span><span>—</span></div>
+      <div class="cta">Add a Gmail (or Outlook Mail) connector and I'll swap this for your real inbox.</div>
+    </section>
+
+  </div>
+
+  <footer class="note">
+    The two cards above under "Tracking now" are live — this page calls Vercel and Supabase directly with your connected-account credentials each time you open it, and polls in the background while it's open. Everything under "Not connected yet" is placeholder layout only. Tell Claude which real sources should fill those in, or if a different pair of live cards would be more useful.
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var VERCEL_TEAM_ID = "team_R3ImWvKPUJJH8XXoTq6UeC8E";
+  var VERCEL_PROJECT_ID = "prj_hK3TFHim8dPqtpxMv1axcwwoZr3b";
+  var SUPABASE_PROJECT_ID = "dozttylzvfwisckrxjjk";
+
+  var sectionState = {
+    vercel: { status: "loading", lastUpdated: null, unsub: null },
+    supabaseProject: { status: "loading", data: null, lastUpdated: null, unsub: null },
+    supabaseAdvisors: { status: "loading", data: null, lastUpdated: null, unsub: null },
+    supabaseTables: { status: "loading", data: null, lastUpdated: null, unsub: null }
+  };
+
+  function relTime(ms) {
+    if (!ms) return "—";
+    var diff = Date.now() - ms;
+    if (diff < 0) diff = 0;
+    var s = Math.floor(diff / 1000);
+    if (s < 5) return "just now";
+    if (s < 60) return s + "s ago";
+    var m = Math.floor(s / 60);
+    if (m < 60) return m + "m ago";
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + "h ago";
+    var d = Math.floor(h / 24);
+    return d + "d ago";
+  }
+
+  function fmtWhen(ms) {
+    if (!ms) return "unknown time";
+    var d = new Date(ms);
+    return d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  }
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+
+  function errorCopy(err, server) {
+    var code = err && err.code;
+    if (code === "needs_reauth") return { title: "Reconnect needed", body: "Reconnect " + server + " in claude.ai Settings → Connectors." };
+    if (code === "server_not_connected") return { title: "Not connected", body: "Add " + server + " in claude.ai Settings → Connectors." };
+    if (code === "selection_required") return { title: "Choose an account", body: "More than one " + server + " connector is available — pick one in claude.ai." };
+    if (code === "server_unavailable" || code === "rate_limited") return { title: "Temporarily unreachable", body: server + " didn't respond in time. Showing the last known data; this will retry." };
+    if (code === "approval_required") return { title: "Approval required", body: "Your organization requires approval to call " + server + " here." };
+    if (code === "blocked_by_policy") return { title: "Blocked by policy", body: "Your organization's policy blocks this " + server + " call." };
+    return { title: "Couldn't load", body: (err && err.message) ? err.message : "Something went wrong reaching " + server + "." };
+  }
+
+  function pillClassForVercelState(state) {
+    if (state === "READY") return "good";
+    if (state === "ERROR" || state === "CANCELED") return "critical";
+    if (state === "BUILDING" || state === "QUEUED" || state === "INITIALIZING") return "warning";
+    return "muted";
+  }
+
+  function renderVercel() {
+    var pillEl = document.getElementById("vercel-pill");
+    var bodyEl = document.getElementById("vercel-body");
+    var updEl = document.getElementById("vercel-updated");
+    var st = sectionState.vercel;
+
+    updEl.textContent = st.lastUpdated ? "updated " + relTime(st.lastUpdated) : "—";
+
+    if (st.status === "loading") {
+      pillEl.className = "pill muted";
+      pillEl.textContent = "loading";
+      return;
+    }
+
+    if (st.status === "error" && !st.data) {
+      var ec = errorCopy(st.error, "Vercel");
+      pillEl.className = "pill critical";
+      pillEl.textContent = "unavailable";
+      bodyEl.innerHTML = '<div class="state-msg"><strong>' + esc(ec.title) + ".</strong> " + esc(ec.body) + "</div>";
+      return;
+    }
+
+    var deployments = (st.data && st.data.deployments && st.data.deployments.deployments) || [];
+    if (!deployments.length) {
+      pillEl.className = "pill muted";
+      pillEl.textContent = "no deploys";
+      bodyEl.innerHTML = '<div class="state-msg">No deployments found for this project yet.</div>';
+      return;
+    }
+
+    var latest = deployments[0];
+    var pillClass = pillClassForVercelState(latest.state);
+    pillEl.className = "pill " + pillClass;
+    pillEl.textContent = (latest.state || "unknown").toLowerCase();
+
+    var branch = (latest.meta && latest.meta.githubCommitRef) || "—";
+    var commitMsg = (latest.meta && latest.meta.githubCommitMessage) || "—";
+    var author = (latest.meta && latest.meta.githubCommitAuthorName) || (latest.creator && latest.creator.username) || "—";
+    var url = latest.url ? "https://" + latest.url : null;
+
+    var html = '<dl class="kv">';
+    html += "<dt>target</dt><dd>" + esc(latest.target || "—") + "</dd>";
+    html += "<dt>branch</dt><dd class='mono'>" + esc(branch) + "</dd>";
+    html += "<dt>commit</dt><dd>" + esc(commitMsg) + "</dd>";
+    html += "<dt>by</dt><dd>" + esc(author) + "</dd>";
+    html += "<dt>deployed</dt><dd>" + esc(fmtWhen(latest.created)) + "</dd>";
+    if (url) html += "<dt>url</dt><dd><a href='" + esc(url) + "' target='_blank' rel='noopener'>" + esc(latest.url) + "</a></dd>";
+    html += "</dl>";
+
+    if (deployments.length > 1) {
+      html += '<div class="recent-list">';
+      deployments.slice(1, 5).forEach(function (d) {
+        var rc = pillClassForVercelState(d.state);
+        var msg = (d.meta && d.meta.githubCommitMessage) || d.target || "deployment";
+        html += '<div class="recent-row"><span class="rdot ' + rc + '"></span><span class="rmsg">' + esc(msg) + '</span><span class="rtime tab">' + esc(relTime(d.created)) + "</span></div>";
+      });
+      html += "</div>";
+    }
+
+    if (st.status === "error" && st.data) {
+      var ec2 = errorCopy(st.error, "Vercel");
+      html = '<div class="state-msg" style="margin-bottom:10px;"><strong>' + esc(ec2.title) + ".</strong> " + esc(ec2.body) + "</div>" + html;
+    }
+
+    bodyEl.innerHTML = html;
+  }
+
+  function pillClassForSupabaseStatus(status) {
+    if (status === "ACTIVE_HEALTHY") return "good";
+    if (status === "REMOVED" || status === "GOING_DOWN" || (status && status.indexOf("ERROR") !== -1)) return "critical";
+    if (!status) return "muted";
+    return "warning";
+  }
+
+  function renderSupabase() {
+    var pillEl = document.getElementById("supabase-pill");
+    var bodyEl = document.getElementById("supabase-body");
+    var updEl = document.getElementById("supabase-updated");
+    var proj = sectionState.supabaseProject;
+    var adv = sectionState.supabaseAdvisors;
+    var tbl = sectionState.supabaseTables;
+
+    var latestUpdate = Math.max(proj.lastUpdated || 0, adv.lastUpdated || 0, tbl.lastUpdated || 0) || null;
+    updEl.textContent = latestUpdate ? "updated " + relTime(latestUpdate) : "—";
+
+    if (proj.status === "loading") {
+      pillEl.className = "pill muted";
+      pillEl.textContent = "loading";
+      return;
+    }
+
+    if (proj.status === "error" && !proj.data) {
+      var ec = errorCopy(proj.error, "Supabase");
+      pillEl.className = "pill critical";
+      pillEl.textContent = "unavailable";
+      bodyEl.innerHTML = '<div class="state-msg"><strong>' + esc(ec.title) + ".</strong> " + esc(ec.body) + "</div>";
+      return;
+    }
+
+    var projects = (proj.data && proj.data.projects) || [];
+    var p = projects.filter(function (x) { return x.id === SUPABASE_PROJECT_ID; })[0] || projects[0];
+
+    if (!p) {
+      pillEl.className = "pill muted";
+      pillEl.textContent = "no project";
+      bodyEl.innerHTML = '<div class="state-msg">No Supabase project found on this account.</div>';
+      return;
+    }
+
+    pillEl.className = "pill " + pillClassForSupabaseStatus(p.status);
+    pillEl.textContent = (p.status || "unknown").toLowerCase();
+
+    var html = '<dl class="kv">';
+    html += "<dt>region</dt><dd>" + esc(p.region || "—") + "</dd>";
+    html += "<dt>postgres</dt><dd class='mono'>" + esc((p.database && p.database.version) || "—") + "</dd>";
+
+    if (tbl.status === "ok") {
+      var tables = (tbl.data && tbl.data.tables) || [];
+      html += "<dt>tables</dt><dd>" + tables.length + (tables.length ? ": " + esc(tables.slice(0, 5).map(function (t) { return t.name || t; }).join(", ")) : " (public schema is empty)") + "</dd>";
+    } else if (tbl.status === "loading") {
+      html += "<dt>tables</dt><dd>loading…</dd>";
+    } else {
+      html += "<dt>tables</dt><dd>—</dd>";
+    }
+
+    if (adv.status === "ok") {
+      var lints = (adv.data && adv.data.result && adv.data.result.lints) || [];
+      if (!lints.length) {
+        html += "<dt>security</dt><dd>no advisories found</dd>";
+      } else {
+        var top = lints.slice(0, 3).map(function (l) { return l.title || l.name || l.description || "issue"; }).join("; ");
+        html += "<dt>security</dt><dd>" + lints.length + " open — " + esc(top) + "</dd>";
+      }
+    } else if (adv.status === "loading") {
+      html += "<dt>security</dt><dd>loading…</dd>";
+    } else {
+      html += "<dt>security</dt><dd>—</dd>";
+    }
+
+    html += "</dl>";
+
+    var notices = [];
+    if (adv.status === "error") notices.push(errorCopy(adv.error, "Supabase"));
+    if (tbl.status === "error") notices.push(errorCopy(tbl.error, "Supabase"));
+    var noticesHtml = notices.map(function (n) {
+      return '<div class="state-msg" style="margin-bottom:10px;"><strong>' + esc(n.title) + ".</strong> " + esc(n.body) + "</div>";
+    }).join("");
+    html = noticesHtml + html;
+
+    bodyEl.innerHTML = html;
+  }
+
+  function updateHeaderTimestamp() {
+    var all = [sectionState.vercel.lastUpdated, sectionState.supabaseProject.lastUpdated, sectionState.supabaseAdvisors.lastUpdated, sectionState.supabaseTables.lastUpdated].filter(Boolean);
+    var el = document.getElementById("last-refresh");
+    if (!all.length) { el.textContent = "—"; return; }
+    el.textContent = relTime(Math.max.apply(null, all));
+  }
+
+  function tick() {
+    renderVercel();
+    renderSupabase();
+    updateHeaderTimestamp();
+  }
+  setInterval(tick, 15000);
+
+  async function boot() {
+    var mcp = null;
+    try {
+      mcp = await window.claude.use("mcp");
+    } catch (e) {
+      mcp = null;
+    }
+
+    if (!mcp) {
+      var msg = '<div class="state-msg"><strong>Live data unavailable.</strong> This view can\'t reach connected accounts — open the published page directly to see live status.</div>';
+      document.getElementById("vercel-body").innerHTML = msg;
+      document.getElementById("supabase-body").innerHTML = msg;
+      document.getElementById("vercel-pill").textContent = "offline";
+      document.getElementById("supabase-pill").textContent = "offline";
+      document.getElementById("vercel-pill").className = "pill muted";
+      document.getElementById("supabase-pill").className = "pill muted";
+      document.getElementById("live-dot").classList.remove("pulse");
+      return;
+    }
+
+    function watch(key, server, tool, input, refetchInterval, render) {
+      sectionState[key].unsub = mcp.watchTool(server, tool, input, function (ev) {
+        var st = sectionState[key];
+        if (ev.type === "data") {
+          st.status = "ok";
+          st.data = ev.result.payload;
+          st.error = null;
+          st.lastUpdated = (ev.result.cache && ev.result.cache.storedAt) || Date.now();
+        } else {
+          st.status = "error";
+          st.error = ev.error;
+        }
+        render();
+      }, { refetchInterval: refetchInterval });
+    }
+
+    watch("vercel", "Vercel", "list_deployments", { projectId: VERCEL_PROJECT_ID, teamId: VERCEL_TEAM_ID }, 60000, renderVercel);
+    watch("supabaseProject", "Supabase", "list_projects", null, 120000, renderSupabase);
+    watch("supabaseAdvisors", "Supabase", "get_advisors", { project_id: SUPABASE_PROJECT_ID, type: "security" }, 180000, renderSupabase);
+    watch("supabaseTables", "Supabase", "list_tables", { project_id: SUPABASE_PROJECT_ID, schemas: ["public"], verbose: false }, 180000, renderSupabase);
+
+    document.getElementById("refresh-all").addEventListener("click", function () {
+      mcp.invalidate("Vercel", "list_deployments", { projectId: VERCEL_PROJECT_ID, teamId: VERCEL_TEAM_ID }).catch(function () {});
+      mcp.invalidate("Supabase", "list_projects", null).catch(function () {});
+      mcp.invalidate("Supabase", "get_advisors", { project_id: SUPABASE_PROJECT_ID, type: "security" }).catch(function () {});
+      mcp.invalidate("Supabase", "list_tables", { project_id: SUPABASE_PROJECT_ID, schemas: ["public"], verbose: false }).catch(function () {});
+    });
+
+    tick();
+  }
+
+  boot();
+})();
+</script>
