@@ -74,7 +74,7 @@
   .l0 img{
     width:100%; height:100%;
     object-fit:cover; object-position:50% 55%;
-    transform:scale(1.02);      /* overscan; travel is clamped to it at runtime */
+    transform:scale(1.18);      /* overscan; travel is clamped to it at runtime */
   }
 
   /* --- 1 · ring ------------------------------------------------ */
@@ -82,7 +82,7 @@
      of the scene rather than inverting against it. */
   .l1 img{
     position:absolute;
-    left:81%; top:34.5%;
+    left:79.5%; top:35.5%;
     width:10%; height:auto;
     aspect-ratio:1/1;       /* the source is a true circle */
     min-width:86px;
@@ -106,14 +106,14 @@
   .shaft{mix-blend-mode:screen;}
   .shaft img{position:absolute; width:auto;}
 
-  .l3 img{left:17.5%; top:-35.5%; height:125%; transform:rotate(-16deg);}
-  .l4 img{left:-2%; top:-21.5%; height:134%; transform:rotate(10deg);}
-  .l6 img{left:34%; top:-22.5%; height:144%; transform:rotate(-8deg);}
+  .l3 img{left:18%;   top:-26.5%; height:125%; transform:rotate(-16deg);}
+  .l4 img{left:-3.5%; top:-36.5%; height:134%; transform:rotate(10deg);}
+  .l6 img{left:51%;   top:-22.5%; height:144%; transform:rotate(-8deg);}
 
   /* --- 5 · debris ---------------------------------------------- */
   .l5 img{
     position:absolute;
-    left:20.5%; top:44.5%;
+    left:21.5%; top:44.5%;
     width:81%; height:auto;
     aspect-ratio:1800/764;  /* the source plate's own proportion */
   }
@@ -200,18 +200,16 @@
      and the dark rock — the two-tone read the desktop composition has.
      ============================================================ */
   @media (max-aspect-ratio:4/5){
-    .l0 img{object-position:64% 46%; transform:scale(1.05);}
+    .l0 img{object-position:64% 46%; transform:scale(1.4);}
 
-    /* clear of the headline's right edge */
-    .l2 img{left:53%;  top:21%;  height:63%;}
-    .l1 img{left:62%;  top:50%;  width:26%;}
+    .l2 img{left:47.5%; top:-1.5%; height:63%;}
+    .l1 img{left:71%;   top:22.5%; width:18%;}
 
-    /* light kept left of the monogram so it can't screen over the blend */
-    .l3 img{left:-18%; top:-16%; height:92%;  transform:rotate(-19deg);}
-    .l4 img{left:4%;   top:-22%; height:84%;  transform:rotate(12deg);}
-    .l6 img{left:20%;  top:-12%; height:78%;  transform:rotate(-9deg);}
+    .l3 img{left:-18%;  top:-16%;  height:92%; transform:rotate(-19deg);}
+    .l4 img{left:4%;    top:-22%;  height:84%; transform:rotate(12deg);}
+    .l6 img{left:20%;   top:-12%;  height:78%; transform:rotate(-9deg);}
 
-    .l5 img{left:-22%; top:43%;  width:190%;}
+    .l5 img{left:3.5%;  top:75.5%; width:169%;}
 
     /* type sits on a controlled ground rather than on rock texture */
     .scrim{
@@ -247,6 +245,19 @@
     .wide-only{display:none;}
   }
 
+  /* ------------------------------------------------------------
+     PHONE
+     A phone and a tablet are both portrait but not the same canvas:
+     roughly 0.42–0.47 against 0.66–0.75. The block above holds for
+     both; these four layers are re-placed for the narrower one.
+     ------------------------------------------------------------ */
+  @media (max-aspect-ratio:3/5){
+    .l0 img{object-position:75.5% 46%;}
+    .l1 img{left:78%;  top:23.5%; width:27%;}
+    .l4 img{left:-11%; top:-22%;  height:84%; transform:rotate(12deg);}
+    .l5 img{left:9%;   top:85.5%; width:225%;}
+  }
+
   /* very small phones — pull the type in a step */
   @media (max-aspect-ratio:4/5) and (max-width:360px){
     .headline{font-size:1.58rem; max-width:17ch;}
@@ -264,7 +275,7 @@
 <header class="hero" id="hero">
 
   <!-- 0 · landscape plate -->
-  <div class="pl l0" data-depth="10" data-overscan="1.02">
+  <div class="pl l0" data-depth="89" data-overscan="1.13">
     <img src="assets/layer0.webp" alt="" width="1920" height="1280" fetchpriority="high" decoding="async">
   </div>
 
@@ -279,22 +290,22 @@
   </div>
 
   <!-- 3 · light shaft -->
-  <div class="pl shaft l3" data-depth="19">
+  <div class="pl shaft l3" data-depth="134">
     <img src="assets/layer3.webp" alt="" width="512" height="1158" decoding="async">
   </div>
 
   <!-- 4 · light shaft -->
-  <div class="pl shaft l4" data-depth="27">
+  <div class="pl shaft l4" data-depth="34">
     <img src="assets/layer4.webp" alt="" width="512" height="1157" decoding="async">
   </div>
 
   <!-- 5 · debris -->
-  <div class="pl l5" data-depth="31">
+  <div class="pl l5" data-depth="63">
     <img src="assets/layer5.webp" alt="" width="1800" height="764" fetchpriority="high" decoding="async">
   </div>
 
   <!-- 6 · light shaft -->
-  <div class="pl shaft l6" data-depth="90">
+  <div class="pl shaft l6" data-depth="97">
     <img src="assets/layer6.webp" alt="" width="512" height="1157" decoding="async">
   </div>
 
