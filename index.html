@@ -79,8 +79,16 @@
 
   /* --- 1 · ring ------------------------------------------------ */
   /* pure white, no blend — unlike the monogram, this one sits on top
-     of the scene rather than inverting against it. */
+     of the scene rather than inverting against it.
+     The ring is also the one layer that turns: its plane pivots to face
+     the pointer, so the circle foreshortens into an ellipse as the
+     cursor moves off its axis. Perspective lives on the layer, the
+     rotation on the image. */
+  .l1{perspective:900px;}
   .l1 img{
+    transform:rotateY(var(--ring-ry,0deg)) rotateX(var(--ring-rx,0deg));
+    transform-origin:50% 50%;
+    backface-visibility:visible;
     position:absolute;
     left:79.5%; top:35.5%;
     width:10%; height:auto;
@@ -186,6 +194,87 @@
   .rail a{color:inherit; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.28);}
   .rail a:hover{color:#fff; border-bottom-color:#fff;}
 
+  /* --- scroll cue ----------------------------------------------
+     Rides the pointer and inverts against whatever it crosses, the
+     same difference blend the monogram uses. It lives inside the hero
+     so it cannot outlive the section, and like every blended layer it
+     stays off the GPU's own compositor pass. */
+  .scrollcue{
+    position:absolute; left:0; top:0;
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--mono);
+    font-size:.62rem; letter-spacing:.22em; text-transform:uppercase;
+    color:#fff;
+    mix-blend-mode:difference;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity .35s ease;
+    will-change:auto;
+    white-space:nowrap;
+  }
+  .scrollcue.on{opacity:1;}
+  .scrollcue .arw{
+    display:inline-block;
+    animation:cuebob 1.9s ease-in-out infinite;
+  }
+  @keyframes cuebob{
+    0%,100%{transform:translateY(-2px);}
+    50%    {transform:translateY(2px);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scrollcue{display:none;}
+  }
+
+  /* ============================================================
+     CLIENT STRIP
+     A fifth of the hero's height, white, with the marks tracking
+     left-to-right on a loop. Every slot is the same width so the
+     rhythm stays even whatever shape each mark is; the artwork is
+     centred inside its slot rather than filling it.
+     ============================================================ */
+  .clients{
+    height:20svh;
+    min-height:96px;
+    background:var(--paper);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+  }
+  .marquee{
+    width:100%;
+    overflow:hidden;
+    /* soften the entry and exit so marks don't pop at the edges */
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+            mask-image:linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  }
+  .track{
+    display:flex;
+    align-items:center;
+    width:max-content;
+    animation:marquee 38s linear infinite;
+    will-change:transform;
+  }
+  /* the spacing is a margin on each slot, not a gap on the track: with a
+     gap the duplicated half is not exactly 50% of the width and the loop
+     drifts a pixel each cycle. */
+  .logo{
+    flex:0 0 auto;
+    width:clamp(96px, 11vw, 156px);
+    margin-right:clamp(32px, 5vw, 76px);
+    display:grid;
+    place-items:center;
+  }
+  .logo img{max-width:100%; max-height:56%; object-fit:contain;}
+  @keyframes marquee{
+    from{transform:translateX(-50%);}
+    to  {transform:translateX(0);}
+  }
+  .clients:hover .track{animation-play-state:paused;}
+  @media (prefers-reduced-motion:reduce){
+    .track{animation:none;}
+    .marquee{overflow-x:auto;}
+  }
+
   /* ============================================================
      PORTRAIT
      Keyed to aspect, not width — a 768px iPad in portrait has the
@@ -255,7 +344,8 @@
     .l0 img{object-position:75.5% 46%;}
     .l1 img{left:78%;  top:23.5%; width:27%;}
     .l4 img{left:-11%; top:-22%;  height:84%; transform:rotate(12deg);}
-    .l5 img{left:9%;   top:85.5%; width:225%;}
+    /* the plate is 2.36:1 — in a 0.46 frame it never reads as a burst */
+    .l5{display:none;}
   }
 
   /* very small phones — pull the type in a step */
@@ -324,7 +414,44 @@
     </div>
   </div>
 
+  <div class="scrollcue" id="scrollcue"><span class="arw">&#8595;</span> Scroll down</div>
+
 </header>
+
+<section class="clients" aria-label="Selected clients">
+  <div class="marquee">
+    <ul class="track">
+        <li class="logo"><img src="assets/logos/clinique-imen.svg" alt="Clinique Imen" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="Clinique Dentaire Sahnoun" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="Luxo Clinique" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="Chemist Cooper Group" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="Dermilyne Laboratoire" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="Direct Pharma" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="LDM Groupe" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="Dr Simoud Bilel" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/zoceutica.svg" alt="Zoceutica Corp" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="Racine Lab" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/evolab.webp" alt="Evolab Laboratories" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="Natural Solution" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/bioformul.svg" alt="BioFormul" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/laformul.svg" alt="Laformul" loading="lazy" decoding="async"></li>
+        <li class="logo" aria-hidden="true"><img src="assets/logos/clinique-imen.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/zoceutica.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/evolab.webp" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/bioformul.svg" alt="" loading="lazy" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/laformul.svg" alt="" loading="lazy" decoding="async"></li>
+    </ul>
+  </div>
+</section>
 
 <script>
 (function(){
@@ -333,6 +460,15 @@
 
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   var fine   = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+  var ringImg = hero.querySelector('.l1 img');
+  var cue     = document.getElementById('scrollcue');
+  var ringCx = 0, ringCy = 0;
+
+  // how far in front of the plate the pointer is treated as sitting. the
+  // ring turns to face that point, so a smaller number means a sharper
+  // turn for the same cursor travel.
+  var VIEW_DEPTH = 0.62, MAX_TILT = 52;
 
   var layers = [].slice.call(hero.querySelectorAll('[data-depth]')).map(function(el){
     return {
@@ -357,6 +493,11 @@
       L.maxX = Math.max(0, m * r.width  - 0.5);
       L.maxY = Math.max(0, m * r.height - 0.5);
     }
+    if(ringImg){
+      var q = ringImg.getBoundingClientRect();
+      ringCx = q.left - r.left + q.width  / 2;
+      ringCy = q.top  - r.top  + q.height / 2;
+    }
   }
   measure();
   addEventListener('resize', measure);
@@ -366,7 +507,10 @@
   // instead of snap — a CSS transition on transform jitters under a
   // high-frequency mousemove.
   var tx = 0, ty = 0, cx = 0, cy = 0;
-  var raf = null, EASE = 0.075, EPS = 0.0004;
+  // ring tilt and the pointer-anchored cue ride the same loop
+  var tRX = 0, tRY = 0, cRX = 0, cRY = 0;
+  var tCX = 0, tCY = 0, cCX = 0, cCY = 0, cueSeeded = false;
+  var raf = null, EASE = 0.075, CUE_EASE = 0.16, EPS = 0.0004;
 
   function render(){
     cx += (tx - cx) * EASE;
@@ -381,23 +525,60 @@
         : 'translate3d(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px,0)';
     }
 
+    // the ring's plane turns to face the pointer: a circle seen square-on
+    // when the cursor is on its axis, foreshortening to an ellipse as it
+    // moves off. rotateY carries the horizontal swing, rotateX the vertical.
+    if(ringImg){
+      cRX += (tRX - cRX) * EASE;
+      cRY += (tRY - cRY) * EASE;
+      ringImg.style.setProperty('--ring-rx', cRX.toFixed(2) + 'deg');
+      ringImg.style.setProperty('--ring-ry', cRY.toFixed(2) + 'deg');
+    }
+
+    if(cue){
+      cCX += (tCX - cCX) * CUE_EASE;
+      cCY += (tCY - cCY) * CUE_EASE;
+      cue.style.transform = 'translate(' + cCX.toFixed(1) + 'px,' + cCY.toFixed(1) + 'px)';
+    }
+
     // park the loop once we've effectively arrived
-    if(Math.abs(tx - cx) < EPS && Math.abs(ty - cy) < EPS){
-      cx = tx; cy = ty; raf = null; return;
+    var settled = Math.abs(tx - cx) < EPS && Math.abs(ty - cy) < EPS &&
+                  Math.abs(tRX - cRX) < 0.02 && Math.abs(tRY - cRY) < 0.02 &&
+                  Math.abs(tCX - cCX) < 0.3  && Math.abs(tCY - cCY) < 0.3;
+    if(settled){
+      cx = tx; cy = ty; cRX = tRX; cRY = tRY; cCX = tCX; cCY = tCY;
+      raf = null; return;
     }
     raf = requestAnimationFrame(render);
   }
 
   function kick(){ if(raf === null) raf = requestAnimationFrame(render); }
 
+  function clamp(v, m){ return v < -m ? -m : (v > m ? m : v); }
+
   function onMove(e){
     var r = hero.getBoundingClientRect();
-    tx = ((e.clientX - r.left) / r.width  - 0.5) * 2;   // -1 … 1
-    ty = ((e.clientY - r.top)  / r.height - 0.5) * 2;
+    var px = e.clientX - r.left, py = e.clientY - r.top;
+
+    tx = (px / r.width  - 0.5) * 2;   // -1 … 1
+    ty = (py / r.height - 0.5) * 2;
+
+    var d = r.width * VIEW_DEPTH;
+    tRY =  clamp(Math.atan2(px - ringCx, d) * 180 / Math.PI, MAX_TILT);
+    tRX = -clamp(Math.atan2(py - ringCy, d) * 180 / Math.PI, MAX_TILT);
+
+    tCX = px + 22; tCY = py + 20;
+    if(!cueSeeded){ cCX = tCX; cCY = tCY; cueSeeded = true; }  // no fly-in from 0,0
+    if(cue) cue.classList.add('on');
+
     kick();
   }
 
-  function onLeave(){ tx = 0; ty = 0; kick(); }
+  function onLeave(){
+    tx = 0; ty = 0; tRX = 0; tRY = 0;
+    if(cue) cue.classList.remove('on');
+    kick();
+  }
 
   function enable(){
     hero.addEventListener('mousemove', onMove);
@@ -406,7 +587,10 @@
   function disable(){
     hero.removeEventListener('mousemove', onMove);
     hero.removeEventListener('mouseleave', onLeave);
-    tx = 0; ty = 0; kick();
+    tx = 0; ty = 0; tRX = 0; tRY = 0;
+    if(cue) cue.classList.remove('on');
+    cueSeeded = false;
+    kick();
   }
 
   function sync(){
