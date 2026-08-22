@@ -63,14 +63,14 @@
   .l0 img{
     width:100%; height:100%;
     object-fit:cover; object-position:50% 55%;
-    transform:scale(1.06);      /* overscan so travel never reveals an edge */
+    transform:scale(1.02);      /* overscan; travel is clamped to it at runtime */
   }
 
   /* --- 1 · ring ------------------------------------------------ */
   .l1{mix-blend-mode:difference;}
   .l1 img{
     position:absolute;
-    left:84.5%; top:32%;
+    left:81%; top:34.5%;
     width:10%;
     min-width:86px;
   }
@@ -82,8 +82,8 @@
   .l2{mix-blend-mode:difference;}
   .l2 img{
     position:absolute;
-    left:64%; top:-5%;
-    height:96%;
+    left:64.5%; top:-0.5%;
+    height:93%;
     width:auto;
   }
 
@@ -93,15 +93,15 @@
   .shaft{mix-blend-mode:screen;}
   .shaft img{position:absolute; width:auto;}
 
-  .l3 img{left:0%;  top:-26%; height:150%; transform:rotate(-16deg);}
-  .l4 img{left:18%; top:-30%; height:158%; transform:rotate(10deg);}
-  .l6 img{left:34%; top:-22%; height:144%; transform:rotate(-8deg);}
+  .l3 img{left:17.5%; top:-35.5%; height:125%; transform:rotate(-16deg);}
+  .l4 img{left:-2%; top:-21.5%; height:134%; transform:rotate(10deg);}
+  .l6 img{left:34%; top:-22.5%; height:144%; transform:rotate(-8deg);}
 
   /* --- 5 · debris ---------------------------------------------- */
   .l5 img{
     position:absolute;
-    left:-2%; top:30%;
-    width:112%;
+    left:20.5%; top:44.5%;
+    width:81%;
   }
 
   /* --- scrim ---------------------------------------------------
@@ -174,9 +174,9 @@
 
   @media (max-width:720px){
     .rail{text-align:left;}
-    .l2 img{left:52%; height:76%;}
-    .l1 img{left:74%; top:26%; width:18%;}
-    .l5 img{left:-18%; width:150%; top:42%;}
+    .l2 img{left:50%; top:4%; height:74%;}
+    .l1 img{left:70%; top:30%; width:17%;}
+    .l5 img{left:-10%; top:46%; width:130%;}
   }
 
   /* motion is an enhancement; the rest state is the composition. */
@@ -190,7 +190,7 @@
 <header class="hero" id="hero">
 
   <!-- 0 · landscape plate -->
-  <div class="pl l0" data-depth="8">
+  <div class="pl l0" data-depth="10" data-overscan="1.02">
     <img src="assets/layer0.webp" alt="" width="1920" height="1280" fetchpriority="high" decoding="async">
   </div>
 
@@ -205,29 +205,29 @@
   </div>
 
   <!-- 3 · light shaft -->
-  <div class="pl shaft l3" data-depth="26">
+  <div class="pl shaft l3" data-depth="19">
     <img src="assets/layer3.webp" alt="" width="512" height="1158" decoding="async">
   </div>
 
   <!-- 4 · light shaft -->
-  <div class="pl shaft l4" data-depth="32">
+  <div class="pl shaft l4" data-depth="27">
     <img src="assets/layer4.webp" alt="" width="512" height="1157" decoding="async">
   </div>
 
   <!-- 5 · debris -->
-  <div class="pl l5" data-depth="40">
+  <div class="pl l5" data-depth="31">
     <img src="assets/layer5.webp" alt="" width="1800" height="764" fetchpriority="high" decoding="async">
   </div>
 
   <!-- 6 · light shaft -->
-  <div class="pl shaft l6" data-depth="48">
+  <div class="pl shaft l6" data-depth="90">
     <img src="assets/layer6.webp" alt="" width="512" height="1157" decoding="async">
   </div>
 
   <div class="scrim"></div>
 
   <!-- 7 · type — front plane, damped amplitude -->
-  <div class="type" id="typeLayer" data-depth="16">
+  <div class="type" id="typeLayer" data-depth="17">
     <h1 class="headline"><b>unlocking</b> your <b>brand's</b> unrealized <b>potential</b></h1>
     <div class="footrow">
       <div class="wordmark"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></div>
@@ -250,8 +250,28 @@
   var fine   = window.matchMedia('(hover: hover) and (pointer: fine)');
 
   var layers = [].slice.call(hero.querySelectorAll('[data-depth]')).map(function(el){
-    return { el: el, depth: parseFloat(el.dataset.depth) || 0 };
+    return {
+      el: el,
+      depth: parseFloat(el.dataset.depth) || 0,
+      // a full-bleed cover plate can only travel as far as its own overscan;
+      // past that it pulls off its edge and reveals the ground behind.
+      overscan: parseFloat(el.dataset.overscan) || 0,
+      maxX: Infinity, maxY: Infinity
+    };
   });
+
+  function measure(){
+    var r = hero.getBoundingClientRect();
+    for(var i = 0; i < layers.length; i++){
+      var L = layers[i];
+      if(!L.overscan){ L.maxX = L.maxY = Infinity; continue; }
+      var m = (L.overscan - 1) / 2;
+      L.maxX = Math.max(0, m * r.width  - 0.5);
+      L.maxY = Math.max(0, m * r.height - 0.5);
+    }
+  }
+  measure();
+  addEventListener('resize', measure);
 
   // target (where the pointer says we should be) and current (where we
   // actually are). easing current toward target is what makes it glide
@@ -266,9 +286,10 @@
 
     for(var i = 0; i < layers.length; i++){
       var L = layers[i];
+      var dx = cx * Math.min(L.depth, L.maxX);
+      var dy = cy * Math.min(L.depth, L.maxY);
       L.el.style.transform =
-        'translate3d(' + (cx * L.depth).toFixed(2) + 'px,' +
-                         (cy * L.depth).toFixed(2) + 'px,0)';
+        'translate3d(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px,0)';
     }
 
     // park the loop once we've effectively arrived
