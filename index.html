@@ -640,60 +640,48 @@
   }
 
   /* ============================================================
-     THE LENS — hero headline only
-     The hero is the brand in its raw state; the burst is the potential
-     still locked in it. The lens is the moment of contact: a bounded
-     piece of glass that travels with the pointer, gilding and bending
-     only what it passes over and leaving the rest untouched.
-
-     Two stacked copies of the same line. The base carries the white
-     type and is masked OUT inside the disc; the glass carries the gold,
-     the displacement and the fringing and is masked IN. They are exact
-     complements, so there is never a doubled glyph — only one or the
-     other is painted at any point.
-     ============================================================ */
-  /* ============================================================
      THE LENS — hero headline
-     A piece of glass that travels with the pointer. Inside it the line
-     is flat accent green, bent by a turbulence displacement and split
-     into a blue and a yellow edge; outside it nothing has changed.
+     A piece of glass that travels with the pointer, inverting the line
+     against whatever it crosses.
 
-     Two stacked copies of the line with exactly complementary masks —
-     identical stops, swapped colours — so the alphas sum to 1 at every
-     radius and only one copy is ever painted at a given point. There
-     is no transform on the glass: a scale on a duplicate displaces
-     every glyph from its original in proportion to its distance from
-     the centre, which is what produced doubled letters before.
+     The glass CANNOT live inside .type. mix-blend-mode only blends with
+     the backdrop inside the nearest stacking context, and .type makes
+     one for its own parallax transform — so a blended child of it has
+     the scene as a sibling, not a backdrop, and composites against
+     nothing. The glass is therefore a sibling of .type: a second copy
+     of the same block, painted after it, directly inside .hero where
+     the scene actually is.
 
-     Because the fill is a flat colour, nothing inside the filtered
-     layer changes as the pointer moves, so the displacement result is
-     computed once and only the two masks travel.
+     The two copies carry exactly complementary masks — identical
+     stops, swapped colours — so the alphas sum to 1 at every radius and
+     only one is painted at a given point. No transform on the glass: a
+     scale on a duplicate displaces every glyph from its original in
+     proportion to its distance from the centre, which is what produced
+     doubled letters.
      ============================================================ */
-  .lens{position:relative; --lr:150px;}
-  .lens-base, .lens-glass{display:block;}
-  .lens-clip{
-    position:absolute; inset:0;
-    opacity:0;
-    pointer-events:none;
-    /* aria-hidden keeps the copy from a screen reader, but it would still
-       land in a selection — copying the headline would paste it twice */
-    -webkit-user-select:none; user-select:none;
-    /* Inside the aperture the line inverts against whatever it crosses,
-       the same difference blend the monogram uses — so the hero speaks in
-       the site's own device rather than in the accent, which is left to
-       carry every other section.
-       The blend sits on the wrapper and the warp on the child: filter and
-       mix-blend-mode on one element is the combination that drops the
-       blend, which this build has already been bitten by once. */
+  .lens{position:relative;}
+  /* The base must be a block so its box coincides with the headline's: the
+     aperture coordinates are measured against the headline, and a mask
+     resolves against its own element's box. As an inline span it started
+     67px to the right and the disc was punched in the wrong place — which
+     left the white type under the glass and gave the blend nothing but
+     itself to work against. */
+  .lens-base{display:block;}
+
+  .type-glass{
     mix-blend-mode:difference;
-    will-change:auto;
+    will-change:auto;                 /* promotion drops the blend */
+    pointer-events:none;
+    -webkit-user-select:none; user-select:none;
+    opacity:0;
     transition:opacity .26s ease;
   }
-  .lens-glass{
+  .type-glass .footrow{visibility:hidden;}   /* holds the grid row, paints nothing */
+  .type-glass .headline{
     color:#FFFFFF;
     /* Refraction: the glyph split either side into a blue and a yellow
-       edge, offset further and softened so it reads as light bending
-       through glass rather than as a hairline outline. */
+       edge, offset and softened so it reads as light bending through
+       glass rather than as a hairline outline. */
     text-shadow:
       -3px 0 9px rgba(56,140,255,.85),
        3px 0 9px rgba(255,206,0,.85),
@@ -701,24 +689,25 @@
        6px 0 22px rgba(255,206,0,.45);
     filter:url(#lensRefract);
   }
+
   @media (hover:hover) and (pointer:fine){
-    .lens:hover .lens-clip{
-      opacity:1;
-      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+    .hero.lens-on .type-glass{opacity:1;}
+    .hero.lens-on .type-glass .headline{
+      -webkit-mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
         #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
-              mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+              mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
         #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
     }
-    .lens:hover .lens-base{
-      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+    .hero.lens-on .type:not(.type-glass) .lens-base{
+      -webkit-mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
         rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
-              mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+              mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
         rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
     }
   }
   @media (prefers-reduced-motion:reduce){
-    .lens-glass{filter:none;}
-    .lens-clip{transition:none;}
+    .type-glass .headline{filter:none;}
+    .type-glass{transition:none;}
   }
   .lens-defs{position:absolute; width:0; height:0; overflow:hidden;}
 </style>
@@ -1090,6 +1079,29 @@
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
   var fine   = window.matchMedia('(hover: hover) and (pointer: fine)');
 
+  /* The glass copy of the type layer. It must be a SIBLING of .type inside
+     .hero: .type creates a stacking context for its own parallax transform,
+     and a blended child of it would have the scene as a sibling rather than
+     as a backdrop, so it would composite against nothing. Built here, before
+     the layer list is read, so the parallax loop adopts it — and because it
+     already carries mix-blend-mode by then, the loop gives it the 2D
+     transform that keeps the blend alive. */
+  (function buildGlass(){
+    var type = hero.querySelector('.type');
+    var lens = type && type.querySelector('.lens');
+    if(!type || !lens) return;
+    if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    var glass = type.cloneNode(true);
+    glass.classList.add('type-glass');
+    glass.removeAttribute('id');
+    // the clone must not answer to the base's selectors — it is the glass now
+    var innerBase = glass.querySelector('.lens-base');
+    if(innerBase) innerBase.classList.remove('lens-base');
+    glass.setAttribute('aria-hidden', 'true');
+    glass.setAttribute('data-depth', type.getAttribute('data-depth') || '17');
+    type.parentNode.insertBefore(glass, type.nextSibling);
+  })();
+
   var ringImg = hero.querySelector('.l1 img');
   var cue     = document.getElementById('scrollcue');
   var ringCx = 0, ringCy = 0;
@@ -1239,34 +1251,22 @@
 (function(){
   if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
-  /* The glass is an exact copy of the line it sits over — cloned rather than
-     duplicated in the markup, so the text exists once for a reader and once
-     for the effect and the two can never drift apart. */
-  document.querySelectorAll('.lens').forEach(function(lens){
-    var base = lens.querySelector('.lens-base');
-    if(!base || lens.querySelector('.lens-clip')) return;
-    var glass = base.cloneNode(true);
-    glass.className = 'lens-glass';
-    var clip = document.createElement('span');
-    clip.className = 'lens-clip';
-    clip.setAttribute('aria-hidden', 'true');
-    clip.appendChild(glass);
-    lens.appendChild(clip);
-  });
-
   var zones = document.querySelectorAll('.gt-zone, .lens');
   if(!zones.length) return;
 
   function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
 
   function paint(zone, e){
-    // the aperture positions itself; the pooled elements position their own
+    // The aperture is described once, relative to the headline box, and both
+    // copies mask their own headline with it.
     if(zone.classList.contains('lens')){
       var lr = zone.getBoundingClientRect();
-      if(lr.width && lr.height){
-        zone.style.setProperty('--mx', (e.clientX - lr.left).toFixed(1) + 'px');
-        zone.style.setProperty('--my', (e.clientY - lr.top).toFixed(1) + 'px');
-      }
+      if(!lr.width || !lr.height) return;
+      // both copies are laid out identically, so one pair of coordinates
+      // relative to the headline box serves both; published on .hero and
+      // inherited rather than written twice
+      hero.style.setProperty('--bx', (e.clientX - lr.left).toFixed(1) + 'px');
+      hero.style.setProperty('--by', (e.clientY - lr.top ).toFixed(1) + 'px');
       return;
     }
     var targets = zone.classList.contains('gt') ? [zone] : [];
@@ -1285,6 +1285,10 @@
 
   zones.forEach(function(zone){
     var frame = null, last = null;
+    if(zone.classList.contains('lens')){
+      zone.addEventListener('mouseenter', function(){ hero.classList.add('lens-on'); });
+      zone.addEventListener('mouseleave', function(){ hero.classList.remove('lens-on'); });
+    }
     zone.addEventListener('mousemove', function(e){
       last = e;
       if(frame !== null) return;                 // one paint per frame, not per event
