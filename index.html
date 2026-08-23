@@ -20,6 +20,17 @@
 
     /* hero rhythm */
     --edge:clamp(24px, 6vw, 104px);
+
+    /* Accent — taken from BioFormul's real 60/30/10 palette rather than
+       invented, so the one colour on an otherwise monochrome site arrives
+       out of the work itself. Read as a metal catching light: specular
+       highlight through to shadowed edge. */
+    --g-spec:#FFF6DA;
+    --g-hi:#F6DC93;
+    --g-mid:#E3BC55;
+    --g-key:#C9A227;   /* the anchor — BioFormul's gold */
+    --g-lo:#9A7A1C;
+    --g-deep:#6E5410;
   }
 
   *{box-sizing:border-box;}
@@ -192,7 +203,7 @@
     text-shadow:0 2px 20px rgba(0,0,0,.6);
   }
   .rail a{color:inherit; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.28);}
-  .rail a:hover{color:#fff; border-bottom-color:#fff;}
+  .rail a:hover{border-bottom-color:var(--g-key);}
 
   /* --- scroll cue ----------------------------------------------
      Rides the pointer and inverts against whatever it crosses, the
@@ -408,12 +419,10 @@
     padding:26px 0;
     border-bottom:1px solid rgba(255,255,255,.12);
     text-decoration:none; color:inherit;
-    transition:background .3s ease, padding .3s ease;
   }
-  .index-row:hover,.index-row:focus-visible{
-    background:rgba(255,255,255,.04);
-    padding-left:14px; padding-right:14px;
-  }
+  /* the row's own hover state is now carried entirely by the accent —
+     no background wash, no padding shift */
+  .index-row:focus-visible{outline:2px solid var(--g-key); outline-offset:-2px;}
   .idx-n{font-family:var(--mono); font-size:.68rem; color:rgba(255,255,255,.42); letter-spacing:.1em;}
   .idx-client{font-size:clamp(1rem,1.7vw,1.35rem); font-weight:600; letter-spacing:-.01em;}
   .idx-sector{font-family:var(--mono); font-size:.62rem; letter-spacing:.16em;
@@ -421,7 +430,7 @@
   .idx-concept{color:rgba(255,255,255,.74); font-weight:300; line-height:1.5;
     font-size:clamp(.85rem,1.15vw,1rem);}
   .idx-go{font-family:var(--mono); font-size:.9rem; color:rgba(255,255,255,.42);}
-  .index-row:hover .idx-go{color:#fff;}
+  .index-row:hover .idx-go{color:var(--g-hi);}
   @media (max-width:820px){
     .index-row{grid-template-columns:3rem 1fr auto; row-gap:10px;}
     .idx-concept{grid-column:2 / -1;}
@@ -576,6 +585,58 @@
   @media (prefers-reduced-motion:reduce){
     .rv{opacity:1; transform:none; transition:none;}
   }
+
+  /* ============================================================
+     GOLD — the accent
+     One colour on a monochrome site, and it only ever appears under
+     the pointer. The gradient is radial and centred on the cursor's
+     position inside the element, so it reads as light catching metal
+     rather than as a colour swap: the same pointer-driven logic the
+     ring and the parallax already run on.
+
+     Mechanism: the gradient sits permanently behind the glyphs, clipped
+     to them. Hover fades the text's own colour out to transparent and
+     the gold is what remains. Fading colour rather than swapping it is
+     what makes the transition a warming rather than a flick.
+     ============================================================ */
+  @media (hover:hover) and (pointer:fine){
+    .gt{
+      background-image:radial-gradient(140% 220% at var(--mx,50%) var(--my,50%),
+        var(--g-spec) 0%,
+        var(--g-hi)  16%,
+        var(--g-mid) 34%,
+        var(--g-key) 58%,
+        var(--g-lo) 100%);   /* stops here: every stop on ink clears 4.5:1 */
+      -webkit-background-clip:text;
+              background-clip:text;
+      transition:color .38s ease, filter .38s ease;
+    }
+    /* children carry their own colour (the wordmark's lighter half, the
+       rail's dimmed white) — they have to clear too or the fade is partial */
+    .gt-zone:hover .gt,   .gt-zone:hover .gt *,
+    .gt.gt-zone:hover,    .gt.gt-zone:hover *{
+      color:transparent;
+    }
+    /* the headline is the one place the accent is allowed to glow */
+    .headline.gt.gt-zone:hover{
+      filter:drop-shadow(0 0 26px rgba(201,162,39,.28));
+    }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .gt{transition:none;}
+  }
+
+  /* On the bone ground a radiant gold cannot be both bright and legible —
+     the ramp's top four stops sit between 1.05:1 and 2.14:1 against
+     #F2F1EE. So the dossier gets the accent as a solid at the one stop
+     that clears AA (#6E5410, 6.33:1) rather than a gradient that would
+     have to be dimmed until it stopped reading as light. */
+  @media (hover:hover) and (pointer:fine){
+    .bronze{transition:color .38s ease;}
+    .outcome.gt-zone:hover .bronze{color:var(--g-deep);}
+    .sys-row .sys-k{transition:color .3s ease;}
+    .sys-row:hover .sys-k{color:var(--g-deep);}
+  }
 </style>
 </head>
 <body>
@@ -621,10 +682,10 @@
 
   <!-- 7 · type — front plane, damped amplitude -->
   <div class="type" id="typeLayer" data-depth="17">
-    <h1 class="headline"><b>unlocking</b> your <b>brand's</b> unrealized <b>potential</b></h1>
+    <h1 class="headline gt gt-zone"><b>unlocking</b> your <b>brand's</b> unrealized <b>potential</b></h1>
     <div class="footrow">
-      <div class="wordmark"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></div>
-      <div class="rail">
+      <div class="wordmark gt gt-zone"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></div>
+      <div class="rail gt gt-zone">
         Djalel Djarri · Creative Director<br>
         <span class="wide-only">Pharma &amp; parapharma brand systems<br></span>
         Open to relocation — Geneva / Zurich / Lausanne
@@ -677,22 +738,22 @@
     <div class="kicker">Selected work · 2016—2025</div>
   </div>
   <ul class="index-list">
-      <li><a class="index-row" href="#case-evolab">
+      <li><a class="index-row gt-zone" href="#case-evolab">
         <span class="idx-n">01</span>
-        <span><span class="idx-client">Evolab Laboratories</span><span class="idx-sector">Pharmaceutical</span></span>
-        <span class="idx-concept">A compressed circle unfurls into a perfect one</span>
+        <span><span class="idx-client gt">Evolab Laboratories</span><span class="idx-sector">Pharmaceutical</span></span>
+        <span class="idx-concept gt">A compressed circle unfurls into a perfect one</span>
         <span class="idx-go" aria-hidden="true">&#8594;</span>
       </a></li>
-      <li><a class="index-row" href="#case-natural">
+      <li><a class="index-row gt-zone" href="#case-natural">
         <span class="idx-n">02</span>
-        <span><span class="idx-client">Natural Solution</span><span class="idx-sector">Parapharmaceutical</span></span>
-        <span class="idx-concept">Three leaves, arranged to form the letter T</span>
+        <span><span class="idx-client gt">Natural Solution</span><span class="idx-sector">Parapharmaceutical</span></span>
+        <span class="idx-concept gt">Three leaves, arranged to form the letter T</span>
         <span class="idx-go" aria-hidden="true">&#8594;</span>
       </a></li>
-      <li><a class="index-row" href="#case-laformul">
+      <li><a class="index-row gt-zone" href="#case-laformul">
         <span class="idx-n">03</span>
-        <span><span class="idx-client">Laformul + BioFormul</span><span class="idx-sector">Dermo-cosmetic</span></span>
-        <span class="idx-concept">Precision in black and white, then two linked circles</span>
+        <span><span class="idx-client gt">Laformul + BioFormul</span><span class="idx-sector">Dermo-cosmetic</span></span>
+        <span class="idx-concept gt">Precision in black and white, then two linked circles</span>
         <span class="idx-go" aria-hidden="true">&#8594;</span>
       </a></li>
   </ul>
@@ -705,7 +766,7 @@
     <div class="poster-body">
       <div class="poster-eyebrow"><span>Case 01</span><span>Pharmaceutical</span><span>Evolab Laboratories</span></div>
       <p class="poster-tension rv">A full pharmaceutical catalogue that had to read as scientifically credible and future-facing at the same time — mature enough to trust, current enough to feel new.</p>
-      <h2 class="poster-concept rv">A compressed circle <b>unfurls into a perfect one.</b></h2>
+      <h2 class="poster-concept rv gt gt-zone">A compressed circle <b>unfurls into a perfect one.</b></h2>
     </div>
   </div>
 
@@ -768,9 +829,9 @@
           <div><div class="n">1</div><div class="l">Trade-show build</div></div>
         </div>
 
-        <div class="outcome">
+        <div class="outcome gt-zone">
           <div class="l">Outcome</div>
-          <p>Launched across Evolab’s full catalogue and staged live at Algeria’s top pharmaceutical exhibition.</p>
+          <p class="bronze">Launched across Evolab’s full catalogue and staged live at Algeria’s top pharmaceutical exhibition.</p>
         </div>
       </div>
     </div>
@@ -784,7 +845,7 @@
     <div class="poster-body">
       <div class="poster-eyebrow"><span>Case 02</span><span>Parapharmaceutical</span><span>Natural Solution</span></div>
       <p class="poster-tension rv">A natural-origin story that still had to read as clinically credible — botanical enough to be believed, disciplined enough not to tip into decoration.</p>
-      <h2 class="poster-concept rv">Three leaves, arranged to <b>form the letter T.</b></h2>
+      <h2 class="poster-concept rv gt gt-zone">Three leaves, arranged to <b>form the letter T.</b></h2>
     </div>
   </div>
 
@@ -843,9 +904,9 @@
           <div><div class="n">1</div><div class="l">Mark, unchanged</div></div>
         </div>
 
-        <div class="outcome">
+        <div class="outcome gt-zone">
           <div class="l">Outcome</div>
-          <p>A flexible identity built to scale alongside the brand’s expanding catalogue — and it has, for three years.</p>
+          <p class="bronze">A flexible identity built to scale alongside the brand’s expanding catalogue — and it has, for three years.</p>
         </div>
       </div>
     </div>
@@ -859,7 +920,7 @@
     <div class="poster-body">
       <div class="poster-eyebrow"><span>Case 03</span><span>Dermo-cosmetic</span><span>Laformul + BioFormul</span></div>
       <p class="poster-tension rv">Built before the brand existed. No product, no name on a shelf, no audience — strategy and identity defined from day one, then a second brand born out of the first one working.</p>
-      <h2 class="poster-concept rv">Precision in black and white. Then <b>two linked circles.</b></h2>
+      <h2 class="poster-concept rv gt gt-zone">Precision in black and white. Then <b>two linked circles.</b></h2>
     </div>
   </div>
 
@@ -918,9 +979,9 @@
           <div><div class="n">1</div><div class="l">Client</div></div>
         </div>
 
-        <div class="outcome">
+        <div class="outcome gt-zone">
           <div class="l">Outcome</div>
-          <p>Laformul’s commercial success directly justified BioFormul’s launch — design work that grew the business that paid for it.</p>
+          <p class="bronze">Laformul’s commercial success directly justified BioFormul’s launch — design work that grew the business that paid for it.</p>
         </div>
       </div>
     </div>
@@ -1074,6 +1135,46 @@
   sync();
   (reduce.addEventListener ? reduce.addEventListener('change', sync) : reduce.addListener(sync));
   (fine.addEventListener   ? fine.addEventListener('change', sync)   : fine.addListener(sync));
+})();
+
+/* The accent's light source. Each gradient is positioned from the pointer's
+   own coordinates inside the element it is clipped to, so a row with two
+   gold spans lights both from the same physical point rather than from the
+   same percentage of two different boxes. Pointer devices only — there is no
+   cursor to follow otherwise, and the CSS is already gated the same way. */
+(function(){
+  if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  var zones = document.querySelectorAll('.gt-zone');
+  if(!zones.length) return;
+
+  function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
+
+  function paint(zone, e){
+    var targets = zone.classList.contains('gt') ? [zone] : [];
+    targets = targets.concat([].slice.call(zone.querySelectorAll('.gt')));
+    for(var i = 0; i < targets.length; i++){
+      var r = targets[i].getBoundingClientRect();
+      if(!r.width || !r.height) continue;
+      // clamped: a span the cursor is nowhere near would otherwise render
+      // from the far tail of the ramp and go muddy
+      var mx = clamp(((e.clientX - r.left) / r.width)  * 100, -35, 135);
+      var my = clamp(((e.clientY - r.top)  / r.height) * 100, -60, 160);
+      targets[i].style.setProperty('--mx', mx.toFixed(1) + '%');
+      targets[i].style.setProperty('--my', my.toFixed(1) + '%');
+    }
+  }
+
+  zones.forEach(function(zone){
+    var frame = null, last = null;
+    zone.addEventListener('mousemove', function(e){
+      last = e;
+      if(frame !== null) return;                 // one paint per frame, not per event
+      frame = requestAnimationFrame(function(){
+        frame = null;
+        paint(zone, last);
+      });
+    });
+  });
 })();
 
 /* Concept lines resolve as they enter. The only motion in act two —
