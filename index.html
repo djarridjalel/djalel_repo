@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Djarri Design Studio — Unlocking your brand's unrealized potential</title>
-<meta name="description" content="Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Djalel Djarri.">
-<meta property="og:title" content="Djarri Design Studio">
-<meta property="og:description" content="Unlocking your brand's unrealized potential — brand identity and packaging systems for regulated health markets.">
+<title>Djarri Design Portfolio — Unlocking your brands' unrealised potential</title>
+<meta name="description" content="Djarri Design Portfolio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.">
+<meta property="og:title" content="Djarri Design Portfolio">
+<meta property="og:description" content="Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.">
 <meta property="og:type" content="website">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -116,38 +116,51 @@
   }
 
   /* --- 3 · 4 · 6 · light shafts -------------------------------- */
-  /* pre-baked at ~33% alpha; screen keeps them reading as light
-     rather than as white paint. no extra opacity on top. */
+  /* The supplied plates were pre-baked at ~33% alpha — which meant the
+     whole ramp lived in 85 of the 255 available steps, and a beam this
+     soft shows every one of them as a contour. The artwork now carries
+     the ramp stretched across the full 8-bit range, and the third is
+     given back here, so the same light is described with 255 levels
+     instead of 85. Opacity sits on the img, not the layer: it has to
+     scale the source before the layer's blend, not dilute the blend. */
   .shaft{mix-blend-mode:screen;}
-  .shaft img{position:absolute; width:auto;}
+  .shaft img{position:absolute; width:auto; opacity:.3294;}
 
-  .l3 img{left:18%;   top:-26.5%; height:125%; transform:rotate(-16deg);}
-  .l4 img{left:-3.5%; top:-36.5%; height:134%; transform:rotate(10deg);}
-  .l6 img{left:51%;   top:-22.5%; height:144%; transform:rotate(-8deg);}
+  .l3 img{left:15.5%; top:-26.5%; height:125%; transform:rotate(-11deg);}
+  .l4 img{left:0%;    top:-14.5%; height:134%; transform:rotate(-11deg);}
+  .l6 img{left:33%;   top:-22.5%; height:144%; transform:rotate(-11deg);}
 
   /* --- 5 · debris ---------------------------------------------- */
   .l5 img{
     position:absolute;
     left:21.5%; top:44.5%;
     width:81%; height:auto;
-    aspect-ratio:1800/764;  /* the source plate's own proportion */
+    aspect-ratio:2000/848;  /* the source plate's own proportion */
   }
 
   /* --- scrim ---------------------------------------------------
      legibility only. sits under the type, above the art, and does
      not parallax — it belongs to the text, not the scene. */
+  /* Now that the line's resting state is a difference blend, the scrim has
+     a second job. Difference is at its weakest against mid-grey — white
+     over 128 returns 127, which is the backdrop again — and the middle of
+     this frame is mid-grey rock. Pushing the centre darker moves the
+     backdrop away from that dead zone, so the inverted line stays bright
+     without the blend being weakened. */
   .scrim{
     position:absolute; inset:0; pointer-events:none;
     background:
-      radial-gradient(58% 42% at 50% 48%, rgba(0,0,0,.42) 0%, rgba(0,0,0,.18) 45%, rgba(0,0,0,0) 78%),
+      radial-gradient(58% 42% at 50% 48%, rgba(0,0,0,.72) 0%, rgba(0,0,0,.34) 45%, rgba(0,0,0,0) 78%),
       linear-gradient(to bottom, rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0) 62%, rgba(0,0,0,.46) 100%);
   }
 
   /* --- 7 · type ------------------------------------------------ */
+  /* three bands: the credentials rail at the top, the line in the
+     middle of what is left, the wordmark at the foot. */
   .type{
     position:absolute; inset:0;
     display:grid;
-    grid-template-rows:1fr auto;
+    grid-template-rows:auto 1fr auto;
     padding:var(--edge);
     will-change:transform;
     transform:translate3d(0,0,0);
@@ -185,11 +198,17 @@
   }
   .wordmark .n{font-weight:700;}
   .wordmark .s{font-weight:300; color:rgba(255,255,255,.72); margin-left:.5em;}
-  .wordmark{--gt-base:#FFFFFF;}
-  .rail{--gt-base:rgba(255,255,255,.62); --gt-r:150px;}
-  .idx-client{--gt-base:#FFFFFF; --gt-r:170px;}
-  .idx-concept{--gt-base:rgba(255,255,255,.74); --gt-r:170px;}
-  .poster-concept{--gt-base:#FFFFFF; --gt-r:210px;}
+  /* Pool radius per zone. These are much tighter than the gradient wanted:
+     a ramp could afford to be wide because it faded, but a hard switch
+     cannot — at the old radii a poster line lit 40 of its 48 letters at
+     once, which is a colour change, not a pool travelling along a line.
+     Roughly six to ten characters is what reads as the cursor lighting
+     its neighbours. */
+  .wordmark{--gt-r:96px;}
+  .rail{--gt-r:82px;}
+  .idx-client{--gt-r:104px;}
+  .idx-concept{--gt-r:96px;}
+  .poster-concept{--gt-r:118px;}
 
   /* the dual-audience rail: credentials to a client,
      availability to a recruiter. */
@@ -199,7 +218,8 @@
     letter-spacing:.14em;
     text-transform:uppercase;
     color:rgba(255,255,255,.62);
-    text-align:right;
+    justify-self:start;
+    text-align:left;
     line-height:1.7;
     text-shadow:0 2px 20px rgba(0,0,0,.6);
   }
@@ -600,31 +620,24 @@
      what makes the transition a warming rather than a flick.
      ============================================================ */
   @media (hover:hover) and (pointer:fine){
-    .gt{
-      /* A flat disc of the accent, not a ramp — the colour is uniform
-         inside the pool and returns to the element's resting colour at
-         the edge, so the only gradient left is the falloff itself. */
-      background-image:radial-gradient(circle var(--gt-r, 190px) at var(--mx,50%) var(--my,50%),
-        var(--accent) 0%,
-        var(--accent) 62%,
-        var(--gt-base, #FFFFFF) 100%);
-      -webkit-background-clip:text;
-              background-clip:text;
-      transition:color .38s ease, filter .38s ease;
-    }
-    /* children carry their own colour (the wordmark's lighter half, the
-       rail's dimmed white) — they have to clear too or the fade is partial */
-    .gt-zone:hover .gt,   .gt-zone:hover .gt *,
-    .gt.gt-zone:hover,    .gt.gt-zone:hover *{
-      color:transparent;
-    }
-    /* the headline is the one place the accent is allowed to glow */
-    .headline.gt.gt-zone:hover{
-      filter:drop-shadow(0 0 26px rgba(200,244,15,.26));
+    /* No ramp anywhere any more. Every character is its own switch: a
+       letter is either inside the pool and fully the accent, or outside it
+       and untouched. Nothing is ever half a colour, so a glyph never gets
+       cut in two by a gradient edge crossing it. */
+    .gt .ch{transition:color .22s ease, text-shadow .22s ease;}
+    .gt .ch.on{
+      color:var(--accent);
+      /* the hero's refraction, at letter scale — the same blue and yellow
+         split, tightened to suit type a third of the size */
+      text-shadow:
+        -1px 0 3px rgba(56,140,255,.85),
+         1px 0 3px rgba(255,206,0,.85),
+        -2px 0 8px rgba(56,140,255,.45),
+         2px 0 8px rgba(255,206,0,.45);
     }
   }
   @media (prefers-reduced-motion:reduce){
-    .gt{transition:none;}
+    .gt .ch{transition:none;}
   }
 
   /* On the bone ground a radiant gold cannot be both bright and legible —
@@ -659,55 +672,61 @@
      proportion to its distance from the centre, which is what produced
      doubled letters.
      ============================================================ */
-  .lens{position:relative;}
+  .lens{position:relative; --lr:210px;}
   /* The base must be a block so its box coincides with the headline's: the
      aperture coordinates are measured against the headline, and a mask
      resolves against its own element's box. As an inline span it started
-     67px to the right and the disc was punched in the wrong place — which
-     left the white type under the glass and gave the blend nothing but
-     itself to work against. */
+     67px to the right and the disc was punched in the wrong place. */
   .lens-base{display:block;}
 
+  /* The clone is now the resting appearance of the line: white, differenced
+     against the scene, all the time. It is the copy that carries no filter
+     and no aperture until the pointer arrives. */
   .type-glass{
     mix-blend-mode:difference;
     will-change:auto;                 /* promotion drops the blend */
     pointer-events:none;
     -webkit-user-select:none; user-select:none;
-    opacity:0;
-    transition:opacity .26s ease;
   }
-  .type-glass .footrow{visibility:hidden;}   /* holds the grid row, paints nothing */
-  .type-glass .headline{
-    color:#FFFFFF;
-    /* Refraction: the glyph split either side into a blue and a yellow
-       edge, offset and softened so it reads as light bending through
-       glass rather than as a hairline outline. */
-    text-shadow:
-      -3px 0 9px rgba(56,140,255,.85),
-       3px 0 9px rgba(255,206,0,.85),
-      -6px 0 22px rgba(56,140,255,.45),
-       6px 0 22px rgba(255,206,0,.45);
-    filter:url(#lensRefract);
-  }
+  .type-glass .footrow,
+  .type-glass .rail{visibility:hidden;}   /* hold their grid rows, paint nothing */
+  .type-glass .headline{color:#FFFFFF; text-shadow:none;}
 
   @media (hover:hover) and (pointer:fine){
-    .hero.lens-on .type-glass{opacity:1;}
-    .hero.lens-on .type-glass .headline{
-      -webkit-mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
+    /* The real text is the lens interior: flat white, warped, and clipped
+       to the disc — so it only ever exists where the glass has been cut
+       away. Everywhere else the blended clone is what you see. */
+    .hero.has-glass .type:not(.type-glass) .lens-base{
+      color:#FFFFFF;
+      /* Refraction: the glyph split either side into a blue and a yellow
+         edge. Tighter than before — enough spread to read as light bending
+         through glass, not enough to fog the letter it belongs to. */
+      text-shadow:
+        -2px 0 4px rgba(56,140,255,.9),
+         2px 0 4px rgba(255,206,0,.9),
+        -4px 0 11px rgba(56,140,255,.5),
+         4px 0 11px rgba(255,206,0,.5);
+      filter:url(#lensRefract);
+      opacity:0;
+      transition:opacity .26s ease;
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
-              mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
+              mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
     }
-    .hero.lens-on .type:not(.type-glass) .lens-base{
-      -webkit-mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
+    .hero.lens-on .type:not(.type-glass) .lens-base{opacity:1;}
+
+    /* and the glass takes the exactly complementary hole, so the two never
+       paint the same pixel and there is never a doubled glyph */
+    .hero.lens-on .type-glass .headline{
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
-              mask-image:radial-gradient(circle var(--lr,150px) at var(--bx,50%) var(--by,50%),
+              mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
     }
   }
   @media (prefers-reduced-motion:reduce){
-    .type-glass .headline{filter:none;}
-    .type-glass{transition:none;}
+    .hero.has-glass .type:not(.type-glass) .lens-base{filter:none; transition:none;}
   }
   .lens-defs{position:absolute; width:0; height:0; overflow:hidden;}
 </style>
@@ -742,37 +761,37 @@
   </div>
 
   <!-- 3 · light shaft -->
-  <div class="pl shaft l3" data-depth="134">
-    <img src="assets/layer3.webp" alt="" width="512" height="1158" decoding="async">
+  <div class="pl shaft l3" data-depth="104">
+    <img src="assets/layer3.webp" alt="" width="860" height="1945" decoding="async">
   </div>
 
   <!-- 4 · light shaft -->
   <div class="pl shaft l4" data-depth="34">
-    <img src="assets/layer4.webp" alt="" width="512" height="1157" decoding="async">
+    <img src="assets/layer4.webp" alt="" width="860" height="1944" decoding="async">
   </div>
 
   <!-- 5 · debris -->
   <div class="pl l5" data-depth="63">
-    <img src="assets/layer5.webp" alt="" width="1800" height="764" fetchpriority="high" decoding="async">
+    <img src="assets/layer5.webp" alt="" width="2000" height="848" fetchpriority="high" decoding="async">
   </div>
 
   <!-- 6 · light shaft -->
-  <div class="pl shaft l6" data-depth="97">
-    <img src="assets/layer6.webp" alt="" width="512" height="1157" decoding="async">
+  <div class="pl shaft l6" data-depth="136">
+    <img src="assets/layer6.webp" alt="" width="860" height="1944" decoding="async">
   </div>
 
   <div class="scrim"></div>
 
   <!-- 7 · type — front plane, damped amplitude -->
   <div class="type" id="typeLayer" data-depth="17">
-    <h1 class="headline lens"><span class="lens-base"><b>unlocking</b> your <b>brand's</b> unrealized <b>potential</b></span></h1>
+    <div class="rail gt gt-zone">
+      Abdeldjalil DJARRI · Creative Director<br>
+      <span class="wide-only">Pharma &amp; parapharma brand systems<br></span>
+      Open to relocation — Geneva / Zurich / Lausanne
+    </div>
+    <h1 class="headline lens"><span class="lens-base"><b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b></span></h1>
     <div class="footrow">
-      <div class="wordmark gt gt-zone"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></div>
-      <div class="rail gt gt-zone">
-        Djalel Djarri · Creative Director<br>
-        <span class="wide-only">Pharma &amp; parapharma brand systems<br></span>
-        Open to relocation — Geneva / Zurich / Lausanne
-      </div>
+      <div class="wordmark gt gt-zone"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;PORTFOLIO</span></div>
     </div>
   </div>
 
@@ -1097,9 +1116,17 @@
     // the clone must not answer to the base's selectors — it is the glass now
     var innerBase = glass.querySelector('.lens-base');
     if(innerBase) innerBase.classList.remove('lens-base');
+    // nor to the accent's: it is pointer-events:none, so its zones could
+    // never fire anyway, but the letter splitter would still walk them
+    [].forEach.call(glass.querySelectorAll('.gt, .gt-zone'), function(el){
+      el.classList.remove('gt'); el.classList.remove('gt-zone');
+    });
     glass.setAttribute('aria-hidden', 'true');
     glass.setAttribute('data-depth', type.getAttribute('data-depth') || '17');
     type.parentNode.insertBefore(glass, type.nextSibling);
+    // only now may the base stop painting outside the aperture: until the
+    // clone exists it is the only copy of the line there is
+    hero.classList.add('has-glass');
   })();
 
   var ringImg = hero.querySelector('.l1 img');
@@ -1254,8 +1281,6 @@
   var zones = document.querySelectorAll('.gt-zone, .lens');
   if(!zones.length) return;
 
-  function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
-
   function paint(zone, e){
     // The aperture is described once, relative to the headline box, and both
     // copies mask their own headline with it.
@@ -1269,25 +1294,75 @@
       hero.style.setProperty('--by', (e.clientY - lr.top ).toFixed(1) + 'px');
       return;
     }
-    var targets = zone.classList.contains('gt') ? [zone] : [];
-    targets = targets.concat([].slice.call(zone.querySelectorAll('.gt')));
-    for(var i = 0; i < targets.length; i++){
-      var r = targets[i].getBoundingClientRect();
-      if(!r.width || !r.height) continue;
-      // clamped: a span the cursor is nowhere near would otherwise render
-      // from the far tail of the ramp and go muddy
-      var mx = clamp(((e.clientX - r.left) / r.width)  * 100, -35, 135);
-      var my = clamp(((e.clientY - r.top)  / r.height) * 100, -60, 160);
-      targets[i].style.setProperty('--mx', mx.toFixed(1) + '%');
-      targets[i].style.setProperty('--my', my.toFixed(1) + '%');
+    var chars = measure(zone);
+    for(var i = 0; i < chars.length; i++){
+      var c = chars[i];
+      var dx = e.clientX - c.x, dy = e.clientY - c.y;
+      // squared distance — the radius is fixed per zone, so there is no
+      // reason to take a root once per character per frame
+      var lit = dx*dx + dy*dy <= c.r2;
+      if(lit !== c.lit){ c.lit = lit; c.el.classList.toggle('on', lit); }
     }
   }
 
+  /* Character boxes, measured once per hover rather than once per frame:
+     reading a rect per glyph per mousemove would force a layout flush on
+     every one of them. Layout cannot change while the pointer is inside a
+     zone, so the cache only has to survive until it leaves — or until the
+     page scrolls or resizes underneath it, since the rects are viewport
+     relative and the pointer coordinates they are compared against are too. */
+  var caches = new WeakMap();
+  function measure(zone){
+    var got = caches.get(zone);
+    if(got) return got;
+    var r = parseFloat(getComputedStyle(zone).getPropertyValue('--gt-r')) || 190;
+    var out = [];
+    [].forEach.call(zone.querySelectorAll('.ch'), function(el){
+      var b = el.getBoundingClientRect();
+      if(!b.width && !b.height) return;
+      out.push({el:el, x:b.left + b.width/2, y:b.top + b.height/2, r2:r*r, lit:false});
+    });
+    caches.set(zone, out);
+    return out;
+  }
+  function drop(zone){ caches['delete'](zone); }
+
+  /* Wrap every character in its own span so a letter can be switched whole.
+     Whitespace is left as bare text: a span around a space still breaks the
+     line, but it also becomes a lit "letter" with nothing to show for it. */
+  function split(root){
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var nodes = [], n;
+    while((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(function(node){
+      var t = node.nodeValue;
+      if(!/\S/.test(t)) return;
+      var frag = document.createDocumentFragment();
+      for(var i = 0; i < t.length; i++){
+        if(/\s/.test(t[i])){ frag.appendChild(document.createTextNode(t[i])); continue; }
+        var s = document.createElement('span');
+        s.className = 'ch';
+        s.textContent = t[i];
+        frag.appendChild(s);
+      }
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  var lettered = [];
   zones.forEach(function(zone){
-    var frame = null, last = null;
-    if(zone.classList.contains('lens')){
+    var frame = null, last = null, isLens = zone.classList.contains('lens');
+    if(isLens){
       zone.addEventListener('mouseenter', function(){ hero.classList.add('lens-on'); });
       zone.addEventListener('mouseleave', function(){ hero.classList.remove('lens-on'); });
+    }else{
+      [].forEach.call(zone.classList.contains('gt') ? [zone] : zone.querySelectorAll('.gt'),
+        function(el){ split(el); lettered.push(el); });
+      zone.addEventListener('mouseenter', function(){ drop(zone); });
+      zone.addEventListener('mouseleave', function(){
+        measure(zone).forEach(function(c){ c.lit = false; c.el.classList.remove('on'); });
+        drop(zone);
+      });
     }
     zone.addEventListener('mousemove', function(e){
       last = e;
@@ -1298,6 +1373,11 @@
       });
     });
   });
+
+  // the cached boxes are viewport relative; anything that moves them invalidates
+  var flush = function(){ zones.forEach(drop); };
+  addEventListener('scroll', flush, {passive:true});
+  addEventListener('resize', flush);
 })();
 
 /* Concept lines resolve as they enter. The only motion in act two —
