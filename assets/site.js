@@ -23,6 +23,61 @@
     }
   }
 
+  /* ---- the client strip -------------------------------------------------
+     The loop is two identical halves and the animation walks exactly one
+     half-width, which reads as continuous only while a half is at least as
+     wide as the window. A half has a ceiling: both the slot width and its
+     margin clamp out, so past about 3270px the strip runs out of logos
+     before the cycle ends and a gap crosses the screen — visible on an
+     ultrawide monitor, or on any large display the user has zoomed out.
+     So the number of copies is measured rather than assumed. */
+  (function(){
+    var track = document.querySelector('.track');
+    var marquee = track && track.closest('.marquee');
+    if(!track || !marquee) return;
+
+    var initial = [].slice.call(track.children);
+    if(initial.length < 2) return;
+    var SPEED = 86;                                   // px/s, from the original 38s
+    var perSet = initial.length / 2;                  // the markup ships exactly two
+    var setHTML = initial.slice(0, perSet).map(function(el){ return el.outerHTML; }).join('');
+    var copies = 2;
+
+    // the first set carries the client names; every copy after it is the same
+    // logos again and is hidden from assistive tech, whether it came from the
+    // markup or from a rebuild
+    function label(){
+      [].forEach.call(track.children, function(el, i){
+        if(i < perSet){ el.removeAttribute('aria-hidden'); return; }
+        el.setAttribute('aria-hidden', 'true');
+        var img = el.querySelector('img');
+        if(img) img.alt = '';
+      });
+    }
+
+    function fit(){
+      var setW = track.scrollWidth / copies;
+      if(!setW) return;
+      // half the track has to cover the window; the count stays even so the
+      // 50% the animation travels lands exactly on a set boundary
+      var want = Math.max(2, 2 * Math.ceil(marquee.clientWidth / setW));
+      if(want !== copies){
+        copies = want;
+        track.innerHTML = new Array(want + 1).join(setHTML);
+        setW = track.scrollWidth / copies;
+      }
+      label();
+      // speed stays constant however many copies it took
+      track.style.animationDuration = ((setW * copies / 2) / SPEED).toFixed(2) + 's';
+    }
+
+    fit();
+    var t = null;
+    addEventListener('resize', function(){ clearTimeout(t); t = setTimeout(fit, 160); });
+    // web fonts land after first paint and change the slot widths with them
+    if(document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
+  })();
+
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything
      carrying it is invisible until this runs — on a case study that includes

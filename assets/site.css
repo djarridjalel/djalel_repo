@@ -735,3 +735,26 @@ a{color:inherit;}
   .sys-row:hover .sys-k{color:var(--a-dark);}
 }
 @media (prefers-reduced-motion:reduce){ .gt .ch{transition:none;} }
+
+/* Two marks side by side — the parent and what grew out of it. Set on the
+   ink ground so both cuts read as artwork rather than as interface, and
+   because the lineage is a claim the page is making, not a specimen sheet. */
+.lineage{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1px; background:var(--rule);
+  border:1px solid var(--rule);
+  margin:var(--slab) 0 0;
+}
+.lineage > div{
+  background:var(--ink);
+  padding:clamp(30px,4vw,54px) clamp(20px,3vw,40px) clamp(20px,2.4vw,30px);
+  display:flex; flex-direction:column; align-items:center; gap:clamp(22px,3vw,38px);
+  justify-content:space-between;
+}
+.lineage img{width:min(100%, 220px); height:auto;}
+.lineage figcaption{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.15em;
+  text-transform:uppercase; color:rgba(255,255,255,.5);
+  text-align:center; line-height:1.6;
+}
+@media (max-width:600px){ .lineage{grid-template-columns:1fr;} }
