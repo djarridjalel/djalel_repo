@@ -189,6 +189,11 @@
   }
   .wordmark .n{font-weight:700;}
   .wordmark .s{font-weight:300; color:rgba(255,255,255,.72); margin-left:.5em;}
+  .wordmark{--gt-base:#FFFFFF;}
+  .rail{--gt-base:rgba(255,255,255,.62); --gt-r:150px;}
+  .idx-client{--gt-base:#FFFFFF; --gt-r:170px;}
+  .idx-concept{--gt-base:rgba(255,255,255,.74); --gt-r:170px;}
+  .poster-concept{--gt-base:#FFFFFF; --gt-r:210px;}
 
   /* the dual-audience rail: credentials to a client,
      availability to a recruiter. */
@@ -601,12 +606,16 @@
      ============================================================ */
   @media (hover:hover) and (pointer:fine){
     .gt{
-      background-image:radial-gradient(140% 220% at var(--mx,50%) var(--my,50%),
+      /* A bounded pool, not a wash: a circle of a fixed radius whose final
+         stop is the element's own resting colour, so everything outside the
+         disc renders exactly as it did before the pointer arrived. */
+      background-image:radial-gradient(circle var(--gt-r, 190px) at var(--mx,50%) var(--my,50%),
         var(--g-spec) 0%,
-        var(--g-hi)  16%,
-        var(--g-mid) 34%,
-        var(--g-key) 58%,
-        var(--g-lo) 100%);   /* stops here: every stop on ink clears 4.5:1 */
+        var(--g-hi)  14%,
+        var(--g-mid) 30%,
+        var(--g-key) 50%,
+        var(--g-lo)  72%,
+        var(--gt-base, #FFFFFF) 100%);
       -webkit-background-clip:text;
               background-clip:text;
       transition:color .38s ease, filter .38s ease;
@@ -637,9 +646,85 @@
     .sys-row .sys-k{transition:color .3s ease;}
     .sys-row:hover .sys-k{color:var(--g-deep);}
   }
+
+  /* ============================================================
+     THE LENS — hero headline only
+     The hero is the brand in its raw state; the burst is the potential
+     still locked in it. The lens is the moment of contact: a bounded
+     piece of glass that travels with the pointer, gilding and bending
+     only what it passes over and leaving the rest untouched.
+
+     Two stacked copies of the same line. The base carries the white
+     type and is masked OUT inside the disc; the glass carries the gold,
+     the displacement and the fringing and is masked IN. They are exact
+     complements, so there is never a doubled glyph — only one or the
+     other is painted at any point.
+     ============================================================ */
+  .lens{position:relative; --lr:150px;}
+  .lens-base, .lens-glass{display:block;}
+
+  /* Performance shape matters here. A filtered layer is re-rendered whenever
+     anything inside it changes, so nothing inside the glass is allowed to
+     move: its gold is a fixed sheen across the line and its contraction is a
+     static scale. The travelling part is the clip on the wrapper, which the
+     compositor can move without touching the filter result. */
+  .lens-clip{
+    position:absolute; inset:0;
+    clip-path:circle(var(--lr) at var(--mx, 50%) var(--my, 50%));
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .26s ease;
+  }
+  .lens-glass{
+    color:transparent;
+    /* a sheen laid across the whole line rather than a spot glued to the
+       cursor — the disc travelling over it is what makes the light move,
+       and it reads more like glass than a highlight that never leaves */
+    background-image:linear-gradient(101deg,
+      var(--g-lo)  0%,
+      var(--g-key) 18%,
+      var(--g-mid) 33%,
+      var(--g-spec) 45%,
+      var(--g-hi)  56%,
+      var(--g-key) 74%,
+      var(--g-lo) 100%);
+    -webkit-background-clip:text; background-clip:text;
+    /* chromatic fringing — the cheap, convincing half of refraction */
+    text-shadow:
+      -1.2px 0 0 rgba(120,196,255,.5),
+       1.2px 0 0 rgba(255,176,64,.5);
+    filter:url(#lensRefract);
+    transform:scale(.963);          /* the contraction */
+    transform-origin:50% 50%;
+  }
+  @media (hover:hover) and (pointer:fine){
+    .lens:hover .lens-clip{opacity:1;}
+    /* the white type steps aside so the two never double up */
+    .lens:hover .lens-base{
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 68%, #000 100%);
+              mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 68%, #000 100%);
+    }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .lens-glass{filter:none; transform:none;}
+    .lens-clip{transition:none;}
+  }
+  .lens-defs{position:absolute; width:0; height:0; overflow:hidden;}
 </style>
 </head>
 <body>
+
+<svg class="lens-defs" aria-hidden="true" focusable="false">
+  <filter id="lensRefract" x="-10%" y="-18%" width="120%" height="136%" color-interpolation-filters="sRGB">
+    <!-- low-frequency noise, softened so the warp is liquid rather than gritty -->
+    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="1" seed="9" result="n"/>
+    <feGaussianBlur in="n" stdDeviation="1.6" result="ns"/>
+    <feDisplacementMap in="SourceGraphic" in2="ns" scale="9"
+                       xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+</svg>
 
 <header class="hero" id="hero">
 
@@ -682,7 +767,7 @@
 
   <!-- 7 · type — front plane, damped amplitude -->
   <div class="type" id="typeLayer" data-depth="17">
-    <h1 class="headline gt gt-zone"><b>unlocking</b> your <b>brand's</b> unrealized <b>potential</b></h1>
+    <h1 class="headline lens"><span class="lens-base"><b>unlocking</b> your <b>brand's</b> unrealized <b>potential</b></span></h1>
     <div class="footrow">
       <div class="wordmark gt gt-zone"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></div>
       <div class="rail gt gt-zone">
@@ -1144,12 +1229,37 @@
    cursor to follow otherwise, and the CSS is already gated the same way. */
 (function(){
   if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-  var zones = document.querySelectorAll('.gt-zone');
+
+  /* The glass is an exact copy of the line it sits over — cloned rather than
+     duplicated in the markup, so the text exists once for a reader and once
+     for the effect, and the two can never drift apart. */
+  document.querySelectorAll('.lens').forEach(function(lens){
+    var base = lens.querySelector('.lens-base');
+    if(!base || lens.querySelector('.lens-glass')) return;
+    var glass = base.cloneNode(true);
+    glass.className = 'lens-glass';
+    var clip = document.createElement('span');
+    clip.className = 'lens-clip';
+    clip.setAttribute('aria-hidden', 'true');
+    clip.appendChild(glass);
+    lens.appendChild(clip);
+  });
+
+  var zones = document.querySelectorAll('.gt-zone, .lens');
   if(!zones.length) return;
 
   function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
 
   function paint(zone, e){
+    // the lens positions itself; the pooled-gradient elements position their own
+    if(zone.classList.contains('lens')){
+      var lr = zone.getBoundingClientRect();
+      if(lr.width && lr.height){
+        zone.style.setProperty('--mx', (e.clientX - lr.left).toFixed(1) + 'px');
+        zone.style.setProperty('--my', (e.clientY - lr.top).toFixed(1) + 'px');
+      }
+      return;
+    }
     var targets = zone.classList.contains('gt') ? [zone] : [];
     targets = targets.concat([].slice.call(zone.querySelectorAll('.gt')));
     for(var i = 0; i < targets.length; i++){
