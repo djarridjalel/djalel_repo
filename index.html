@@ -654,37 +654,60 @@
      other is painted at any point.
      ============================================================ */
   /* ============================================================
-     THE LENS — hero headline, letter by letter
-     Each glyph is its own element and lights on its own. Nothing is
-     duplicated, so there is no second copy to fall out of register
-     with the first — the doubling that a scaled duplicate produced is
-     structurally impossible here.
+     THE LENS — hero headline
+     A piece of glass that travels with the pointer. Inside it the line
+     is flat accent green, bent by a turbulence displacement and split
+     into a blue and a yellow edge; outside it nothing has changed.
 
-     Distance from the pointer gives every letter a --lit between 0 and
-     1; that one number drives its colour, its warp and how far it
-     lifts. The result reads as the pointer activating the word one
-     letter at a time rather than a disc sliding over it.
+     Two stacked copies of the line with exactly complementary masks —
+     identical stops, swapped colours — so the alphas sum to 1 at every
+     radius and only one copy is ever painted at a given point. There
+     is no transform on the glass: a scale on a duplicate displaces
+     every glyph from its original in proportion to its distance from
+     the centre, which is what produced doubled letters before.
+
+     Because the fill is a flat colour, nothing inside the filtered
+     layer changes as the pointer moves, so the displacement result is
+     computed once and only the two masks travel.
      ============================================================ */
-  .lens{position:relative;}
-  .w{white-space:nowrap;}      /* a word of inline-blocks must not break mid-word */
-  .ch{
-    display:inline-block;
-    color:color-mix(in oklab, var(--accent) calc(var(--lit,0) * 100%), #FFFFFF);
-    transition:color .2s ease, transform .2s ease;
-    transform:translateY(calc(var(--lit,0) * -0.06em))
-              scale(calc(1 - var(--lit,0) * 0.055));   /* the contraction */
+  .lens{position:relative; --lr:150px;}
+  .lens-base, .lens-glass{display:block;}
+  .lens-clip{
+    position:absolute; inset:0;
+    opacity:0;
+    pointer-events:none;
+    /* aria-hidden keeps the copy from a screen reader, but it would still
+       land in a selection — copying the headline would paste it twice */
+    -webkit-user-select:none; user-select:none;
+    transition:opacity .26s ease;
   }
-  /* the warp is only mounted on letters actually inside the pool, and the
-     class flips on threshold crossings rather than every frame */
-  .ch.lit{
-    filter:url(#lensRefract);
+  .lens-glass{
+    color:var(--accent);
+    /* refraction: the same glyph split a pixel either side into a blue
+       and a yellow edge */
     text-shadow:
-      -0.9px 0 0 rgba(96,186,255,.34),
-       0.9px 0 0 rgba(255,168,48,.34);
+      -1.2px 0 0 rgba(64,150,255,.55),
+       1.2px 0 0 rgba(255,214,54,.55);
+    filter:url(#lensRefract);
+  }
+  @media (hover:hover) and (pointer:fine){
+    .lens:hover .lens-clip{
+      opacity:1;
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
+              mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
+    }
+    .lens:hover .lens-base{
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
+              mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
+    }
   }
   @media (prefers-reduced-motion:reduce){
-    .ch{transition:none; transform:none;}
-    .ch.lit{filter:none;}
+    .lens-glass{filter:none;}
+    .lens-clip{transition:none;}
   }
   .lens-defs{position:absolute; width:0; height:0; overflow:hidden;}
 </style>
@@ -1205,43 +1228,19 @@
 (function(){
   if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
-  /* Split the headline into words and letters. The whole sentence stays on
-     the h1 as an aria-label and the split itself is hidden from assistive
-     tech, so a screen reader still hears one sentence rather than
-     twenty-eight letters. Words are wrapped because a run of inline-blocks
-     would otherwise be allowed to break in the middle of one. */
+  /* The glass is an exact copy of the line it sits over — cloned rather than
+     duplicated in the markup, so the text exists once for a reader and once
+     for the effect and the two can never drift apart. */
   document.querySelectorAll('.lens').forEach(function(lens){
-    var src = lens.querySelector('.lens-base') || lens;
-    if(lens.dataset.split) return;
-    lens.setAttribute('aria-label', src.textContent.replace(/\s+/g, ' ').trim());
-
-    (function walk(node){
-      [].slice.call(node.childNodes).forEach(function(kid){
-        if(kid.nodeType === 3){
-          var frag = document.createDocumentFragment();
-          kid.nodeValue.split(/(\s+)/).forEach(function(tok){
-            if(!tok) return;
-            if(/^\s+$/.test(tok)){ frag.appendChild(document.createTextNode(tok)); return; }
-            var w = document.createElement('span');
-            w.className = 'w';
-            tok.split('').forEach(function(c){
-              var ch = document.createElement('span');
-              ch.className = 'ch';
-              ch.textContent = c;
-              w.appendChild(ch);
-            });
-            frag.appendChild(w);
-          });
-          node.replaceChild(frag, kid);
-        } else if(kid.nodeType === 1){
-          walk(kid);
-        }
-      });
-    })(src);
-
-    src.setAttribute('aria-hidden', 'true');
-    lens.dataset.split = '1';
-    lens.__chars = [].slice.call(lens.querySelectorAll('.ch'));
+    var base = lens.querySelector('.lens-base');
+    if(!base || lens.querySelector('.lens-clip')) return;
+    var glass = base.cloneNode(true);
+    glass.className = 'lens-glass';
+    var clip = document.createElement('span');
+    clip.className = 'lens-clip';
+    clip.setAttribute('aria-hidden', 'true');
+    clip.appendChild(glass);
+    lens.appendChild(clip);
   });
 
   var zones = document.querySelectorAll('.gt-zone, .lens');
@@ -1250,26 +1249,12 @@
   function clamp(v, lo, hi){ return v < lo ? lo : (v > hi ? hi : v); }
 
   function paint(zone, e){
-    // every letter reads its own distance from the pointer
+    // the aperture positions itself; the pooled elements position their own
     if(zone.classList.contains('lens')){
-      var chars = zone.__chars;
-      if(!chars || !chars.length) return;
-      var R = 165, R2 = R * R;
-      for(var c = 0; c < chars.length; c++){
-        var el = chars[c], b = el.__box;
-        // boxes are cached; they only change on resize or a reflow
-        if(!b){ b = el.__box = el.getBoundingClientRect(); }
-        var dx = e.clientX - (b.left + b.width  / 2);
-        var dy = e.clientY - (b.top  + b.height / 2);
-        var d2 = dx * dx + dy * dy;
-        var t = d2 >= R2 ? 0 : 1 - Math.sqrt(d2) / R;
-        t = t * t * (3 - 2 * t);              // ease the falloff across the word
-        var prev = el.__t || 0;
-        if(Math.abs(t - prev) < 0.01) continue;
-        el.__t = t;
-        el.style.setProperty('--lit', t.toFixed(3));
-        var lit = t > 0.04;
-        if(lit !== el.__lit){ el.__lit = lit; el.classList.toggle('lit', lit); }
+      var lr = zone.getBoundingClientRect();
+      if(lr.width && lr.height){
+        zone.style.setProperty('--mx', (e.clientX - lr.left).toFixed(1) + 'px');
+        zone.style.setProperty('--my', (e.clientY - lr.top).toFixed(1) + 'px');
       }
       return;
     }
@@ -1287,24 +1272,8 @@
     }
   }
 
-  // Letter boxes are cached and only invalidated when the layout can have
-  // moved. The node list is captured once — re-querying every letter on every
-  // scroll event is the kind of thing that quietly costs more than the effect.
-  var allChars = [].slice.call(document.querySelectorAll('.ch'));
-  function dropBoxes(){ for(var i = 0; i < allChars.length; i++) allChars[i].__box = null; }
-  addEventListener('resize', dropBoxes);
-  addEventListener('scroll', dropBoxes, {passive:true});
-
   zones.forEach(function(zone){
     var frame = null, last = null;
-    zone.addEventListener('mouseleave', function(){
-      if(!zone.__chars) return;
-      zone.__chars.forEach(function(el){
-        el.__t = 0; el.__lit = false;
-        el.style.setProperty('--lit', '0');
-        el.classList.remove('lit');
-      });
-    });
     zone.addEventListener('mousemove', function(e){
       last = e;
       if(frame !== null) return;                 // one paint per frame, not per event
