@@ -666,7 +666,24 @@
      proportion to its distance from the centre, which is what produced
      doubled letters.
      ============================================================ */
-  .lens{position:relative; --lr:210px;}
+  /* Registering --lr is what lets the aperture open and close rather than
+     appear and vanish. Both copies mask from the same variable, so while it
+     animates they stay exact complements at every radius — which is why the
+     close is an iris and not a cross-fade: a fade would make the interior
+     semi-transparent while the clone is still masked out of that same disc,
+     and the scene would show through the gap between them. */
+  @property --lr{syntax:'<length>'; inherits:true; initial-value:0px;}
+  .lens{
+    position:relative;
+    --lr:0.01px;
+    /* symmetric ease: a front-loaded curve spends the whole budget in the
+       first third and still reads as a snap, whatever the duration says */
+    transition:--lr .85s cubic-bezier(.5,0,.5,1);      /* slow close */
+  }
+  .hero.lens-on .lens{
+    --lr:210px;
+    transition:--lr .24s cubic-bezier(.22,.61,.36,1);  /* quicker open */
+  }
   /* The base must be a block so its box coincides with the headline's: the
      aperture coordinates are measured against the headline, and a mask
      resolves against its own element's box. As an inline span it started
@@ -700,59 +717,47 @@
          2px 0 4px rgba(255,206,0,.9),
         -4px 0 11px rgba(56,140,255,.5),
          4px 0 11px rgba(255,206,0,.5);
-      filter:url(#lensRefract);
-      opacity:0;
-      transition:opacity .26s ease;
       -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         #000 0%, #000 78%, rgba(0,0,0,0) 92%, rgba(0,0,0,0) 100%);
               mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         #000 0%, #000 78%, rgba(0,0,0,0) 92%, rgba(0,0,0,0) 100%);
     }
-    .hero.lens-on .type:not(.type-glass) .lens-base{opacity:1;}
-
     /* and the glass takes the exactly complementary hole, so the two never
        paint the same pixel and there is never a doubled glyph */
-    .hero.lens-on .type-glass .headline{
+    .type-glass .headline{
       -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         rgba(0,0,0,0) 0%, rgba(0,0,0,0) 78%, #000 92%, #000 100%);
               mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
         rgba(0,0,0,0) 0%, rgba(0,0,0,0) 78%, #000 92%, #000 100%);
     }
   }
+
+  /* The contraction.
+     It used to be an SVG displacement map. That warped real pixels, which
+     looked right, but it leaned on feImage — the one primitive here that
+     engines disagree about — and when feImage yields nothing the whole
+     filter output goes empty, so the interior copy vanished and the
+     aperture read as a hole punched clean through the line.
+
+     So the squeeze moves glyphs instead of pixels. Every character of the
+     line is its own inline-block, and the ones inside the disc are pulled
+     toward the pointer and shrunk, by a factor that falls to exactly zero
+     at the rim. Zero at the rim is the whole trick: it is what lets the
+     contracted interior meet the untouched exterior copy without a seam,
+     and it is why a plain scale on the whole copy could never work. No
+     filter is involved, so there is nothing left that can fail closed. */
+  .lword{white-space:nowrap;}
+  .lch{display:inline-block; will-change:auto;}
+  .lens.easing .lch{transition:transform .85s cubic-bezier(.5,0,.5,1);}
   @media (prefers-reduced-motion:reduce){
-    .hero.has-glass .type:not(.type-glass) .lens-base{filter:none; transition:none;}
+    .lens, .hero.lens-on .lens{transition:none;}
+    .lens.easing .lch{transition:none;}
+    .lch{transform:none !important;}
   }
-  .lens-defs{position:absolute; width:0; height:0; overflow:hidden;}
 </style>
 </head>
 <body>
 
-<svg class="lens-defs" aria-hidden="true" focusable="false" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <!-- The contraction.
-       A turbulence field is fixed in the filter's own coordinate space, so
-       a lens built on one warps the same pixels no matter where the pointer
-       is: the distortion sits still while the aperture moves over it. This
-       one is a displacement map that travels instead. assets/lens-pinch.png
-       is a radial ramp — R carries horizontal displacement, G vertical, both
-       taken to exactly neutral at the rim so the disc has no edge of its own
-       — and the feImage's subregion is moved to the cursor every frame, so
-       the glyphs squeeze toward wherever the lens actually is.
-
-       The flood underneath is what makes that possible: outside its
-       subregion feImage yields transparent black, which as a displacement
-       map would shove the whole line sideways. Flooding the region with
-       neutral grey first means everything the disc does not cover is left
-       exactly where it was. -->
-  <filter id="lensRefract" x="-15%" y="-40%" width="130%" height="180%" color-interpolation-filters="sRGB">
-    <feFlood flood-color="rgb(128,128,128)" flood-opacity="1" result="flat"/>
-    <feImage id="pinchMap" href="assets/lens-pinch.png" xlink:href="assets/lens-pinch.png"
-             x="-999" y="-999" width="320" height="320"
-             preserveAspectRatio="none" result="disc"/>
-    <feComposite in="disc" in2="flat" operator="over" result="map"/>
-    <feDisplacementMap in="SourceGraphic" in2="map" scale="128"
-                       xChannelSelector="R" yChannelSelector="G"/>
-  </filter>
-</svg>
 
 <header class="hero" id="hero">
 
@@ -1121,6 +1126,40 @@
     var lens = type && type.querySelector('.lens');
     if(!type || !lens) return;
     if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    /* Split the line into characters BEFORE the clone is taken. Both copies
+       have to lay out to the same pixel — the aperture assumes it — and an
+       inline-block character does not sit exactly where a bare one does. */
+    (function splitLine(root){
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, nodes = [];
+      while((n = w.nextNode())) nodes.push(n);
+      nodes.forEach(function(node){
+        var t = node.nodeValue;
+        if(!/\S/.test(t)) return;
+        var frag = document.createDocumentFragment(), word = null;
+        for(var i = 0; i < t.length; i++){
+          if(/\s/.test(t[i])){
+            word = null;
+            frag.appendChild(document.createTextNode(t[i]));
+            continue;
+          }
+          // Characters go inside a word wrapper. An inline-block is a line
+          // break opportunity, so bare per-character boxes let the line
+          // break anywhere at all — the first pass tore "brands'" in half.
+          if(!word){
+            word = document.createElement('span');
+            word.className = 'lword';
+            frag.appendChild(word);
+          }
+          var c = document.createElement('span');
+          c.className = 'lch';
+          c.textContent = t[i];
+          word.appendChild(c);
+        }
+        node.parentNode.replaceChild(frag, node);
+      });
+    })(lens);
+
     var glass = type.cloneNode(true);
     glass.classList.add('type-glass');
     glass.removeAttribute('id');
@@ -1292,8 +1331,56 @@
   var zones = document.querySelectorAll('.gt-zone, .lens');
   if(!zones.length) return;
 
-  var pinch = document.getElementById('pinchMap');
-  var PINCH_R = pinch ? parseFloat(pinch.getAttribute('width')) / 2 : 0;
+  /* ---- the contraction -------------------------------------------------
+     Only the interior copy squeezes; the blended clone is left alone, and
+     the two have to agree at the aperture's rim. So the pull is scaled by
+     (1 - p^2), which is 1 under the pointer and exactly 0 at the rim: the
+     letters the aperture is about to hand back to the clone are already
+     back where the clone draws them.
+
+     Positions come from offsetLeft/offsetTop, not getBoundingClientRect —
+     an offset is a layout fact and ignores the transforms we are writing,
+     so it can be cached and never drifts as the squeeze accumulates. The
+     offset parent is the headline itself (.lens is positioned), which is
+     the same box bx/by are measured against. */
+  var SQ_R = 0.82,      // reach, as a fraction of the aperture radius
+      SQ_PULL = 0.12,   // how far a letter travels toward the pointer
+      SQ_SHRINK = 0.28; // and how much smaller it gets while it does
+  var sqCache = null;
+
+  function sqChars(zone){
+    if(sqCache) return sqCache;
+    var base = zone.querySelector('.lens-base');
+    if(!base) return (sqCache = []);
+    sqCache = [].map.call(base.querySelectorAll('.lch'), function(el){
+      return {el:el, x:el.offsetLeft + el.offsetWidth/2, y:el.offsetTop + el.offsetHeight/2, set:false};
+    });
+    return sqCache;
+  }
+
+  function squeeze(zone, bx, by){
+    var chars = sqChars(zone);
+    if(!chars.length) return;
+    var R = (parseFloat(getComputedStyle(zone).getPropertyValue('--lr')) || 210) * SQ_R;
+    for(var i = 0; i < chars.length; i++){
+      var c = chars[i], ox = c.x - bx, oy = c.y - by;
+      var p2 = (ox*ox + oy*oy) / (R*R);
+      if(p2 >= 1){
+        if(c.set){ c.el.style.transform = ''; c.set = false; }
+        continue;
+      }
+      var f = 1 - p2;
+      c.el.style.transform = 'translate(' + (-ox*SQ_PULL*f).toFixed(2) + 'px,' +
+                                            (-oy*SQ_PULL*f).toFixed(2) + 'px) scale(' +
+                                            (1 - SQ_SHRINK*f).toFixed(3) + ')';
+      c.set = true;
+    }
+  }
+
+  function unsqueeze(){
+    if(!sqCache) return;
+    sqCache.forEach(function(c){ if(c.set){ c.el.style.transform = ''; c.set = false; } });
+  }
 
   function paint(zone, e){
     // The aperture is described once, relative to the headline box, and both
@@ -1307,14 +1394,7 @@
       var bx = e.clientX - lr.left, by = e.clientY - lr.top;
       hero.style.setProperty('--bx', bx.toFixed(1) + 'px');
       hero.style.setProperty('--by', by.toFixed(1) + 'px');
-      // and the contraction rides the same point. A filter primitive's
-      // subregion is in the filtered element's own user space, which for
-      // .lens-base is the headline box — the very space bx/by are measured
-      // in — so the disc and the aperture cannot drift apart.
-      if(pinch){
-        pinch.setAttribute('x', (bx - PINCH_R).toFixed(1));
-        pinch.setAttribute('y', (by - PINCH_R).toFixed(1));
-      }
+      squeeze(zone, bx, by);
       return;
     }
     var chars = measure(zone);
@@ -1376,8 +1456,20 @@
   zones.forEach(function(zone){
     var frame = null, last = null, isLens = zone.classList.contains('lens');
     if(isLens){
-      zone.addEventListener('mouseenter', function(){ hero.classList.add('lens-on'); });
-      zone.addEventListener('mouseleave', function(){ hero.classList.remove('lens-on'); });
+      var easeOff = null;
+      zone.addEventListener('mouseenter', function(){
+        // hover has to be instant: a transition here would smear every frame
+        clearTimeout(easeOff); zone.classList.remove('easing');
+        hero.classList.add('lens-on');
+      });
+      zone.addEventListener('mouseleave', function(){
+        hero.classList.remove('lens-on');
+        // let the glyphs travel back over the same span the iris takes to
+        // close, rather than snapping the instant the pointer is gone
+        zone.classList.add('easing');
+        unsqueeze();
+        easeOff = setTimeout(function(){ zone.classList.remove('easing'); }, 950);
+      });
     }else{
       [].forEach.call(zone.classList.contains('gt') ? [zone] : zone.querySelectorAll('.gt'),
         function(el){ split(el); lettered.push(el); });
@@ -1398,7 +1490,7 @@
   });
 
   // the cached boxes are viewport relative; anything that moves them invalidates
-  var flush = function(){ zones.forEach(drop); };
+  var flush = function(){ zones.forEach(drop); unsqueeze(); sqCache = null; };
   addEventListener('scroll', flush, {passive:true});
   addEventListener('resize', flush);
 })();
