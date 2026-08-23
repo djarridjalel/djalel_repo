@@ -22,11 +22,11 @@
     --edge:clamp(24px, 6vw, 104px);
 
     /* Accent — one flat colour, not a ramp.
-       #C8F40F is 15.46:1 on the ink ground. It is 1.13:1 on the bone
-       dossier, so the light sections use --a-dark (#55650B, 5.72:1)
-       instead — same hue family, legible on paper. */
-    --accent:#C8F40F;
-    --a-dark:#55650B;
+       #FFCE00 is 13.27:1 on the ink ground. It is 1.32:1 on the bone
+       dossier, so the light sections use --a-dark (#6E5400, 6.34:1)
+       instead — same hue, legible on paper. */
+    --accent:#FFCE00;
+    --a-dark:#6E5400;
   }
 
   *{box-sizing:border-box;}
@@ -281,7 +281,6 @@
     from{transform:translateX(-50%);}
     to  {transform:translateX(0);}
   }
-  .clients:hover .track{animation-play-state:paused;}
   @media (prefers-reduced-motion:reduce){
     .track{animation:none;}
     .marquee{overflow-x:auto;}
@@ -679,15 +678,27 @@
     /* aria-hidden keeps the copy from a screen reader, but it would still
        land in a selection — copying the headline would paste it twice */
     -webkit-user-select:none; user-select:none;
+    /* Inside the aperture the line inverts against whatever it crosses,
+       the same difference blend the monogram uses — so the hero speaks in
+       the site's own device rather than in the accent, which is left to
+       carry every other section.
+       The blend sits on the wrapper and the warp on the child: filter and
+       mix-blend-mode on one element is the combination that drops the
+       blend, which this build has already been bitten by once. */
+    mix-blend-mode:difference;
+    will-change:auto;
     transition:opacity .26s ease;
   }
   .lens-glass{
-    color:var(--accent);
-    /* refraction: the same glyph split a pixel either side into a blue
-       and a yellow edge */
+    color:#FFFFFF;
+    /* Refraction: the glyph split either side into a blue and a yellow
+       edge, offset further and softened so it reads as light bending
+       through glass rather than as a hairline outline. */
     text-shadow:
-      -1.2px 0 0 rgba(64,150,255,.55),
-       1.2px 0 0 rgba(255,214,54,.55);
+      -3px 0 9px rgba(56,140,255,.85),
+       3px 0 9px rgba(255,206,0,.85),
+      -6px 0 22px rgba(56,140,255,.45),
+       6px 0 22px rgba(255,206,0,.45);
     filter:url(#lensRefract);
   }
   @media (hover:hover) and (pointer:fine){
