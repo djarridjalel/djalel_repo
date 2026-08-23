@@ -21,16 +21,20 @@
     /* hero rhythm */
     --edge:clamp(24px, 6vw, 104px);
 
-    /* Accent — taken from BioFormul's real 60/30/10 palette rather than
-       invented, so the one colour on an otherwise monochrome site arrives
-       out of the work itself. Read as a metal catching light: specular
-       highlight through to shadowed edge. */
-    --g-spec:#FFF6DA;
-    --g-hi:#F6DC93;
-    --g-mid:#E3BC55;
-    --g-key:#C9A227;   /* the anchor — BioFormul's gold */
-    --g-lo:#9A7A1C;
-    --g-deep:#6E5410;
+    /* Accent — taken from the work rather than invented, so the one colour
+       on an otherwise monochrome site arrives with a reason. Currently the
+       yellow-green both Evolab (#B8C400) and Natural Solution (#A8C300)
+       actually use. Swapping the six values below swaps the whole system;
+       the gold it replaced was BioFormul's #C9A227.
+       Every stop from --g-spec to --g-lo clears 4.5:1 on ink (5.78:1 at the
+       darkest); --g-deep is the light-ground stop only — it is 3.07:1 on ink
+       and must not be used there. */
+    --g-spec:#F4FFD6;
+    --g-hi:#DDF58F;
+    --g-mid:#C2E344;
+    --g-key:#A8C300;   /* the anchor — Natural Solution's yellow-green */
+    --g-lo:#7E9412;
+    --g-deep:#55650B;
   }
 
   *{box-sizing:border-box;}
@@ -670,45 +674,51 @@
      compositor can move without touching the filter result. */
   .lens-clip{
     position:absolute; inset:0;
-    clip-path:circle(var(--lr) at var(--mx, 50%) var(--my, 50%));
     opacity:0;
     pointer-events:none;
     transition:opacity .26s ease;
   }
   .lens-glass{
     color:transparent;
-    /* a sheen laid across the whole line rather than a spot glued to the
-       cursor — the disc travelling over it is what makes the light move,
-       and it reads more like glass than a highlight that never leaves */
-    background-image:linear-gradient(101deg,
-      var(--g-lo)  0%,
-      var(--g-key) 18%,
-      var(--g-mid) 33%,
-      var(--g-spec) 45%,
-      var(--g-hi)  56%,
-      var(--g-key) 74%,
+    /* the full ramp inside the disc, centred on the pointer — a sheen across
+       the whole line only ever showed a narrow slice of itself through the
+       aperture, which is why the hero read weaker than the other headlines */
+    background-image:radial-gradient(circle calc(var(--lr) * .96) at var(--gx,50%) var(--gy,50%),
+      var(--g-spec) 0%,
+      var(--g-hi)  10%,
+      var(--g-mid) 26%,
+      var(--g-key) 50%,
       var(--g-lo) 100%);
     -webkit-background-clip:text; background-clip:text;
     /* chromatic fringing — the cheap, convincing half of refraction */
     text-shadow:
-      -1.2px 0 0 rgba(120,196,255,.5),
-       1.2px 0 0 rgba(255,176,64,.5);
+      -1.1px 0 0 rgba(96,186,255,.36),
+       1.1px 0 0 rgba(255,168,48,.36);
     filter:url(#lensRefract);
-    transform:scale(.963);          /* the contraction */
-    transform-origin:50% 50%;
+    /* No transform. A scale on a duplicate of the line displaces every glyph
+       from its original by an amount proportional to its distance from the
+       centre, and inside the aperture that reads as a doubled letter. The
+       contraction has to come from the warp, not from a transform. */
   }
   @media (hover:hover) and (pointer:fine){
     .lens:hover .lens-clip{opacity:1;}
-    /* the white type steps aside so the two never double up */
+    /* Exact complements: identical stops, swapped colours, so the two alphas
+       sum to 1 at every radius and the crossfade never shows both at once. */
+    .lens:hover .lens-clip{
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
+              mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
+        #000 0%, #000 62%, rgba(0,0,0,0) 80%, rgba(0,0,0,0) 100%);
+    }
     .lens:hover .lens-base{
       -webkit-mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
-        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 68%, #000 100%);
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
               mask-image:radial-gradient(circle var(--lr) at var(--mx,50%) var(--my,50%),
-        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 68%, #000 100%);
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 62%, #000 80%, #000 100%);
     }
   }
   @media (prefers-reduced-motion:reduce){
-    .lens-glass{filter:none; transform:none;}
+    .lens-glass{filter:none;}
     .lens-clip{transition:none;}
   }
   .lens-defs{position:absolute; width:0; height:0; overflow:hidden;}
@@ -721,7 +731,7 @@
     <!-- low-frequency noise, softened so the warp is liquid rather than gritty -->
     <feTurbulence type="fractalNoise" baseFrequency="0.012 0.02" numOctaves="1" seed="9" result="n"/>
     <feGaussianBlur in="n" stdDeviation="1.6" result="ns"/>
-    <feDisplacementMap in="SourceGraphic" in2="ns" scale="9"
+    <feDisplacementMap in="SourceGraphic" in2="ns" scale="11"
                        xChannelSelector="R" yChannelSelector="G"/>
   </filter>
 </svg>
@@ -1255,8 +1265,17 @@
     if(zone.classList.contains('lens')){
       var lr = zone.getBoundingClientRect();
       if(lr.width && lr.height){
-        zone.style.setProperty('--mx', (e.clientX - lr.left).toFixed(1) + 'px');
-        zone.style.setProperty('--my', (e.clientY - lr.top).toFixed(1) + 'px');
+        var lx = e.clientX - lr.left, ly = e.clientY - lr.top;
+        zone.style.setProperty('--mx', lx.toFixed(1) + 'px');
+        zone.style.setProperty('--my', ly.toFixed(1) + 'px');
+        // snapped: every change here re-runs the displacement filter
+        var STEP = 12;
+        var gx = Math.round(lx / STEP) * STEP, gy = Math.round(ly / STEP) * STEP;
+        if(gx !== zone.__gx || gy !== zone.__gy){
+          zone.__gx = gx; zone.__gy = gy;
+          zone.style.setProperty('--gx', gx + 'px');
+          zone.style.setProperty('--gy', gy + 'px');
+        }
       }
       return;
     }
