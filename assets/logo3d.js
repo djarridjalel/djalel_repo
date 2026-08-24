@@ -17,6 +17,12 @@
 
   var W = 30;                       // the mark is never wider than this
   var BOX = 56;                     // canvas: room for the turn and the glow
+
+  /* Desktop only. On a phone or tablet the bar is already tight, the mark
+     would be competing with the wordmark for the same 58px, and there is no
+     scroll-and-settle to watch it perform. Bail before the GL context is
+     created rather than hiding it with CSS — nothing should be built. */
+  if(window.matchMedia('(max-width: 1024px), (pointer: coarse)').matches){ host.remove(); return; }
   var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var cv = document.createElement('canvas');
@@ -86,8 +92,8 @@
       uNM  = gl.getUniformLocation(prog, 'nm'),
       aP   = gl.getAttribLocation(prog, 'p'),
       aN   = gl.getAttribLocation(prog, 'n');
-  gl.uniform3f(gl.getUniformLocation(prog, 'warm'), 1.00, 0.42, 0.05);
-  gl.uniform3f(gl.getUniformLocation(prog, 'hot'),  1.00, 0.74, 0.30);
+  gl.uniform3f(gl.getUniformLocation(prog, 'warm'), 1.00, 0.807, 0.00);   // #FFCE00
+  gl.uniform3f(gl.getUniformLocation(prog, 'hot'),  1.00, 0.94, 0.62);   // the rim, one step hotter
 
   gl.enable(gl.DEPTH_TEST);
   gl.enable(gl.CULL_FACE);          // an extruded glyph is closed; backfaces cost nothing to drop
@@ -137,33 +143,33 @@
      scroll, then returns to the bar and stays there. The two segments meet at
      the same point, so the dock is arrived at rather than snapped to. */
   var hero = document.querySelector('.hero');
-  var TOP = 0.13, LOW = 0.60, SPLIT = 0.62;
+  var TOP = 0.13, HOLD = 0.58;      // held until the hero is nearly gone
   var y = 0, rot = 0;
 
   function ease(t){ return t * t * (3 - 2 * t); }
   function span(){ return hero ? hero.offsetTop + hero.offsetHeight : 0; }
+  function navY(){ return 58 / 2; }
 
+  /* It keeps its place in the frame while the hero is on screen — the page
+     slides past underneath it rather than carrying it down — and only leaves
+     that spot to take up its position in the bar. */
   function place(){
-    var vh = window.innerHeight;
-    var navY = 58 / 2;
-    if(!hero || calm){ y = navY; return; }
+    if(!hero || calm){ y = navY(); return; }
     var p = Math.min(Math.max(window.pageYOffset / Math.max(span(), 1), 0), 1);
-    var a = TOP * vh, b = LOW * vh;
-    y = p < SPLIT
-      ? a + (b - a) * ease(p / SPLIT)                   // down through the hero
-      : b + (navY - b) * ease((p - SPLIT) / (1 - SPLIT)); // and back into the bar
+    var start = TOP * window.innerHeight;
+    y = p < HOLD ? start
+                 : start + (navY() - start) * ease((p - HOLD) / (1 - HOLD));
   }
 
-  /* The descent is exactly one revolution, so the mark arrives in the bar
-     face-front rather than edge-on — landing on a random angle is what makes
-     a spinning logo look like a loose asset instead of a placed one. Past
-     the dock it keeps turning with the scroll, just far more slowly. */
+  /* Scroll drives the turn, and the trip is exactly one revolution, so the
+     mark arrives in the bar face-front rather than on whatever angle the
+     scroll happened to stop at — the difference between a placed object and
+     a loose asset. Past the dock it keeps turning, far more slowly. */
   function turn(){
     if(calm) return 0.55;
-    var sy = window.pageYOffset, s = span();
-    if(!s) return sy * 0.0012;                          // no hero: starts face-on
-    var p = Math.min(sy / s, 1);
-    return p * Math.PI * 2 + Math.max(0, sy - s) * 0.0012;
+    var sy = window.pageYOffset, sp = span();
+    if(!sp) return sy * 0.0012;                         // no hero: starts face-on
+    return Math.min(sy / sp, 1) * Math.PI * 2 + Math.max(0, sy - sp) * 0.0012;
   }
 
   /* ---- the turn ----------------------------------------------------------
@@ -179,9 +185,9 @@
     var cr = Math.cos(rot), sr = Math.sin(rot);
     var ct = Math.cos(TILT), st = Math.sin(TILT);
     // R = Rx(TILT) * Ry(rot), column-major
-    var r00 = cr,        r10 = st * sr,  r20 = -ct * sr;
-    var r01 = 0,         r11 = ct,       r21 = st;
-    var r02 = sr,        r12 = -st * cr, r22 = ct * cr;
+    var r00 = cr, r10 = st * sr,  r20 = -ct * sr;
+    var r01 = 0,  r11 = ct,       r21 = st;
+    var r02 = sr, r12 = -st * cr, r22 = ct * cr;
     gl.uniformMatrix4fv(uMVP, false, new Float32Array([
       r00 * k, r10 * k, r20 * k, 0,
       r01 * k, r11 * k, r21 * k, 0,
@@ -190,9 +196,7 @@
     ]));
     // uniform scale, so the rotation alone is the normal matrix
     gl.uniformMatrix3fv(uNM, false, new Float32Array([
-      r00, r10, r20,
-      r01, r11, r21,
-      r02, r12, r22
+      r00, r10, r20,  r01, r11, r21,  r02, r12, r22
     ]));
   }
 
@@ -211,6 +215,27 @@
     rot = turn();
     place(); kick();
   }
+  /* Clicking it goes back to where it started. It is the only mark that is
+     on every page and in every scroll position, so it is the obvious thing
+     to reach for to get home — and a thing that moves and glows had better
+     do something when pressed. */
+  // On a page that has one, back to the top of the hero. On a page that does
+  // not, the hero is on the homepage — so the mark is the way back to it
+  // either way, which is what makes it worth having on every page.
+  var back = document.querySelector('.nav-mark');
+  host.setAttribute('role', 'button');
+  host.setAttribute('tabindex', '0');
+  host.setAttribute('aria-label', hero ? 'Back to the top' : 'Back to the homepage');
+  host.style.pointerEvents = 'auto';
+  var home = function(){
+    if(hero) window.scrollTo({top:0, behavior: calm ? 'auto' : 'smooth'});
+    else if(back) window.location.href = back.getAttribute('href');
+  };
+  host.addEventListener('click', home);
+  host.addEventListener('keydown', function(e){
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); home(); }
+  });
+
   addEventListener('scroll', onScroll, {passive:true});
   addEventListener('resize', function(){ place(); kick(); });
   onScroll();

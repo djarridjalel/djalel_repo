@@ -84,46 +84,37 @@
      hand pointer, and that affordance has to come back rather than just go
      missing.
 
-     The position carries no easing on purpose. A trailing cursor reads as
-     lag, not as craft — only the scale is eased, and the loop parks the
-     moment it settles so this costs nothing while the pointer is still. */
+     Nothing here is scaled. The wrapper translates, the inner element
+     resizes, and the two jobs are kept on separate elements — scaling a
+     promoted layer stretches the bitmap it was rasterised from, which is
+     what made the ring soft and stair-stepped. There is no animation loop
+     either: the size change is a CSS transition and the position is written
+     once per frame, with no easing, because a trailing cursor reads as lag
+     rather than as craft. */
   (function(){
     if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
-    var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     var dot = document.createElement('div');
     dot.className = 'dot';
     dot.setAttribute('aria-hidden', 'true');
+    dot.appendChild(document.createElement('i'));
     document.body.appendChild(dot);
     document.documentElement.classList.add('has-dot');
 
     var HOT = 'a[href],button,input,select,textarea,summary,label,' +
               '[role="button"],[tabindex]:not([tabindex="-1"])';
-    var x = -100, y = -100, s = 1, ts = 1, raf = null, seeded = false;
+    var x = 0, y = 0, raf = null, seeded = false;
 
     function draw(){
       raf = null;
-      if(calm) s = ts;
-      else{
-        s += (ts - s) * 0.22;
-        if(Math.abs(ts - s) < 0.004) s = ts;
-      }
-      dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + s.toFixed(3) + ')';
-      if(s !== ts) kick();               // still easing; otherwise park
+      dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
     }
-    function kick(){ if(raf === null) raf = requestAnimationFrame(draw); }
 
     addEventListener('mousemove', function(e){
       x = e.clientX; y = e.clientY;
-      ts = e.target && e.target.closest && e.target.closest(HOT) ? 2.4 : 1;
-      dot.classList.toggle('hot', ts !== 1);
-      if(!seeded){                       // no fly-in from the corner
-        seeded = true; s = ts;
-        dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + s + ')';
-        dot.classList.add('on');
-        return;
-      }
-      kick();
+      dot.classList.toggle('hot', !!(e.target && e.target.closest && e.target.closest(HOT)));
+      if(!seeded){ seeded = true; draw(); dot.classList.add('on'); return; }
+      if(raf === null) raf = requestAnimationFrame(draw);
     }, {passive:true});
 
     // leaving the window, or crossing into browser chrome, should take it away
