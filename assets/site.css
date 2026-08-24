@@ -758,3 +758,58 @@ a{color:inherit;}
   text-align:center; line-height:1.6;
 }
 @media (max-width:600px){ .lineage{grid-template-columns:1fr;} }
+
+/* ==========================================================================
+   THE POINTER
+   The site already speaks through the cursor — the parallax, the ring, the
+   lens and the accent pool are all driven by it — so the arrow was the one
+   pointer-shaped thing on the page that wasn't part of the design.
+
+   The dot is 10px of accent with a glow, and a hairline dark rim. The rim
+   is the whole trick for a yellow this bright: #FFCE00 is 13.27:1 on ink
+   and 1.32:1 on bone, so without it the dot would vanish the moment it
+   crossed onto a dossier. On ink the rim is invisible; on bone it draws the
+   edge. Same object, both grounds, no swapping.
+
+   Everything here is gated behind .has-dot, which JS adds only once the dot
+   exists — if the script never runs, the native arrow is still there.
+   ========================================================================== */
+html.has-dot, html.has-dot *{cursor:none !important;}
+
+.dot{
+  position:fixed; left:0; top:0;
+  width:10px; height:10px;
+  margin:-5px 0 0 -5px;              /* the box is centred on the hotspot */
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:
+    0 0 0 1px rgba(10,10,11,.30),    /* the rim that survives a light ground */
+    0 0 7px 2px rgba(255,206,0,.55),
+    0 0 20px 7px rgba(255,206,0,.26);
+  pointer-events:none;               /* it must never be a hit target itself */
+  z-index:9999;
+  opacity:0;
+  transition:opacity .22s ease, background-color .22s ease, box-shadow .22s ease;
+  will-change:transform;
+}
+.dot.on{opacity:1;}
+
+/* Over anything clickable it opens into a ring. Hiding the native cursor
+   throws away the hand pointer, and that affordance has to come back in the
+   design's own terms rather than just go missing. */
+.dot.hot{
+  background:rgba(255,206,0,.10);
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 12px 3px rgba(255,206,0,.40),
+    0 0 26px 10px rgba(255,206,0,.16);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .dot{transition:none;}
+}
+/* No cursor to replace on a touch device, and nothing to hide either. */
+@media not all and (hover:hover) and (pointer:fine){
+  html.has-dot, html.has-dot *{cursor:auto !important;}
+  .dot{display:none;}
+}

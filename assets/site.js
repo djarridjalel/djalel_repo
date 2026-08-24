@@ -78,6 +78,62 @@
     if(document.fonts && document.fonts.ready) document.fonts.ready.then(fit);
   })();
 
+  /* ---- the pointer ------------------------------------------------------
+     A 10px accent dot with a halo, standing in for the arrow. It opens into
+     a ring over anything clickable: hiding the native cursor throws away the
+     hand pointer, and that affordance has to come back rather than just go
+     missing.
+
+     The position carries no easing on purpose. A trailing cursor reads as
+     lag, not as craft — only the scale is eased, and the loop parks the
+     moment it settles so this costs nothing while the pointer is still. */
+  (function(){
+    if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    var calm = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(dot);
+    document.documentElement.classList.add('has-dot');
+
+    var HOT = 'a[href],button,input,select,textarea,summary,label,' +
+              '[role="button"],[tabindex]:not([tabindex="-1"])';
+    var x = -100, y = -100, s = 1, ts = 1, raf = null, seeded = false;
+
+    function draw(){
+      raf = null;
+      if(calm) s = ts;
+      else{
+        s += (ts - s) * 0.22;
+        if(Math.abs(ts - s) < 0.004) s = ts;
+      }
+      dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + s.toFixed(3) + ')';
+      if(s !== ts) kick();               // still easing; otherwise park
+    }
+    function kick(){ if(raf === null) raf = requestAnimationFrame(draw); }
+
+    addEventListener('mousemove', function(e){
+      x = e.clientX; y = e.clientY;
+      ts = e.target && e.target.closest && e.target.closest(HOT) ? 2.4 : 1;
+      dot.classList.toggle('hot', ts !== 1);
+      if(!seeded){                       // no fly-in from the corner
+        seeded = true; s = ts;
+        dot.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0) scale(' + s + ')';
+        dot.classList.add('on');
+        return;
+      }
+      kick();
+    }, {passive:true});
+
+    // leaving the window, or crossing into browser chrome, should take it away
+    addEventListener('mouseout', function(e){
+      if(!e.relatedTarget && !e.toElement) dot.classList.remove('on');
+    });
+    addEventListener('mouseover', function(){ if(seeded) dot.classList.add('on'); });
+    addEventListener('blur', function(){ dot.classList.remove('on'); });
+  })();
+
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything
      carrying it is invisible until this runs — on a case study that includes
