@@ -354,10 +354,46 @@
     fr.readAsDataURL(file);
   }
 
-  function download(name, href){
+  /* Saving a file.
+     Served from a folder, an anchor is all this needs. Published as an
+     artifact, the viewer never grants a page a plain download — the link
+     would simply do nothing — so the host's own save is used when it is
+     there. One prompt may be open at a time, which is why the batch below
+     waits for each before offering the next rather than firing them off
+     together. */
+  var _dl, _dlAsked = false;
+  function saver(){
+    if(_dlAsked) return Promise.resolve(_dl);
+    _dlAsked = true;
+    if(!(window.claude && window.claude.use)) return Promise.resolve(null);
+    return window.claude.use('downloads').then(function(d){ return (_dl = d); },
+                                               function(){ return null; });
+  }
+  function dataURItoBlob(uri){
+    var parts = uri.split(','), mime = (parts[0].match(/:(.*?);/) || [,'application/octet-stream'])[1];
+    var bin = atob(parts[1]), n = bin.length, u8 = new Uint8Array(n);
+    while(n--) u8[n] = bin.charCodeAt(n);
+    return new Blob([u8], {type:mime});
+  }
+  function anchor(name, href){
     var a = document.createElement('a');
     a.href = href; a.download = name;
     document.body.appendChild(a); a.click(); a.remove();
+  }
+  // data: a string, a Blob, or a data: URI to turn into one
+  function download(name, data){
+    return saver().then(function(d){
+      if(!d){
+        anchor(name, typeof data === 'string' && data.slice(0,5) === 'data:'
+          ? data
+          : URL.createObjectURL(data instanceof Blob ? data : new Blob([data])));
+        return 'saved';
+      }
+      var payload = (typeof data === 'string' && data.slice(0,5) === 'data:')
+        ? dataURItoBlob(data) : data;
+      return d.save({filename:name, data:payload}).then(function(){ return 'saved'; },
+        function(err){ return (err && err.code) || 'failed'; });
+    });
   }
 
   function render(){
@@ -454,10 +490,10 @@
     [].forEach.call(host.querySelectorAll('[data-save]'), function(btn){
       btn.addEventListener('click', function(){
         var f = byKey(btn.getAttribute('data-save'));
-        var uri = images()[f.key];
-        // saved under the path the site already expects, so it drops straight in
-        download(f.orig.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'') +
-                 (uri.indexOf('image/png') > -1 ? '.png' : '.webp'), uri);
+        download(imageName(f), images()[f.key]).then(function(r){
+          setStatus(r === 'saved' ? 'Saved ' + imageName(f) + ' — put it in ' + folderOf(f)
+                                  : 'Not saved (' + r + ')', r === 'saved' ? 'ok' : 'warn');
+        });
       });
     });
     [].forEach.call(host.querySelectorAll('[data-revert]'), function(btn){
@@ -466,6 +502,17 @@
         save(); render();
       });
     });
+  }
+
+  // named for the file it replaces, so it drops straight into the same folder
+  function imageName(f){
+    var uri = images()[f.key] || '';
+    return f.orig.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'') +
+           (uri.indexOf('image/png') > -1 ? '.png' : '.webp');
+  }
+  function folderOf(f){
+    var parts = (f.base + f.orig).split('/'); parts.pop();
+    return parts.join('/') + '/';
   }
 
   function byKey(k){
@@ -509,21 +556,30 @@
 
   document.getElementById('export').addEventListener('click', function(){
     var payload = {generated:new Date().toISOString(), texts:store.texts || {}};
-    download('content.json',
-      URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'})));
-    setStatus('content.json downloaded — put it in assets/', 'ok');
+    download('content.json', JSON.stringify(payload, null, 2)).then(function(r){
+      setStatus(r === 'saved' ? 'content.json saved — put it in assets/'
+                              : 'Not saved (' + r + ')', r === 'saved' ? 'ok' : 'warn');
+    });
   });
 
+  // strictly one at a time: only one save prompt can be open, and firing them
+  // together gets every one after the first refused
   document.getElementById('dlimg').addEventListener('click', function(){
-    Object.keys(images()).forEach(function(k, i){
-      var f = byKey(k); if(!f) return;
-      setTimeout(function(){                       // browsers throttle a burst of downloads
-        var uri = images()[k];
-        download(f.orig.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'') +
-                 (uri.indexOf('image/png') > -1 ? '.png' : '.webp'), uri);
-      }, i * 350);
-    });
-    setStatus('Downloading ' + Object.keys(images()).length + ' image(s) — save each into its own folder', 'ok');
+    var keys = Object.keys(images()), done = 0;
+    (function next(){
+      if(!keys.length){
+        setStatus(done + ' image(s) saved — each into its own folder', done ? 'ok' : 'warn');
+        return;
+      }
+      var f = byKey(keys.shift());
+      if(!f) return next();
+      setStatus('Saving ' + imageName(f) + '…');
+      download(imageName(f), images()[f.key]).then(function(r){
+        if(r === 'saved'){ done++; return next(); }
+        if(r === 'declined'){ setStatus('Stopped — ' + done + ' saved', 'warn'); return; }
+        setStatus('Could not save ' + imageName(f) + ' (' + r + ')', 'warn');
+      });
+    })();
   });
 
   document.getElementById('reset').addEventListener('click', function(){
