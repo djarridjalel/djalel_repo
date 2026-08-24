@@ -832,9 +832,10 @@ html.has-dot, html.has-dot *{cursor:none !important;}
    horizontal line. Only the vertical is animated, so nothing has to be
    re-measured against the document while scrolling.
 
-   The canvas is larger than the mark so the turn and the glow have somewhere
-   to go; the extra is transparent. The glow is CSS rather than more
-   triangles — a bloom pass to light 30px of logo would be absurd.
+   The canvas is larger than the mark so the turn has somewhere to go; the
+   extra is transparent. No halo behind it — the object carries itself on its
+   own shading, and a glow at 30px only softened the edge it was meant to
+   flatter.
    ========================================================================== */
 /* Desktop only: on a phone or tablet the bar is already tight and there is
    no scroll-and-settle to watch it perform. The script bails before building
@@ -854,15 +855,7 @@ html.has-dot, html.has-dot *{cursor:none !important;}
 }
 #mark3d.ready{opacity:1;}
 #mark3d:focus-visible{outline:2px solid var(--accent); outline-offset:6px; border-radius:50%;}
-#mark3d::before{
-  content:"";
-  position:absolute; inset:-14px;
-  border-radius:50%;
-  background:radial-gradient(circle at 50% 50%,
-    rgba(255,206,0,.40) 0%, rgba(255,206,0,.15) 42%, rgba(255,206,0,0) 72%);
-  pointer-events:none;
-}
-#mark3d canvas{position:relative; display:block;}
+#mark3d canvas{display:block;}
 
 @media (prefers-reduced-motion:reduce){
   #mark3d{transition:none;}
