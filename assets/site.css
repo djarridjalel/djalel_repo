@@ -813,3 +813,40 @@ html.has-dot, html.has-dot *{cursor:none !important;}
   html.has-dot, html.has-dot *{cursor:auto !important;}
   .dot{display:none;}
 }
+
+/* ==========================================================================
+   THE MARK, IN THREE DIMENSIONS
+   Fixed to the viewport and centred on it, because the two places it has to
+   be — the top centre of the hero and the centre of the bar — are the same
+   horizontal line. Only the vertical is animated, so nothing has to be
+   re-measured against the document while scrolling.
+
+   The canvas is larger than the mark so the turn and the glow have somewhere
+   to go; the extra is transparent. The glow is CSS rather than more
+   triangles — a bloom pass to light 30px of logo would be absurd.
+   ========================================================================== */
+#mark3d{
+  position:fixed;
+  left:50%; top:0;
+  width:56px; height:56px;
+  margin:-28px 0 0;                  /* the box is centred on its own point */
+  transform:translate3d(-50%,0,0);
+  z-index:70;                        /* above the bar, which is 60 */
+  pointer-events:none;
+  opacity:0;
+  transition:opacity .5s ease;
+}
+#mark3d.ready{opacity:1;}
+#mark3d::before{
+  content:"";
+  position:absolute; inset:-14px;
+  border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,
+    rgba(255,110,10,.42) 0%, rgba(255,110,10,.16) 42%, rgba(255,110,10,0) 72%);
+  pointer-events:none;
+}
+#mark3d canvas{position:relative; display:block;}
+
+@media (prefers-reduced-motion:reduce){
+  #mark3d{transition:none;}
+}
