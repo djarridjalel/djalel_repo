@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Content Editor — Djarri Design Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* The editor is a tool, not a page: it borrows the site's palette and faces
+     so it feels like the same object, but the craft goes into information
+     density and scanning rather than into typography. Every control says
+     exactly what it does and the state of the work is visible at all times. */
+  :root{
+    --ink:#0A0A0B; --paper:#FFFFFF; --bone:#F2F1EE;
+    --panel:#141416; --line:rgba(255,255,255,.13); --line-2:rgba(255,255,255,.07);
+    --dim:rgba(255,255,255,.52); --dim-2:rgba(255,255,255,.34);
+    --accent:#FFCE00; --ok:#7BD88F; --warn:#FF8A5B;
+    --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --display:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--ink); color:var(--paper);
+    font-family:var(--display); font-size:15px;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+
+  /* ---- the bar --------------------------------------------------------- */
+  header{
+    position:sticky; top:0; z-index:20;
+    display:flex; align-items:center; gap:18px; flex-wrap:wrap;
+    padding:14px 22px;
+    background:rgba(10,10,11,.94);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .brand{font-size:.95rem; letter-spacing:.05em; white-space:nowrap;}
+  .brand b{font-weight:700;}
+  .brand span{font-weight:300; color:var(--dim); margin-left:.5em;}
+  .grow{flex:1 1 auto;}
+
+  .search{
+    flex:0 1 300px; min-width:170px;
+    background:var(--panel); border:1px solid var(--line); color:var(--paper);
+    font-family:var(--mono); font-size:.74rem; letter-spacing:.04em;
+    padding:9px 12px; border-radius:3px;
+  }
+  .search::placeholder{color:var(--dim-2);}
+
+  button{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.13em;
+    text-transform:uppercase; cursor:pointer;
+    background:transparent; color:var(--paper);
+    border:1px solid var(--line); border-radius:3px;
+    padding:9px 14px;
+    transition:border-color .18s ease, color .18s ease, background-color .18s ease;
+    white-space:nowrap;
+  }
+  button:hover{border-color:var(--accent); color:var(--accent);}
+  button.primary{background:var(--accent); color:var(--ink); border-color:var(--accent); font-weight:500;}
+  button.primary:hover{background:#FFD833; color:var(--ink);}
+  button.quiet{color:var(--dim);}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  button:disabled:hover{border-color:var(--line); color:var(--paper);}
+
+  .count{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.1em;
+    color:var(--dim); white-space:nowrap;
+  }
+  .count b{color:var(--accent); font-weight:500;}
+
+  /* ---- page tabs ------------------------------------------------------- */
+  .tabs{
+    display:flex; gap:2px; flex-wrap:wrap;
+    padding:0 22px; background:var(--ink);
+    border-bottom:1px solid var(--line);
+    position:sticky; top:59px; z-index:19;
+  }
+  .tabs button{
+    border:0; border-bottom:2px solid transparent; border-radius:0;
+    padding:12px 14px; color:var(--dim);
+  }
+  .tabs button:hover{color:var(--paper);}
+  .tabs button[aria-selected="true"]{color:var(--paper); border-bottom-color:var(--accent);}
+  .tabs .n{color:var(--dim-2); margin-left:.6em;}
+
+  /* ---- the list -------------------------------------------------------- */
+  main{padding:22px 22px 120px; max-width:1180px; margin:0 auto;}
+  .note{
+    border:1px solid var(--line); border-left:2px solid var(--accent);
+    background:var(--panel);
+    padding:14px 16px; border-radius:3px; margin:0 0 22px;
+    font-weight:300; line-height:1.6; font-size:.92rem; color:rgba(255,255,255,.78);
+  }
+  .note b{font-weight:600; color:var(--paper);}
+
+  .group{margin:0 0 34px;}
+  .group > h2{
+    margin:0 0 12px; font-size:.68rem; font-family:var(--mono);
+    letter-spacing:.18em; text-transform:uppercase; color:var(--dim);
+    padding-bottom:8px; border-bottom:1px solid var(--line);
+  }
+
+  .row{
+    display:grid; grid-template-columns:132px minmax(0,1fr);
+    gap:16px; align-items:start;
+    padding:13px 0; border-bottom:1px solid var(--line-2);
+  }
+  .row.changed{background:linear-gradient(90deg, rgba(255,206,0,.07), transparent 60%);}
+  .key{
+    font-family:var(--mono); font-size:.62rem; letter-spacing:.06em;
+    color:var(--dim-2); padding-top:9px; word-break:break-all;
+  }
+  .row.changed .key{color:var(--accent);}
+  .tagname{
+    display:inline-block; margin-right:.5em; padding:1px 5px;
+    border:1px solid var(--line); border-radius:2px; color:var(--dim);
+  }
+
+  textarea{
+    width:100%; min-height:44px;
+    background:var(--panel); color:var(--paper);
+    border:1px solid var(--line); border-radius:3px;
+    font-family:var(--display); font-size:.94rem; font-weight:300; line-height:1.55;
+    padding:10px 12px; resize:vertical;
+  }
+  textarea:focus{border-color:var(--accent);}
+  .row.changed textarea{border-color:rgba(255,206,0,.5);}
+
+  /* ---- images ---------------------------------------------------------- */
+  .img-row{display:flex; gap:14px; align-items:flex-start; flex-wrap:wrap;}
+  .thumb{
+    width:118px; height:84px; flex:0 0 auto;
+    background:
+      linear-gradient(45deg, #1b1b1e 25%, transparent 25%, transparent 75%, #1b1b1e 75%) 0 0/14px 14px,
+      linear-gradient(45deg, #1b1b1e 25%, #101012 25%, #101012 75%, #1b1b1e 75%) 7px 7px/14px 14px;
+    border:1px solid var(--line); border-radius:3px; overflow:hidden;
+    display:grid; place-items:center;
+  }
+  .thumb img{max-width:100%; max-height:100%; object-fit:contain; display:block;}
+  .img-meta{
+    flex:1 1 190px; min-width:0;
+    font-family:var(--mono); font-size:.63rem; letter-spacing:.05em;
+    color:var(--dim); line-height:1.9; word-break:break-all;
+  }
+  .img-meta .path{color:rgba(255,255,255,.72);}
+  .img-actions{display:flex; gap:8px; flex-wrap:wrap; align-items:flex-start;}
+  input[type=file]{display:none;}
+
+  .pill{
+    display:inline-block; padding:1px 7px; border-radius:2px;
+    font-size:.58rem; letter-spacing:.1em; text-transform:uppercase;
+  }
+  .pill.new{background:rgba(255,206,0,.16); color:var(--accent);}
+
+  .empty{color:var(--dim); font-weight:300; padding:40px 0;}
+
+  /* ---- save bar -------------------------------------------------------- */
+  .dock{
+    position:fixed; left:0; right:0; bottom:0; z-index:30;
+    display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+    padding:12px 22px;
+    background:rgba(10,10,11,.95);
+    backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px);
+    border-top:1px solid var(--line);
+  }
+  .status{font-family:var(--mono); font-size:.66rem; letter-spacing:.1em; color:var(--dim);}
+  .status.ok{color:var(--ok);}
+  .status.warn{color:var(--warn);}
+
+  @media (max-width:720px){
+    .row{grid-template-columns:1fr; gap:8px;}
+    .key{padding-top:0;}
+    .tabs{top:0; position:static;}
+    header{position:static;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="brand"><b>DJARRI</b><span>CONTENT EDITOR</span></span>
+  <input class="search" id="q" type="search" placeholder="Filter by text or key…" aria-label="Filter fields">
+  <span class="grow"></span>
+  <span class="count" id="count">loading…</span>
+  <button id="view">Open site</button>
+</header>
+
+<div class="tabs" id="tabs" role="tablist"></div>
+
+<main>
+  <p class="note" id="intro">
+    <b>Edits save to this browser and preview on the site straight away</b> — open the site in
+    another tab and it updates as you type. Nothing is published until you export.
+    When you are happy, use <b>Export content.json</b>, drop the file into
+    <code>assets/</code>, and download any images you replaced into their own paths.
+    Text fields accept HTML, so <code>&lt;b&gt;bold&lt;/b&gt;</code> works.
+  </p>
+  <div id="list"><p class="empty">Reading the site…</p></div>
+</main>
+
+<div class="dock">
+  <span class="status" id="status">No changes</span>
+  <span class="grow"></span>
+  <button class="quiet" id="reset">Discard all</button>
+  <button id="dlimg" disabled>Download changed images</button>
+  <button class="primary" id="export" disabled>Export content.json</button>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  var KEY = 'djarri:content';
+  var PAGES = [
+    {slug:'index',    file:'index.html',                 label:'Homepage'},
+    {slug:'evolab',   file:'work/evolab.html',           label:'Evolab'},
+    {slug:'natural',  file:'work/natural-solution.html', label:'Natural Solution'},
+    {slug:'laformul', file:'work/laformul.html',         label:'Laformul'},
+    {slug:'archive',  file:'archive.html',               label:'Archive'},
+    {slug:'about',    file:'about.html',                 label:'About'}
+  ];
+  /* Which section of the page a field belongs to. Read off the nearest
+     ancestor that means something, so the list is grouped the way the site
+     reads rather than in raw document order. */
+  var SECTIONS = [
+    ['.nav',            'Navigation'],
+    ['.hero',           'Hero'],
+    ['.clients',        'Client strip'],
+    ['#work',           'Proof'],
+    ['.glimpses',       'Selected work'],
+    ['#expertise',      'Expertise'],
+    ['#kind-words',     'Kind words'],
+    ['#about',          'About preview'],
+    ['#contact',        'Contact'],
+    ['.poster',         'Case opener'],
+    ['.narrative',      'Narrative'],
+    ['.sys',            'Visual system'],
+    ['.plates',         'Applications'],
+    ['.tally',          'Tally'],
+    ['.outcome',        'Outcome'],
+    ['.spec',           'Spec sheet'],
+    ['.lineage',        'Lineage'],
+    ['.arch-grid',      'Archive items'],
+    ['.next',           'Next project'],
+    ['.foot',           'Footer'],
+    ['.awaiting',       'Placeholders']
+  ];
+
+  var store = load();
+  var fields = [];          // {page,label,section,key,kind,tag,orig,path,el}
+  var q = '', tab = 'index';
+
+  function load(){
+    try{ return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; }
+    catch(e){ return {}; }
+  }
+  function save(){
+    try{
+      localStorage.setItem(KEY, JSON.stringify(store));
+      setStatus(changeCount() + ' change' + (changeCount()===1?'':'s') + ' saved to this browser', 'ok');
+    }catch(e){
+      setStatus('Could not save — browser storage is full. Export, then discard.', 'warn');
+    }
+    refreshDock();
+  }
+  function texts(){ return store.texts || (store.texts = {}); }
+  function images(){ return store.images || (store.images = {}); }
+  function changeCount(){
+    return Object.keys(store.texts||{}).length + Object.keys(store.images||{}).length;
+  }
+  function setStatus(msg, cls){
+    var s = document.getElementById('status');
+    s.textContent = msg; s.className = 'status' + (cls ? ' ' + cls : '');
+  }
+  function refreshDock(){
+    var n = changeCount();
+    document.getElementById('export').disabled = !(store.texts && Object.keys(store.texts).length);
+    document.getElementById('dlimg').disabled  = !(store.images && Object.keys(store.images).length);
+    if(!n) setStatus('No changes');
+  }
+
+  function sectionOf(el){
+    for(var i = 0; i < SECTIONS.length; i++){
+      if(el.closest(SECTIONS[i][0])) return SECTIONS[i][1];
+    }
+    // Nothing named it, so let the section name itself: a band's eyebrow is
+    // already the label the page uses for that stretch of content.
+    var band = el.closest('.band');
+    var brow = band && band.querySelector('.eyebrow');
+    if(brow){
+      var t = brow.textContent.trim();
+      return t.length > 34 ? t.slice(0, 34) + '…' : t;
+    }
+    return 'Other';
+  }
+
+  /* Served from the site folder the editor reads the real files. In a
+     published build there are no sibling files to read, so the pages are
+     baked in at build time and it works from the markup it was given. */
+  function source(page){
+    var baked = window.__PAGES__ && window.__PAGES__[page.file];
+    if(baked) return Promise.resolve(baked);
+    return fetch(page.file).then(function(r){
+      if(!r.ok) throw new Error(page.file + ' — ' + r.status);
+      return r.text();
+    });
+  }
+
+  function read(page){
+    return source(page).then(function(html){
+      var doc = new DOMParser().parseFromString(html, 'text/html');
+      var seen = {};
+      [].forEach.call(doc.querySelectorAll('[data-ed]'), function(el){
+        var key = el.getAttribute('data-ed');
+        if(seen[key]) return;              // the client strip repeats its markup
+        seen[key] = 1;
+        var isImg = el.tagName === 'IMG';
+        fields.push({
+          page:page.slug, label:page.label, section:sectionOf(el),
+          key:key, kind:isImg ? 'image' : 'text',
+          tag:el.tagName.toLowerCase(),
+          orig:isImg ? el.getAttribute('src') : el.innerHTML.trim(),
+          alt:isImg ? (el.getAttribute('alt')||'') : '',
+          base:page.file.indexOf('/') > -1 ? 'work/' : ''
+        });
+      });
+    });
+  }
+
+  /* Uploaded images are downscaled before they are stored. A phone photo is
+     several megabytes and browser storage is about five in total, so one
+     untouched upload would fill it and every later save would fail. */
+  function shrink(file, cb){
+    var fr = new FileReader();
+    fr.onload = function(){
+      var img = new Image();
+      img.onload = function(){
+        var max = 1600, w = img.width, h = img.height;
+        if(Math.max(w,h) > max){ var k = max/Math.max(w,h); w = Math.round(w*k); h = Math.round(h*k); }
+        var c = document.createElement('canvas'); c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        var keep = /\.(png|svg)$/i.test(file.name) || /transparent/i.test(file.type);
+        cb(c.toDataURL(keep ? 'image/png' : 'image/webp', 0.86), w, h);
+      };
+      img.onerror = function(){ cb(fr.result, 0, 0); };   // svg and anything odd: keep as is
+      img.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  }
+
+  function download(name, href){
+    var a = document.createElement('a');
+    a.href = href; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  function render(){
+    var host = document.getElementById('list');
+    var needle = q.trim().toLowerCase();
+    var list = fields.filter(function(f){
+      if(f.page !== tab) return false;
+      if(!needle) return true;
+      var cur = f.kind === 'text' ? (texts()[f.key] != null ? texts()[f.key] : f.orig) : f.orig;
+      return (cur + ' ' + f.key + ' ' + f.section + ' ' + f.alt).toLowerCase().indexOf(needle) > -1;
+    });
+    if(!list.length){
+      host.innerHTML = '<p class="empty">Nothing matches “' + esc(needle) + '”.</p>';
+      return;
+    }
+    var out = [], group = null;
+    list.forEach(function(f){
+      if(f.section !== group){
+        if(group !== null) out.push('</div>');
+        group = f.section;
+        out.push('<div class="group"><h2>' + esc(group) + '</h2>');
+      }
+      out.push(f.kind === 'text' ? textRow(f) : imageRow(f));
+    });
+    if(group !== null) out.push('</div>');
+    host.innerHTML = out.join('');
+    wire(host);
+  }
+
+  function esc(s){
+    return String(s).replace(/[&<>"]/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function textRow(f){
+    var over = texts()[f.key];
+    var val = over != null ? over : f.orig;
+    var changed = over != null && over !== f.orig;
+    var rows = Math.min(8, Math.max(1, Math.ceil(val.length / 74)));
+    return '<div class="row' + (changed ? ' changed' : '') + '" data-key="' + f.key + '">' +
+      '<div class="key"><span class="tagname">' + f.tag + '</span>' + f.key + '</div>' +
+      '<div><textarea rows="' + rows + '" data-key="' + f.key + '">' + esc(val) + '</textarea></div>' +
+    '</div>';
+  }
+
+  function imageRow(f){
+    var over = images()[f.key];
+    var src = over || (f.base + f.orig);
+    var changed = !!over;
+    return '<div class="row' + (changed ? ' changed' : '') + '" data-key="' + f.key + '">' +
+      '<div class="key"><span class="tagname">img</span>' + f.key + '</div>' +
+      '<div class="img-row">' +
+        '<div class="thumb"><img src="' + esc(src) + '" alt=""></div>' +
+        '<div class="img-meta">' +
+          '<div class="path">' + esc(f.orig) + '</div>' +
+          (f.alt ? '<div>alt: ' + esc(f.alt) + '</div>' : '') +
+          (changed ? '<div><span class="pill new">replaced — not yet exported</span></div>' : '') +
+        '</div>' +
+        '<div class="img-actions">' +
+          '<button data-pick="' + f.key + '">Replace</button>' +
+          (changed ? '<button data-save="' + f.key + '">Download</button>' +
+                     '<button class="quiet" data-revert="' + f.key + '">Revert</button>' : '') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function wire(host){
+    [].forEach.call(host.querySelectorAll('textarea'), function(ta){
+      ta.addEventListener('input', function(){
+        var f = byKey(ta.getAttribute('data-key'));
+        if(ta.value === f.orig) delete texts()[f.key];
+        else texts()[f.key] = ta.value;
+        ta.closest('.row').classList.toggle('changed', texts()[f.key] != null);
+        save();
+      });
+    });
+    [].forEach.call(host.querySelectorAll('[data-pick]'), function(btn){
+      btn.addEventListener('click', function(){
+        var key = btn.getAttribute('data-pick');
+        var inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*';
+        inp.addEventListener('change', function(){
+          if(!inp.files || !inp.files[0]) return;
+          setStatus('Reading image…');
+          shrink(inp.files[0], function(uri){
+            images()[key] = uri; save(); render();
+          });
+        });
+        inp.click();
+      });
+    });
+    [].forEach.call(host.querySelectorAll('[data-save]'), function(btn){
+      btn.addEventListener('click', function(){
+        var f = byKey(btn.getAttribute('data-save'));
+        var uri = images()[f.key];
+        // saved under the path the site already expects, so it drops straight in
+        download(f.orig.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'') +
+                 (uri.indexOf('image/png') > -1 ? '.png' : '.webp'), uri);
+      });
+    });
+    [].forEach.call(host.querySelectorAll('[data-revert]'), function(btn){
+      btn.addEventListener('click', function(){
+        delete images()[btn.getAttribute('data-revert')];
+        save(); render();
+      });
+    });
+  }
+
+  function byKey(k){
+    for(var i = 0; i < fields.length; i++) if(fields[i].key === k) return fields[i];
+    return null;
+  }
+
+  function drawTabs(){
+    var host = document.getElementById('tabs');
+    host.innerHTML = PAGES.map(function(p){
+      var n = fields.filter(function(f){ return f.page === p.slug; }).length;
+      var ch = fields.filter(function(f){
+        return f.page === p.slug &&
+          ((f.kind==='text' && texts()[f.key] != null) || (f.kind==='image' && images()[f.key]));
+      }).length;
+      return '<button role="tab" data-tab="' + p.slug + '" aria-selected="' + (p.slug===tab) + '">' +
+        p.label + '<span class="n">' + (ch ? ch + '/' : '') + n + '</span></button>';
+    }).join('');
+    [].forEach.call(host.querySelectorAll('[data-tab]'), function(b){
+      b.addEventListener('click', function(){ tab = b.getAttribute('data-tab'); drawTabs(); render(); });
+    });
+  }
+
+  // ---- boot ---------------------------------------------------------------
+  Promise.all(PAGES.map(read)).then(function(){
+    document.getElementById('count').innerHTML =
+      '<b>' + fields.filter(function(f){return f.kind==='text';}).length + '</b> texts · <b>' +
+      fields.filter(function(f){return f.kind==='image';}).length + '</b> images';
+    drawTabs(); render(); refreshDock();
+    if(changeCount()) setStatus(changeCount() + ' change' + (changeCount()===1?'':'s') + ' saved to this browser', 'ok');
+  }).catch(function(e){
+    document.getElementById('list').innerHTML =
+      '<p class="empty">Could not read the site files — ' + esc(e.message) + '.<br><br>' +
+      'The editor has to fetch the pages, which browsers block when a file is opened ' +
+      'straight off disk. Serve the folder over http and reload.</p>';
+    setStatus('Could not read the site files', 'warn');
+  });
+
+  document.getElementById('q').addEventListener('input', function(e){ q = e.target.value; render(); });
+  document.getElementById('view').addEventListener('click', function(){ window.open('index.html', '_blank'); });
+
+  document.getElementById('export').addEventListener('click', function(){
+    var payload = {generated:new Date().toISOString(), texts:store.texts || {}};
+    download('content.json',
+      URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'})));
+    setStatus('content.json downloaded — put it in assets/', 'ok');
+  });
+
+  document.getElementById('dlimg').addEventListener('click', function(){
+    Object.keys(images()).forEach(function(k, i){
+      var f = byKey(k); if(!f) return;
+      setTimeout(function(){                       // browsers throttle a burst of downloads
+        var uri = images()[k];
+        download(f.orig.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'') +
+                 (uri.indexOf('image/png') > -1 ? '.png' : '.webp'), uri);
+      }, i * 350);
+    });
+    setStatus('Downloading ' + Object.keys(images()).length + ' image(s) — save each into its own folder', 'ok');
+  });
+
+  document.getElementById('reset').addEventListener('click', function(){
+    if(!changeCount()) return;
+    if(!confirm('Discard every unsaved change? The published site is not affected.')) return;
+    store = {}; save(); drawTabs(); render(); setStatus('All changes discarded');
+  });
+})();
+</script>
+</body>
+</html>

@@ -290,10 +290,18 @@
   /* the spacing is a margin on each slot, not a gap on the track: with a
      gap the duplicated half is not exactly 50% of the width and the loop
      drifts a pixel each cycle. */
+  /* The margin has a second job past about 2900px. Half the track has to be
+     at least as wide as the window or the loop runs out of logos before the
+     cycle ends, and with a fully clamped slot and margin the track stops
+     growing while the window does not. The max() leaves the spacing exactly
+     as it was up to that point and only opens it out beyond, where nothing
+     else in CSS was holding the loop together. The script still tops up the
+     copy count on top of this; this is what keeps it honest if the script
+     never runs at all. */
   .logo{
     flex:0 0 auto;
     width:clamp(96px, 11vw, 156px);
-    margin-right:clamp(32px, 5vw, 76px);
+    margin-right:max(clamp(32px, 5vw, 76px), calc(7.5vw - 150px));
     display:grid;
     place-items:center;
   }
@@ -546,7 +554,7 @@
 
 <div id="mark3d" data-src="assets/mark.glb" aria-hidden="true"></div>
 <nav class="nav nav-hidden" data-reveal-after="#hero" aria-label="Primary">
-  <a class="nav-mark gt gt-zone" href="#top"><span class="n gt">DJARRI</span><span class="s gt">DESIGN&nbsp;PORTFOLIO</span></a>
+  <a class="nav-mark gt gt-zone" href="#top"><span class="n gt" data-ed="index.t1">DJARRI</span><span class="s gt" data-ed="index.t2">DESIGN&nbsp;PORTFOLIO</span></a>
   <div class="nav-links">
     <a href="#work">Work</a>
     <a href="archive.html">Archive</a>
@@ -559,37 +567,37 @@
 
   <!-- 0 · landscape plate -->
   <div class="pl l0" data-depth="89" data-overscan="1.13">
-    <img src="assets/layer0.webp" alt="" width="1920" height="1280" fetchpriority="high" decoding="async">
+    <img src="assets/layer0.webp" alt="" width="1920" height="1280" fetchpriority="high" decoding="async" data-ed="index.i1">
   </div>
 
   <!-- 1 · ring -->
   <div class="pl l1" data-depth="14">
-    <img src="assets/layer1.svg" alt="" width="328" height="328" decoding="async">
+    <img src="assets/layer1.svg" alt="" width="328" height="328" decoding="async" data-ed="index.i2">
   </div>
 
   <!-- 2 · monogram -->
   <div class="pl l2" data-depth="20">
-    <img src="assets/layer2.svg" alt="" width="1313" height="1597" decoding="async">
+    <img src="assets/layer2.svg" alt="" width="1313" height="1597" decoding="async" data-ed="index.i3">
   </div>
 
   <!-- 3 · light shaft -->
   <div class="pl shaft l3" data-depth="104">
-    <img src="assets/layer3.webp" alt="" width="860" height="1945" decoding="async">
+    <img src="assets/layer3.webp" alt="" width="860" height="1945" decoding="async" data-ed="index.i4">
   </div>
 
   <!-- 4 · light shaft -->
   <div class="pl shaft l4" data-depth="34">
-    <img src="assets/layer4.webp" alt="" width="860" height="1944" decoding="async">
+    <img src="assets/layer4.webp" alt="" width="860" height="1944" decoding="async" data-ed="index.i5">
   </div>
 
   <!-- 5 · debris -->
   <div class="pl l5" data-depth="63">
-    <img src="assets/layer5.webp" alt="" width="2000" height="848" fetchpriority="high" decoding="async">
+    <img src="assets/layer5.webp" alt="" width="2000" height="848" fetchpriority="high" decoding="async" data-ed="index.i6">
   </div>
 
   <!-- 6 · light shaft -->
   <div class="pl shaft l6" data-depth="136">
-    <img src="assets/layer6.webp" alt="" width="860" height="1944" decoding="async">
+    <img src="assets/layer6.webp" alt="" width="860" height="1944" decoding="async" data-ed="index.i7">
   </div>
 
   <div class="scrim"></div>
@@ -598,12 +606,12 @@
   <div class="type" id="typeLayer" data-depth="17">
     <div class="rail gt gt-zone">
       Abdeldjalil DJARRI · Creative Director<br>
-      <span class="wide-only">Pharma &amp; parapharma brand systems<br></span>
+      <span class="wide-only" data-ed="index.t3">Pharma &amp; parapharma brand systems<br></span>
       Open to relocation — Geneva / Zurich / Lausanne
     </div>
     <h1 class="headline lens"><span class="lens-base"><b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b></span></h1>
     <div class="footrow">
-      <div class="wordmark gt gt-zone"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;PORTFOLIO</span></div>
+      <div class="wordmark gt gt-zone"><span class="n" data-ed="index.t4">DJARRI</span><span class="s" data-ed="index.t5">DESIGN&nbsp;PORTFOLIO</span></div>
     </div>
   </div>
 
@@ -614,41 +622,41 @@
 <section class="clients" aria-label="Selected clients">
   <div class="marquee">
     <ul class="track">
-        <li class="logo"><img src="assets/logos/clinique-imen.svg" alt="Clinique Imen" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="Clinique Dentaire Sahnoun" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="Luxo Clinique" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="Chemist Cooper Group" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="Dermilyne Laboratoire" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="Direct Pharma" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="LDM Groupe" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="Dr Simoud Bilel" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="Racine Lab" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/evolab.webp" alt="Evolab Laboratories" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="Natural Solution" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/natural-skin.svg" alt="Natural Skin" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/bioformul.svg" alt="BioFormul" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/laformul.svg" alt="Laformul" decoding="async"></li>
-        <li class="logo" aria-hidden="true"><img src="assets/logos/clinique-imen.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/evolab.webp" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="" decoding="async"></li>
-        <li class="logo" aria-hidden="true"><img src="assets/logos/natural-skin.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/bioformul.svg" alt="" decoding="async"></li>
-        <li class="logo"><img src="assets/logos/laformul.svg" alt="" decoding="async"></li>
+        <li class="logo"><img src="assets/logos/clinique-imen.svg" alt="Clinique Imen" decoding="async" data-ed="index.i8"></li>
+        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="Clinique Dentaire Sahnoun" decoding="async" data-ed="index.i9"></li>
+        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="Luxo Clinique" decoding="async" data-ed="index.i10"></li>
+        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="Chemist Cooper Group" decoding="async" data-ed="index.i11"></li>
+        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="Dermilyne Laboratoire" decoding="async" data-ed="index.i12"></li>
+        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="Direct Pharma" decoding="async" data-ed="index.i13"></li>
+        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="LDM Groupe" decoding="async" data-ed="index.i14"></li>
+        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="Dr Simoud Bilel" decoding="async" data-ed="index.i15"></li>
+        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="Racine Lab" decoding="async" data-ed="index.i16"></li>
+        <li class="logo"><img src="assets/logos/evolab.webp" alt="Evolab Laboratories" decoding="async" data-ed="index.i17"></li>
+        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="Natural Solution" decoding="async" data-ed="index.i18"></li>
+        <li class="logo"><img src="assets/logos/natural-skin.svg" alt="Natural Skin" decoding="async" data-ed="index.i19"></li>
+        <li class="logo"><img src="assets/logos/bioformul.svg" alt="BioFormul" decoding="async" data-ed="index.i20"></li>
+        <li class="logo"><img src="assets/logos/laformul.svg" alt="Laformul" decoding="async" data-ed="index.i21"></li>
+        <li class="logo" aria-hidden="true"><img src="assets/logos/clinique-imen.svg" alt="" decoding="async" data-ed="index.i22"></li>
+        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="" decoding="async" data-ed="index.i23"></li>
+        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="" decoding="async" data-ed="index.i24"></li>
+        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="" decoding="async" data-ed="index.i25"></li>
+        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="" decoding="async" data-ed="index.i26"></li>
+        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="" decoding="async" data-ed="index.i27"></li>
+        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="" decoding="async" data-ed="index.i28"></li>
+        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="" decoding="async" data-ed="index.i29"></li>
+        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="" decoding="async" data-ed="index.i30"></li>
+        <li class="logo"><img src="assets/logos/evolab.webp" alt="" decoding="async" data-ed="index.i31"></li>
+        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="" decoding="async" data-ed="index.i32"></li>
+        <li class="logo" aria-hidden="true"><img src="assets/logos/natural-skin.svg" alt="" decoding="async" data-ed="index.i33"></li>
+        <li class="logo"><img src="assets/logos/bioformul.svg" alt="" decoding="async" data-ed="index.i34"></li>
+        <li class="logo"><img src="assets/logos/laformul.svg" alt="" decoding="async" data-ed="index.i35"></li>
     </ul>
   </div>
 </section>
 
 <section class="band band-ink" id="work">
   <div class="wrap">
-    <p class="eyebrow">Verified record</p>
+    <p class="eyebrow" data-ed="index.t6">Verified record</p>
     <div class="proof">
       <div><div class="n">10+</div><div class="l">Years in<br>practice</div></div>
       <div><div class="n">100+</div><div class="l">Products<br>on shelves</div></div>
@@ -660,55 +668,55 @@
 
 <section class="band band-ink">
   <div class="wrap">
-    <p class="eyebrow">Selected work · 2016—2025</p>
-    <h2 class="h-sec gt gt-zone">Three brand systems,<br><b>three regulated markets.</b></h2>
+    <p class="eyebrow" data-ed="index.t7">Selected work · 2016—2025</p>
+    <h2 class="h-sec gt gt-zone" data-ed="index.t8">Three brand systems,<br><b>three regulated markets.</b></h2>
 
     <div class="glimpses">
       <a class="glimpse gt-zone" href="work/evolab.html">
         <div class="glimpse-media">
-          <img src="assets/work/evolab-poster.webp" alt="Evolab Laboratories — pharmaceutical packaging system" decoding="async" loading="lazy">
-          <span class="glimpse-mark"><img src="assets/work/mark-evolab.webp" alt="" decoding="async" loading="lazy"></span>
+          <img src="assets/work/evolab-poster.webp" alt="Evolab Laboratories — pharmaceutical packaging system" decoding="async" loading="lazy" data-ed="index.i36">
+          <span class="glimpse-mark"><img src="assets/work/mark-evolab.webp" alt="" decoding="async" loading="lazy" data-ed="index.i37"></span>
         </div>
         <div class="glimpse-foot">
-          <span class="glimpse-n">01</span>
+          <span class="glimpse-n" data-ed="index.t9">01</span>
           <span>
             <span class="glimpse-client gt">Evolab Laboratories</span>
-            <span class="glimpse-sector">Pharmaceutical · Identity, packaging, exhibition</span>
+            <span class="glimpse-sector" data-ed="index.t10">Pharmaceutical · Identity, packaging, exhibition</span>
           </span>
-          <span class="glimpse-line gt">A full rebrand for a pharmaceutical laboratory — five SKUs, three logo modes and a trade-show build, all held together by one idea: a compressed circle unfurling into a perfect one.</span>
-          <span class="glimpse-go">View case study &#8594;</span>
+          <span class="glimpse-line gt" data-ed="index.t11">A full rebrand for a pharmaceutical laboratory — five SKUs, three logo modes and a trade-show build, all held together by one idea: a compressed circle unfurling into a perfect one.</span>
+          <span class="glimpse-go" data-ed="index.t12">View case study &#8594;</span>
         </div>
       </a>
 
       <a class="glimpse gt-zone" href="work/natural-solution.html">
         <div class="glimpse-media">
-          <img src="assets/work/natural-poster.webp" alt="Natural Solution — parapharmaceutical product family" decoding="async" loading="lazy">
-          <span class="glimpse-mark"><img src="assets/work/mark-natural.svg" alt="" decoding="async" loading="lazy"></span>
+          <img src="assets/work/natural-poster.webp" alt="Natural Solution — parapharmaceutical product family" decoding="async" loading="lazy" data-ed="index.i38">
+          <span class="glimpse-mark"><img src="assets/work/mark-natural.svg" alt="" decoding="async" loading="lazy" data-ed="index.i39"></span>
         </div>
         <div class="glimpse-foot">
-          <span class="glimpse-n">02</span>
+          <span class="glimpse-n" data-ed="index.t13">02</span>
           <span>
             <span class="glimpse-client gt">Natural Solution</span>
-            <span class="glimpse-sector">Parapharmaceutical · Three-year partnership · Sub-brand</span>
+            <span class="glimpse-sector" data-ed="index.t14">Parapharmaceutical · Three-year partnership · Sub-brand</span>
           </span>
-          <span class="glimpse-line gt">A catalogue that grew past thirty products without the system being redrawn once — and in year three it earned a sub-brand, Natural Skin.</span>
-          <span class="glimpse-go">View case study &#8594;</span>
+          <span class="glimpse-line gt" data-ed="index.t15">A catalogue that grew past thirty products without the system being redrawn once — and in year three it earned a sub-brand, Natural Skin.</span>
+          <span class="glimpse-go" data-ed="index.t16">View case study &#8594;</span>
         </div>
       </a>
 
       <a class="glimpse gt-zone" href="work/laformul.html">
         <div class="glimpse-media">
-          <img src="assets/work/laformul-poster.webp" alt="Laformul and BioFormul — dermo-cosmetic brand systems" decoding="async" loading="lazy">
-          <span class="glimpse-mark"><img src="assets/work/mark-laformul.svg" alt="" decoding="async" loading="lazy"></span>
+          <img src="assets/work/laformul-poster.webp" alt="Laformul and BioFormul — dermo-cosmetic brand systems" decoding="async" loading="lazy" data-ed="index.i40">
+          <span class="glimpse-mark"><img src="assets/work/mark-laformul.svg" alt="" decoding="async" loading="lazy" data-ed="index.i41"></span>
         </div>
         <div class="glimpse-foot">
-          <span class="glimpse-n">03</span>
+          <span class="glimpse-n" data-ed="index.t17">03</span>
           <span>
             <span class="glimpse-client gt">Laformul + BioFormul</span>
-            <span class="glimpse-sector">Dermo-cosmetic · Two systems, built from zero</span>
+            <span class="glimpse-sector" data-ed="index.t18">Dermo-cosmetic · Two systems, built from zero</span>
           </span>
-          <span class="glimpse-line gt">A brand built before the product existed, then a science-led sibling born two years later because the first one worked.</span>
-          <span class="glimpse-go">View case study &#8594;</span>
+          <span class="glimpse-line gt" data-ed="index.t19">A brand built before the product existed, then a science-led sibling born two years later because the first one worked.</span>
+          <span class="glimpse-go" data-ed="index.t20">View case study &#8594;</span>
         </div>
       </a>
     </div>
@@ -719,35 +727,35 @@
 
 <section class="band band-bone" id="expertise">
   <div class="wrap">
-    <p class="eyebrow">What this is actually for</p>
+    <p class="eyebrow" data-ed="index.t21">What this is actually for</p>
     <div class="split">
-      <h2 class="h-sec gt gt-zone" style="margin-bottom:0">Regulated packaging is a <b>systems problem</b> before it is a visual one.</h2>
+      <h2 class="h-sec gt gt-zone" style="margin-bottom:0" data-ed="index.t22">Regulated packaging is a <b>systems problem</b> before it is a visual one.</h2>
       <div>
-        <p class="lede">A carton has to satisfy a regulator, survive a print run, sit beside eleven of its own siblings on a pharmacy shelf and still be picked up by someone who is unwell and in a hurry. Most of that work happens before anything is drawn.</p>
-        <p class="lede" style="margin-bottom:0">What a client is buying is a set of rules that keeps holding once the catalogue doubles and the designer is no longer in the room.</p>
+        <p class="lede" data-ed="index.t23">A carton has to satisfy a regulator, survive a print run, sit beside eleven of its own siblings on a pharmacy shelf and still be picked up by someone who is unwell and in a hurry. Most of that work happens before anything is drawn.</p>
+        <p class="lede" style="margin-bottom:0" data-ed="index.t24">What a client is buying is a set of rules that keeps holding once the catalogue doubles and the designer is no longer in the room.</p>
       </div>
     </div>
 
     <div class="caps">
       <div class="cap">
-        <span class="k">Packaging architecture</span>
-        <h3>Rules a range can grow into</h3>
-        <p>Variant logic, dosage hierarchy, indication clarity and the mandatory information that regulation requires — resolved once, at system level, so the thirty-first product does not need a new decision.</p>
+        <span class="k" data-ed="index.t25">Packaging architecture</span>
+        <h3 data-ed="index.t26">Rules a range can grow into</h3>
+        <p data-ed="index.t27">Variant logic, dosage hierarchy, indication clarity and the mandatory information that regulation requires — resolved once, at system level, so the thirty-first product does not need a new decision.</p>
       </div>
       <div class="cap">
-        <span class="k">Brand identity</span>
-        <h3>Marks that survive every substrate</h3>
-        <p>A mark that appears on a screen, a printed carton and one ink on blister foil is really three marks. Drawing all of them up front is what stops a brand improvising them later.</p>
+        <span class="k" data-ed="index.t28">Brand identity</span>
+        <h3 data-ed="index.t29">Marks that survive every substrate</h3>
+        <p data-ed="index.t30">A mark that appears on a screen, a printed carton and one ink on blister foil is really three marks. Drawing all of them up front is what stops a brand improvising them later.</p>
       </div>
       <div class="cap">
-        <span class="k">Product-family coherence</span>
-        <h3>Family resemblance, without uniformity</h3>
-        <p>Shelf recognition depends on what stays constant; sales depend on what changes. The system has to make both legible at two metres and at arm's length.</p>
+        <span class="k" data-ed="index.t31">Product-family coherence</span>
+        <h3 data-ed="index.t32">Family resemblance, without uniformity</h3>
+        <p data-ed="index.t33">Shelf recognition depends on what stays constant; sales depend on what changes. The system has to make both legible at two metres and at arm's length.</p>
       </div>
       <div class="cap">
-        <span class="k">Creative direction</span>
-        <h3>From strategy to the print floor</h3>
-        <p>Naming support, art direction, campaign, film and exhibition — carried through production rather than handed over at the artwork stage, which is where most systems quietly come apart.</p>
+        <span class="k" data-ed="index.t34">Creative direction</span>
+        <h3 data-ed="index.t35">From strategy to the print floor</h3>
+        <p data-ed="index.t36">Naming support, art direction, campaign, film and exhibition — carried through production rather than handed over at the artwork stage, which is where most systems quietly come apart.</p>
       </div>
     </div>
   </div>
@@ -755,11 +763,11 @@
 
 <section class="band band-ink" id="kind-words">
   <div class="wrap">
-    <p class="eyebrow">Kind words</p>
+    <p class="eyebrow" data-ed="index.t37">Kind words</p>
 
     <div class="awaiting" style="max-width:70ch; margin-bottom:var(--slab)">
-      <span class="tag">Editorial placeholder — to be replaced</span>
-      <p>This section is reserved for two to four approved client testimonials, with each speaker's name, role and company. Nothing here is written until real quotes are supplied and cleared — invented praise would undo exactly the credibility the rest of the page is built on.</p>
+      <span class="tag" data-ed="index.t38">Editorial placeholder — to be replaced</span>
+      <p data-ed="index.t39">This section is reserved for two to four approved client testimonials, with each speaker's name, role and company. Nothing here is written until real quotes are supplied and cleared — invented praise would undo exactly the credibility the rest of the page is built on.</p>
     </div>
 
     <blockquote class="quote-lead gt gt-zone">
@@ -769,11 +777,11 @@
 
     <div class="quote-pair">
       <div class="quote-sm">
-        <p>A shorter supporting quote — ideally about reliability, communication or the work continuing to hold up.</p>
+        <p data-ed="index.t40">A shorter supporting quote — ideally about reliability, communication or the work continuing to hold up.</p>
         <div class="quote-attr" style="margin-top:18px">Name · Role · Company</div>
       </div>
       <div class="quote-sm">
-        <p>A second supporting quote — ideally about commercial usefulness or a long-running partnership.</p>
+        <p data-ed="index.t41">A second supporting quote — ideally about commercial usefulness or a long-running partnership.</p>
         <div class="quote-attr" style="margin-top:18px">Name · Role · Company</div>
       </div>
     </div>
@@ -782,12 +790,12 @@
 
 <section class="band band-bone" id="about">
   <div class="wrap">
-    <p class="eyebrow">About</p>
+    <p class="eyebrow" data-ed="index.t42">About</p>
     <div class="split">
       <div>
-        <h2 class="h-sec gt gt-zone">Ten years inside the categories <b>most designers avoid.</b></h2>
-        <p class="lede">Creative Director and packaging designer working in pharmaceutical, parapharmaceutical, skincare and consumer-health markets — the places where a design decision has to answer to a regulator as well as to a shelf.</p>
-        <p class="lede">Currently Co-General Director at Revolution Agency, where the responsibility also covers the filmmaking department. Open to relocation to Switzerland.</p>
+        <h2 class="h-sec gt gt-zone" data-ed="index.t43">Ten years inside the categories <b>most designers avoid.</b></h2>
+        <p class="lede" data-ed="index.t44">Creative Director and packaging designer working in pharmaceutical, parapharmaceutical, skincare and consumer-health markets — the places where a design decision has to answer to a regulator as well as to a shelf.</p>
+        <p class="lede" data-ed="index.t45">Currently Co-General Director at Revolution Agency, where the responsibility also covers the filmmaking department. Open to relocation to Switzerland.</p>
         <p><a class="tlink" href="about.html">Read the full background <span class="arw">&#8594;</span></a></p>
       </div>
       <ul class="facts">
@@ -804,9 +812,9 @@
 
 <section class="band band-ink" id="contact">
   <div class="wrap">
-    <p class="eyebrow">Contact</p>
-    <h2 class="close-line gt gt-zone">If you are building a range, <b>start with the system.</b></h2>
-    <p class="lede measure">Open to senior creative roles in Switzerland and to client work in regulated health categories. The quickest way in is an email describing the range and where it is going.</p>
+    <p class="eyebrow" data-ed="index.t46">Contact</p>
+    <h2 class="close-line gt gt-zone" data-ed="index.t47">If you are building a range, <b>start with the system.</b></h2>
+    <p class="lede measure" data-ed="index.t48">Open to senior creative roles in Switzerland and to client work in regulated health categories. The quickest way in is an email describing the range and where it is going.</p>
     <div class="close-actions">
       <a class="tlink" href="mailto:djaleldjarri@icloud.com">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
       <a class="tlink" href="work/evolab.html">Start with a case study <span class="arw">&#8594;</span></a>
@@ -815,7 +823,7 @@
 </section>
 
 <footer class="foot">
-  <span>Djarri Design Portfolio</span>
+  <span data-ed="index.t49">Djarri Design Portfolio</span>
   <nav class="foot-links" aria-label="Footer">
     <a href="work/evolab.html">Evolab</a>
     <a href="work/natural-solution.html">Natural Solution</a>
@@ -824,7 +832,7 @@
     <a href="about.html">About</a>
     <a href="mailto:djaleldjarri@icloud.com">Email</a>
   </nav>
-  <span>Abdeldjalil Djarri · Creative Director</span>
+  <span data-ed="index.t50">Abdeldjalil Djarri · Creative Director</span>
 </footer>
 
 <script>
@@ -1242,6 +1250,7 @@
 })();
 </script>
 
+<script src="assets/content.js"></script>
 <script src="assets/site.js" defer></script>
 <script src="assets/logo3d.js" defer></script>
 </body>
