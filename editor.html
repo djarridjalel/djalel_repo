@@ -321,11 +321,22 @@
         if(seen[key]) return;              // the client strip repeats its markup
         seen[key] = 1;
         var isImg = el.tagName === 'IMG';
+        /* A published build has already inlined every asset, so an image's
+           src there is a base64 blob rather than a path. Keep the two apart:
+           `src` is only ever fed to a thumbnail, `path` is the readable
+           thing — the file it came from — and is the only one shown or used
+           to name a download. data-orig is written by the build for exactly
+           this; without it a data: URI leaves path empty rather than
+           dumping a screenful of base64 into the interface. */
+        var raw = isImg ? (el.getAttribute('src') || '') : '';
+        var path = isImg ? (el.getAttribute('data-orig') ||
+                            (raw.slice(0,5) === 'data:' ? '' : raw)) : '';
         fields.push({
           page:page.slug, label:page.label, section:sectionOf(el),
           key:key, kind:isImg ? 'image' : 'text',
           tag:el.tagName.toLowerCase(),
-          orig:isImg ? el.getAttribute('src') : el.innerHTML.trim(),
+          orig:isImg ? '' : el.innerHTML.trim(),
+          src:raw, path:path,
           alt:isImg ? (el.getAttribute('alt')||'') : '',
           base:page.file.indexOf('/') > -1 ? 'work/' : ''
         });
@@ -402,7 +413,7 @@
     var list = fields.filter(function(f){
       if(f.page !== tab) return false;
       if(!needle) return true;
-      var cur = f.kind === 'text' ? (texts()[f.key] != null ? texts()[f.key] : f.orig) : f.orig;
+      var cur = f.kind === 'text' ? (texts()[f.key] != null ? texts()[f.key] : f.orig) : f.path;
       return (cur + ' ' + f.key + ' ' + f.section + ' ' + f.alt).toLowerCase().indexOf(needle) > -1;
     });
     if(!list.length){
@@ -442,15 +453,18 @@
 
   function imageRow(f){
     var over = images()[f.key];
-    var src = over || (f.base + f.orig);
+    // the thumbnail wants whatever actually renders here: an inlined blob in a
+    // published build, the file itself when served from the folder
+    var src = over ||
+      (f.src.slice(0,5) === 'data:' ? f.src : (f.base + (f.path || f.src)));
     var changed = !!over;
     return '<div class="row' + (changed ? ' changed' : '') + '" data-key="' + f.key + '">' +
       '<div class="key"><span class="tagname">img</span>' + f.key + '</div>' +
       '<div class="img-row">' +
-        '<div class="thumb"><img src="' + esc(src) + '" alt=""></div>' +
+        '<div class="thumb"><img src="' + esc(src) + '" alt="" loading="lazy"></div>' +
         '<div class="img-meta">' +
-          '<div class="path">' + esc(f.orig) + '</div>' +
-          (f.alt ? '<div>alt: ' + esc(f.alt) + '</div>' : '') +
+          '<div class="path">' + esc(f.path || (f.alt ? f.alt : 'embedded image')) + '</div>' +
+          (f.path && f.alt ? '<div>alt: ' + esc(f.alt) + '</div>' : '') +
           (changed ? '<div><span class="pill new">replaced — not yet exported</span></div>' : '') +
         '</div>' +
         '<div class="img-actions">' +
@@ -507,11 +521,13 @@
   // named for the file it replaces, so it drops straight into the same folder
   function imageName(f){
     var uri = images()[f.key] || '';
-    return f.orig.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'') +
-           (uri.indexOf('image/png') > -1 ? '.png' : '.webp');
+    var stem = f.path ? f.path.split('/').pop().replace(/\.(svg|webp|jpe?g|png)$/i,'')
+                      : f.key;                       // no path known: name it by its key
+    return stem + (uri.indexOf('image/png') > -1 ? '.png' : '.webp');
   }
   function folderOf(f){
-    var parts = (f.base + f.orig).split('/'); parts.pop();
+    if(!f.path) return 'its folder on the site';
+    var parts = (f.base + f.path).split('/'); parts.pop();
     return parts.join('/') + '/';
   }
 
