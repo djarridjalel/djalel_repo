@@ -1,18 +1,26 @@
 /* Content overrides.
    Every editable node on the site carries a data-ed key. This reads whatever
-   the editor has saved and writes it back over those nodes, so a change made
-   in /editor.html shows up here immediately without the files being touched.
+   has been saved for those keys and writes it back over the nodes, so an edit
+   made in /editor.html appears here without any file being hand-edited.
 
-   Two sources, in order: assets/content.json if it exists (that is the
-   committed, published copy, the one every visitor sees) and then whatever is
-   in this browser's local storage (the working copy, only ever visible to the
-   person editing). Local wins, so an edit previews on top of what is live.
-
-   Runs before first paint where it can: the script tag is not deferred, and
-   the DOM it needs is above it. */
+   Two sources, applied in order:
+     assets/content.json   the published copy — committed, served, seen by
+                           everyone. Fetched relative to this script, so it
+                           resolves the same from /index.html and /work/*.
+     local storage         the working copy, only ever in the editor's own
+                           browser. Applied second, so an unexported edit
+                           previews on top of what is live.
+   Either may be absent; a missing content.json is the normal case and is
+   ignored rather than logged. */
 (function(){
   'use strict';
   var KEY = 'djarri:content';
+
+  // resolve against this file's own URL, not the page's
+  var here = (document.currentScript && document.currentScript.src) || '';
+  var jsonURL = here ? here.replace(/[^/]*$/, 'content.json') : 'assets/content.json';
+
+  var published = null;
 
   function apply(data){
     if(!data) return;
@@ -20,12 +28,12 @@
     Object.keys(t).forEach(function(k){
       // querySelectorAll, not querySelector: the client strip duplicates its
       // markup, so one key legitimately addresses several nodes
-      var nodes = document.querySelectorAll('[data-ed="' + k + '"]');
-      [].forEach.call(nodes, function(el){ el.innerHTML = t[k]; });
+      [].forEach.call(document.querySelectorAll('[data-ed="' + k + '"]'), function(el){
+        el.innerHTML = t[k];
+      });
     });
     Object.keys(im).forEach(function(k){
-      var nodes = document.querySelectorAll('img[data-ed="' + k + '"]');
-      [].forEach.call(nodes, function(el){
+      [].forEach.call(document.querySelectorAll('img[data-ed="' + k + '"]'), function(el){
         el.src = im[k];
         el.removeAttribute('srcset');
       });
@@ -37,13 +45,26 @@
     catch(e){ return null; }
   }
 
-  function run(){
-    apply(window.__djarriPublished || null);
-    apply(local());
+  function run(){ apply(published); apply(local()); }
+
+  function ready(fn){
+    if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
   }
 
-  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
-  else run();
+  ready(run);
+
+  // the published file, if there is one. It arrives after first paint, which
+  // is why the local copy is re-applied on top once it lands.
+  if(window.fetch){
+    fetch(jsonURL, {cache:'no-cache'}).then(function(r){
+      return r.ok ? r.json() : null;
+    }).then(function(d){
+      if(!d) return;
+      published = d;
+      ready(run);
+    }).catch(function(){ /* no published copy: nothing to do */ });
+  }
 
   // the editor writes to storage in another tab; reflect it live
   addEventListener('storage', function(e){ if(e.key === KEY) run(); });

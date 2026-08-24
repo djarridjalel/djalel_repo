@@ -280,7 +280,7 @@
   }
   function refreshDock(){
     var n = changeCount();
-    document.getElementById('export').disabled = !(store.texts && Object.keys(store.texts).length);
+    document.getElementById('export').disabled = !n;   // any change at all
     document.getElementById('dlimg').disabled  = !(store.images && Object.keys(store.images).length);
     if(!n) setStatus('No changes');
   }
@@ -570,11 +570,25 @@
   document.getElementById('q').addEventListener('input', function(e){ q = e.target.value; render(); });
   document.getElementById('view').addEventListener('click', function(){ window.open('index.html', '_blank'); });
 
+  /* content.json carries the images too, as data URIs. It makes the file
+     bigger, and it means one file is the whole change set: drop it into
+     assets/ and the site picks up the new words and the new pictures at once,
+     with nothing else to place. Anyone who would rather have real image files
+     still has the button next to this one. */
   document.getElementById('export').addEventListener('click', function(){
-    var payload = {generated:new Date().toISOString(), texts:store.texts || {}};
-    download('content.json', JSON.stringify(payload, null, 2)).then(function(r){
-      setStatus(r === 'saved' ? 'content.json saved — put it in assets/'
-                              : 'Not saved (' + r + ')', r === 'saved' ? 'ok' : 'warn');
+    var nT = Object.keys(store.texts || {}).length,
+        nI = Object.keys(store.images || {}).length;
+    var payload = {
+      generated:new Date().toISOString(),
+      texts:store.texts || {},
+      images:store.images || {}
+    };
+    var json = JSON.stringify(payload, null, 2);
+    download('content.json', json).then(function(r){
+      if(r !== 'saved'){ setStatus('Not saved (' + r + ')', 'warn'); return; }
+      setStatus('content.json saved (' + nT + ' text, ' + nI + ' image' +
+                (nI===1?'':'s') + ', ' + Math.round(json.length/1024) +
+                'KB) — put it in assets/', 'ok');
     });
   });
 
