@@ -125,6 +125,100 @@
     addEventListener('blur', function(){ dot.classList.remove('on'); });
   })();
 
+  /* ---- the reel ---------------------------------------------------------
+     The case-study opener. Everything about how a card looks at a given
+     distance from the current one lives in the stylesheet; this decides only
+     what that distance is.
+
+     Five cards wrap, so the distance is taken the short way round and always
+     lands in -2..2 — the reel looks the same at every position and there is
+     no end to run into. Nothing here writes text: the captions are all in
+     the markup and only the current one is shown, which is what keeps each
+     of them an editable node rather than a string in a script. */
+  [].forEach.call(document.querySelectorAll('[data-reel]'), function(reel){
+    var cards = [].slice.call(reel.querySelectorAll('.reel-card'));
+    var caps  = [].slice.call(reel.querySelectorAll('.reel-caps > *'));
+    var n = cards.length;
+    if(n < 2) return;
+
+    var dots = reel.querySelector('.reel-dots');
+    var count = reel.querySelector('.reel-count b');
+    var at = 0;
+
+    if(dots){
+      for(var d = 0; d < n; d++){
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('data-go', d);
+        b.setAttribute('aria-label', 'Image ' + (d + 1) + ' of ' + n);
+        dots.appendChild(b);
+      }
+    }
+
+    // half the deck, rounded down: with five that is two either side
+    var reach = Math.floor(n / 2);
+
+    function paint(){
+      cards.forEach(function(c, i){
+        var o = ((i - at + reach + n) % n) - reach;
+        c.style.setProperty('--o', o);
+        c.style.setProperty('--ao', Math.abs(o));
+        c.classList.toggle('on', o === 0);
+        var btn = c.querySelector('button');
+        // only the current card is a stop for the keyboard; the others are
+        // still reachable, but through the arms and the dots
+        if(btn) btn.tabIndex = o === 0 ? -1 : 0;
+      });
+      caps.forEach(function(el, i){ el.classList.toggle('on', i === at); });
+      if(dots){
+        [].forEach.call(dots.children, function(b, i){
+          b.setAttribute('aria-current', i === at ? 'true' : 'false');
+        });
+      }
+      if(count) count.textContent = ('0' + (at + 1)).slice(-2);
+    }
+    function to(i){ at = ((i % n) + n) % n; paint(); }
+    function go(d){ to(at + d); }
+
+    var dragged = false;
+    reel.addEventListener('click', function(e){
+      // a drag ends in a click on whatever card it started over; without this
+      // the reel would advance for the drag and then jump to that card as well
+      if(dragged){ dragged = false; return; }
+      var arm = e.target.closest('[data-arm]');
+      if(arm){ go(+arm.getAttribute('data-arm')); return; }
+      var dot = e.target.closest('[data-go]');
+      if(dot){ to(+dot.getAttribute('data-go')); return; }
+      var card = e.target.closest('.reel-card');
+      if(card) to(cards.indexOf(card));
+    });
+
+    reel.addEventListener('keydown', function(e){
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); }
+      else if(e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
+    });
+
+    /* Drag, for a trackpad as much as for a thumb. The threshold is a tenth
+       of the card rather than a fixed count of pixels, so the same flick
+       means the same thing on a phone and on a wide screen. */
+    var stage = reel.querySelector('.reel-stage'), down = null;
+    if(stage){
+      stage.addEventListener('pointerdown', function(e){
+        if(e.button) return;
+        down = e.clientX;
+      });
+      stage.addEventListener('pointerup', function(e){
+        if(down === null) return;
+        var dx = e.clientX - down;
+        down = null;
+        if(Math.abs(dx) > stage.clientWidth * 0.04){ dragged = true; go(dx < 0 ? 1 : -1); }
+      });
+      stage.addEventListener('pointercancel', function(){ down = null; });
+    }
+
+    paint();
+  });
+
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything
      carrying it is invisible until this runs — on a case study that includes
