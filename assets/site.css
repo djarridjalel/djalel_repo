@@ -254,16 +254,13 @@ a{color:inherit;}
 .poster-concept b{font-weight:700;}
 
 /* --- the reel --------------------------------------------------
-   The gallery on the homepage: five sheets of work per brand, the current
-   one square to the viewer and two receding either side.
+   The gallery on the homepage: five sheets of work per brand, dealt out in a
+   shallow fan with the current one square to the viewer.
 
-   Built to the reference the client gave, and only its colour and its
-   blending moved. It now sits on bone rather than ink, which changes more
-   than a palette: on a dark ground a frame is drawn by adding light, on a
-   light one by taking it away. So the glass pane multiplies into whatever is
-   behind it — the ground where it overhangs, the neighbouring sheet where it
-   crosses one — and the sheets either side recede into the paper instead of
-   into the dark.
+   Built to the reference, which is minimal to the point of having no
+   furniture at all: no frame, no panel, no dots, no arrows. Just five
+   photographs, generously rounded, standing apart rather than overlapping,
+   each carrying its own name across the foot of the image.
 
    Every card is an A4 sheet, because every piece of work in it is one.
 
@@ -271,23 +268,28 @@ a{color:inherit;}
    current one taken the short way round, which always lands in -2..2, so
    every position of the reel looks like every other and there is no ragged
    end to design around. Script sets only that number; every decision about
-   how far a card travels, turns and fades is here.
+   how far a card travels, turns and lifts is here.
 
-   Nothing in the reel is a link and nothing happens when a card is clicked.
-   Pointing at one brings it forward — the same gesture the rest of the site
-   uses for the accent — and the case study is reached by the line beneath. */
+   The move is linear. An eased one covers most of its ground early and then
+   crawls, which reads as five different speeds depending on how far a sheet
+   has to travel; at one constant rate every sheet in the fan moves as one
+   object. */
 .reel{
-  --cardw:clamp(196px, 21vw, 328px);
-  --cardh:calc((var(--cardw) - var(--glass) * 2) * 1.4142);   /* A4, upright */
-  --glass:14px;                             /* the pane around the sheet */
-  --ease:cubic-bezier(.22,.61,.36,1);
-  --pace:1.67s;                             /* deliberate, not brisk */
+  --cardw:clamp(180px, 19vw, 300px);
+  --cardh:calc(var(--cardw) * 1.4142);      /* A4, upright */
+  --lift:calc(var(--cardw) * 0.11);         /* how much lower the current one sits */
+  --pace:1.67s;
   position:relative;
-  width:100%;
+  /* The fan is wider than the text column it sits under. It breaks out to
+     the full width and is clipped there, which is where the reference puts
+     its outer sheets — near the frame, not tucked inside a margin. */
+  width:auto;
+  margin-inline:calc(var(--edge) * -1);
+  overflow:hidden;
 }
 .reel-stage{
   position:relative;
-  height:calc(var(--cardh) + var(--glass) * 2 + 4.2rem);
+  height:calc(var(--cardh) + var(--lift) * 2 + 3.4rem);
 }
 .reel-track{
   list-style:none; margin:0; padding:0;
@@ -295,94 +297,68 @@ a{color:inherit;}
 }
 /* Each card carries its own perspective rather than sharing one declared on
    the track. A single 3D space would be the more correct way to build this —
-   one vanishing point for the whole reel — but inside `transform-style:
+   one vanishing point for the whole fan — but inside `transform-style:
    preserve-3d` the browser only hit-tests the frontmost card: the four
    behind it become unpointable, and pointing is the whole interaction.
    Flattening each card into its own perspective costs a vanishing point
    nobody can see is missing, and buys back the gesture. */
 .reel-card{
-  position:absolute; left:50%; top:0;
+  position:absolute; left:50%; top:var(--lift);
   width:var(--cardw); margin-left:calc(var(--cardw) / -2);
   transform:
-    perspective(1500px)
-    translateX(calc(var(--o, 0) * var(--cardw) * 0.85))
-    translateZ(calc(var(--ao, 0) * -190px))
-    rotateY(calc(var(--o, 0) * -26deg));
+    perspective(1900px)
+    translateX(calc(var(--o, 0) * var(--cardw) * 1.0))
+    translateY(calc(var(--ao, 0) * var(--cardw) * -0.055))
+    rotateY(calc(var(--o, 0) * -13deg))
+    scale(calc(1 - var(--ao, 0) * 0.07));
   z-index:calc(10 - var(--ao, 0));
-  transition:transform var(--pace) var(--ease);
+  transition:transform var(--pace) linear;
 }
-
-/* the pane the sheet is set into */
-.reel-sheet{
-  position:relative;
-  padding:var(--glass);
-  border-radius:calc(var(--glass) + 3px);
-}
-/* The pane itself is a layer of its own, behind the sheet, so the blend
-   reaches the ground and the neighbouring cards without also going through
-   the artwork it is holding. Multiply is what glass does to paper: it can
-   only darken, so the pane reads as a real pane wherever it overhangs and
-   disappears to nothing over white. */
-.reel-sheet::before{
-  content:""; position:absolute; inset:0; z-index:0;
-  border-radius:inherit;
-  background:rgba(10,10,11,.055);
-  box-shadow:inset 0 0 0 1px rgba(10,10,11,.13);
-  mix-blend-mode:multiply;
-  transition:background-color var(--pace) ease, box-shadow var(--pace) ease;
-}
-.reel-card.on .reel-sheet::before{
-  background:rgba(10,10,11,.085);
-  box-shadow:inset 0 0 0 1px rgba(10,10,11,.2);
-}
+.reel-sheet{position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;}
 .reel-card img{
-  position:relative; z-index:1;
   display:block; width:100%; height:auto;
   aspect-ratio:210 / 297; object-fit:cover;
-  border-radius:4px;
-  /* the sheets are the content; the lift under the current one is the only
-     thing that says which is being read */
-  box-shadow:0 10px 26px rgba(10,10,11,.14);
-  transition:box-shadow var(--pace) ease;
 }
-.reel-card.on img{box-shadow:0 22px 52px rgba(10,10,11,.24);}
+/* The sheets either side sit back a little. Not a veil in the ground's
+   colour this time — nothing here is framed, so there is no panel for one to
+   sit inside — just less light on the ones that are not being read. */
+.reel-card:not(.on) img{filter:brightness(.9);}
+.reel-card img{transition:filter var(--pace) linear;}
 
-/* The cards either side recede into the paper rather than by going
-   transparent. Fading works on one sheet and not the next: these are printed
-   pages, some near-white and some near-black, so a pale one would hold while
-   a dark one vanished — the two move at different rates and the row stops
-   reading as one depth. A veil in the ground's own colour takes every sheet
-   the same way. */
-.reel-sheet::after{
-  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
-  border-radius:inherit; background:var(--bone);
-  opacity:calc(var(--ao, 0) * 0.2);
-  transition:opacity var(--pace) ease;
-}
+/* The name sits under the sheet, not across it.
+
+   The reference sets its captions inside the image, and on the photographs
+   it is built from — an ear, a hand, a shoulder — there is always somewhere
+   quiet to put one. These are printed posters: every one of them already
+   carries its own name burnt into the artwork, most of them low and centred,
+   which is exactly where that caption lands. Laid over, the two collide and
+   read as a mistake. Under the sheet the fan stays as bare as the reference
+   is, and nothing is set on top of work that already speaks. */
 .reel-cap{
-  margin:18px 2px 0; text-align:center;
+  margin:16px 4px 0; text-align:center;
   opacity:calc(1 - var(--ao, 0) * 0.34);
-  transition:opacity var(--pace) ease;
+  transition:opacity var(--pace) linear;
 }
 .reel-cap b{
-  display:block; font-weight:600; letter-spacing:-.012em;
-  font-size:clamp(.86rem, 1vw, 1rem); line-height:1.25;
+  display:block; font-weight:500; letter-spacing:-.005em;
+  font-size:clamp(.78rem, .92vw, .95rem); line-height:1.25;
   color:var(--ink);
 }
 .reel-cap span{
-  display:block; margin-top:5px;
-  font-family:var(--mono); font-size:.58rem; letter-spacing:.15em;
+  display:block; margin-top:4px;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.16em;
   text-transform:uppercase; line-height:1.4;
-  color:rgba(10,10,11,.5);
+  color:rgba(10,10,11,.46);
 }
 
-/* the two arms — for the devices that cannot point */
+/* the two arms — only for the devices that cannot point, and absent
+   everywhere else, as in the reference */
 .reel-arms{display:contents;}
 @media (hover: hover) and (pointer: fine){
   .reel-arms{display:none;}
 }
 .reel-arm{
-  position:absolute; top:calc(var(--cardh) / 2 + var(--glass)); translate:0 -50%; z-index:12;
+  position:absolute; top:calc(var(--cardh) / 2 + var(--lift)); translate:0 -50%; z-index:12;
   width:42px; height:42px; padding:0;
   display:grid; place-items:center;
   background:rgba(255,255,255,.7); color:var(--ink);
@@ -395,15 +371,6 @@ a{color:inherit;}
 .reel-arm:focus-visible{outline:2px solid var(--a-dark); outline-offset:3px;}
 .reel-prev{left:0;}
 .reel-next{right:0;}
-
-.reel-dots{display:flex; gap:10px; justify-content:center; margin-top:20px;}
-.reel-dots button{
-  width:6px; height:6px; padding:0; border:0; border-radius:50%;
-  background:rgba(10,10,11,.18); cursor:pointer;
-  transition:background-color .3s ease, transform .3s ease;
-}
-.reel-dots button[aria-current="true"]{background:var(--a-dark); transform:scale(1.5);}
-.reel-dots button:focus-visible{outline:2px solid var(--a-dark); outline-offset:4px;}
 
 /* --- the showcase the reels sit in ------------------------------
    Three brands down one column. The air between them is the only thing
@@ -438,21 +405,22 @@ a{color:inherit;}
 }
 
 @media (max-width:1100px){
-  .reel{--cardw:clamp(168px, 25vw, 250px); --glass:11px;}
+  .reel{--cardw:clamp(150px, 20vw, 220px);}
   .showcase-sector{margin-left:0; flex-basis:100%;}
 }
 @media (max-width:720px){
   /* the outer sheets are meant to run off the sides; without this they run
      off the document instead and the whole page scrolls sideways */
-  .reel{--cardw:min(58vw, 260px); --glass:10px; overflow:hidden; padding-bottom:12px;}
+  .reel{--cardw:min(54vw, 250px);}
   .reel-card{
     transform:
-      perspective(1500px)
-      translateX(calc(var(--o, 0) * var(--cardw) * 0.62))
-      translateZ(calc(var(--ao, 0) * -210px))
-      rotateY(calc(var(--o, 0) * -22deg));
+      perspective(1900px)
+      translateX(calc(var(--o, 0) * var(--cardw) * 0.98))
+      translateY(calc(var(--ao, 0) * var(--cardw) * -0.05))
+      rotateY(calc(var(--o, 0) * -11deg))
+      scale(calc(1 - var(--ao, 0) * 0.08));
   }
-  .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:20px;}
+  .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
   .reel-arm{position:static; translate:none;}
   .showcase + .showcase{margin-top:clamp(72px, 11vh, 120px);}
 }

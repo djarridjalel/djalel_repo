@@ -148,18 +148,7 @@
     var n = cards.length;
     if(n < 2) return;
 
-    var dots = reel.querySelector('.reel-dots');
     var at = 0;
-
-    if(dots){
-      for(var d = 0; d < n; d++){
-        var b = document.createElement('button');
-        b.type = 'button';
-        b.setAttribute('data-go', d);
-        b.setAttribute('aria-label', 'Sheet ' + (d + 1) + ' of ' + n);
-        dots.appendChild(b);
-      }
-    }
 
     var reach = Math.floor(n / 2);        // half the deck: with five, two a side
 
@@ -170,11 +159,6 @@
         c.style.setProperty('--ao', Math.abs(o));
         c.classList.toggle('on', o === 0);
       });
-      if(dots){
-        [].forEach.call(dots.children, function(b, i){
-          b.setAttribute('aria-current', i === at ? 'true' : 'false');
-        });
-      }
     }
     function to(i){
       i = ((i % n) + n) % n;
@@ -207,9 +191,7 @@
 
     reel.addEventListener('click', function(e){
       var arm = e.target.closest('[data-arm]');
-      if(arm) return go(+arm.getAttribute('data-arm'));
-      var dot = e.target.closest('[data-go]');
-      if(dot) return to(+dot.getAttribute('data-go'));
+      if(arm) go(+arm.getAttribute('data-arm'));
     });
 
     reel.addEventListener('keydown', function(e){
