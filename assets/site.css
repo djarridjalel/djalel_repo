@@ -308,22 +308,23 @@ a{color:inherit;}
   transform:
     perspective(1900px)
     translateX(calc(var(--o, 0) * var(--cardw) * 1.0))
-    translateY(calc(var(--ao, 0) * var(--cardw) * -0.055))
-    rotateY(calc(var(--o, 0) * -13deg))
-    scale(calc(1 - var(--ao, 0) * 0.07));
+    translateY(calc(var(--cao, 0) * var(--cardw) * -0.055))
+    rotateY(calc(var(--co, 0) * -13deg))
+    scale(calc(1 - var(--cao, 0) * 0.07));
   z-index:calc(10 - var(--ao, 0));
   transition:transform var(--pace) linear;
 }
-.reel-sheet{position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;}
+.reel-sheet{
+  position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;
+  filter:blur(min(calc(var(--ao, 0) * 2.6px), 9px));
+  transition:filter var(--pace) linear;
+}
 .reel-card img{
   display:block; width:100%; height:auto;
   aspect-ratio:210 / 297; object-fit:cover;
 }
-/* The sheets either side sit back a little. Not a veil in the ground's
-   colour this time — nothing here is framed, so there is no panel for one to
-   sit inside — just less light on the ones that are not being read. */
-.reel-card:not(.on) img{filter:brightness(.9);}
-.reel-card img{transition:filter var(--pace) linear;}
+.reel-card:not(.on) img{opacity:.92;}
+.reel-card img{transition:opacity var(--pace) linear;}
 
 /* The name sits under the sheet, not across it.
 
@@ -336,7 +337,7 @@ a{color:inherit;}
    is, and nothing is set on top of work that already speaks. */
 .reel-cap{
   margin:16px 4px 0; text-align:center;
-  opacity:calc(1 - var(--ao, 0) * 0.34);
+  opacity:calc(1 - var(--ao, 0) * 0.3);
   transition:opacity var(--pace) linear;
 }
 .reel-cap b{
@@ -416,9 +417,9 @@ a{color:inherit;}
     transform:
       perspective(1900px)
       translateX(calc(var(--o, 0) * var(--cardw) * 0.98))
-      translateY(calc(var(--ao, 0) * var(--cardw) * -0.05))
-      rotateY(calc(var(--o, 0) * -11deg))
-      scale(calc(1 - var(--ao, 0) * 0.08));
+      translateY(calc(var(--cao, 0) * var(--cardw) * -0.05))
+      rotateY(calc(var(--co, 0) * -11deg))
+      scale(calc(1 - var(--cao, 0) * 0.08));
   }
   .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
   .reel-arm{position:static; translate:none;}

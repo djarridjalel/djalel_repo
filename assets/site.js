@@ -126,58 +126,66 @@
   })();
 
   /* ---- the reel ---------------------------------------------------------
-     The homepage gallery. Everything about how a card looks at a given
-     distance from the current one lives in the stylesheet; this decides
-     only what that distance is.
+     The homepage gallery. Everything about how a sheet looks at a given
+     distance from the current one lives in the stylesheet; this decides only
+     what that distance is.
 
-     Five cards wrap, so the distance is taken the short way round and always
-     lands in -2..2 — the reel looks the same at every position and there is
-     no end to run into.
+     The sheets never reorder. A card's offset is simply its place in the
+     markup minus the current one, so the row keeps the order it was written
+     in and the whole strip slides until the pointed-at sheet is centred —
+     point at the leftmost and it comes to the middle with the other four
+     ranged to its right, exactly as they were. Wrapping the offsets the
+     short way round would have kept the fan balanced at every position, but
+     it teleports a sheet from one end of the row to the other to do it, and
+     a row that reorders itself under the pointer is not a row any more.
+
+     Two numbers come out of it. The true offset places the sheet along the
+     row and sets how far out of focus it is; a copy of it clamped to two
+     handles the turn and the scale, which have to stop somewhere or the
+     fifth sheet from centre would be edge-on and microscopic.
 
      Pointing selects. Nothing here navigates and nothing responds to a
-     click: the case study is reached by the line under the reel, and a card
-     that moved the page out from under the pointer would make the gallery
-     hostile to the very gesture that drives it. On a touch screen there is
-     no pointing, so a tap selects instead — the arms and the dots are there
-     for the same reason, and for the keyboard.
-
-     Nothing writes text either: the captions are all in the markup, each
-     riding under its own card, which is what keeps them editable. */
+     click: the case study is reached by the line under the reel. On a touch
+     screen there is no pointing, so a tap selects instead — the arms are
+     there for the same reason, and for the keyboard. */
   [].forEach.call(document.querySelectorAll('[data-reel]'), function(reel){
     var cards = [].slice.call(reel.querySelectorAll('.reel-card'));
     var n = cards.length;
     if(n < 2) return;
 
-    var at = 0;
-
-    var reach = Math.floor(n / 2);        // half the deck: with five, two a side
+    // open on the middle sheet, so the row is balanced before it is touched
+    var at = Math.floor(n / 2);
 
     function paint(){
       cards.forEach(function(c, i){
-        var o = ((i - at + reach + n) % n) - reach;
+        var o = i - at;                                  // order is never changed
+        var co = Math.max(-2, Math.min(2, o));           // turn and scale stop here
         c.style.setProperty('--o', o);
         c.style.setProperty('--ao', Math.abs(o));
+        c.style.setProperty('--co', co);
+        c.style.setProperty('--cao', Math.abs(co));
         c.classList.toggle('on', o === 0);
       });
     }
     function to(i){
-      i = ((i % n) + n) % n;
+      i = Math.max(0, Math.min(n - 1, i));               // the row has ends now
       if(i === at) return;
       at = i; paint();
     }
     function go(d){ to(at + d); }
 
-    /* Pointing at a card selects it — but only a real pointer. A touch
+    /* Pointing at a sheet selects it — but only a real pointer. A touch
        screen reports a hover on tap, and taking it here as well as in the
        tap below would count one tap twice.
 
-       The guard is the whole trick. Selecting re-deals the reel, which slides
-       a different card under a pointer that has not moved, which the browser
-       reports as another mouseenter, which selects again — the deck runs away
-       on its own and settles wherever the churn happens to end. A synthesized
-       enter of that kind carries the pointer's current position, and the
-       pointer is exactly where it was when the last one was accepted; a real
-       one cannot be. So the position is what is tested, not the event. */
+       The guard is the whole trick. Selecting slides the row, which moves a
+       different sheet under a pointer that has not moved, which the browser
+       reports as another mouseenter, which selects again — the row runs away
+       on its own and settles wherever the churn happens to end. A
+       synthesized enter of that kind carries the pointer's current position,
+       and the pointer is exactly where it was when the last one was
+       accepted; a real one cannot be. So the position is what is tested, not
+       the event. */
     var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
     var held = null;
     cards.forEach(function(c, i){
