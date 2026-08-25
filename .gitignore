@@ -1,3 +1,11 @@
 node_modules/
 package.json
 package-lock.json
+
+# written on the server by api/setup.php and by the endpoint itself —
+# a password hash, live sign-in tokens, the write lock, the history
+api/data/config.php
+api/data/tokens.json
+api/data/throttle.json
+api/data/publish.lock
+assets/versions/

@@ -181,6 +181,59 @@
     .tabs{top:0; position:static;}
     header{position:static;}
   }
+
+  /* ---- the sheet -------------------------------------------------------
+     Publishing and the history both need the whole screen's attention for a
+     moment, so both borrow one overlay rather than growing the dock. */
+  .veil{
+    position:fixed; inset:0; z-index:40; display:none;
+    background:rgba(6,6,7,.72); backdrop-filter:blur(3px);
+    align-items:center; justify-content:center; padding:22px;
+  }
+  .veil.on{display:flex;}
+  .sheet{
+    width:min(680px,100%); max-height:86vh; overflow:auto;
+    background:var(--panel); border:1px solid var(--line); border-radius:6px;
+    padding:22px 24px;
+  }
+  .sheet h2{font-size:1.02rem; margin:0 0 4px; font-weight:600;}
+  .sheet .lede{color:var(--dim); margin:0 0 18px; font-size:.9rem; line-height:1.5;}
+  .sheet label{
+    display:block; font-family:var(--mono); font-size:.66rem; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--dim); margin:0 0 7px;
+  }
+  .sheet input[type=text],.sheet input[type=password]{
+    width:100%; box-sizing:border-box; margin:0 0 16px;
+    background:var(--ink); color:var(--paper); border:1px solid var(--line);
+    border-radius:3px; padding:11px 12px; font:15px var(--mono);
+  }
+  .sheet input:focus{outline:2px solid var(--accent); outline-offset:1px;}
+  .sheet-foot{display:flex; gap:10px; align-items:center; margin-top:4px;}
+  .msg{border-radius:3px; padding:10px 12px; margin:0 0 16px; font-size:.87rem; line-height:1.5;}
+  .msg.bad{background:rgba(255,138,91,.12); border:1px solid rgba(255,138,91,.38); color:#FFB999;}
+  .msg.good{background:rgba(123,216,143,.11); border:1px solid rgba(123,216,143,.38); color:#B7E9C4;}
+  .msg code{color:var(--accent);}
+
+  /* ---- the history ------------------------------------------------------
+     One row per state the live file has been in, newest first. The row that
+     is live says so, and is the one row with nothing to press. */
+  .vlist{display:flex; flex-direction:column; gap:1px; background:var(--line-2);
+         border:1px solid var(--line); border-radius:4px; overflow:hidden;}
+  .vrow{display:flex; gap:14px; align-items:center; padding:12px 14px; background:var(--panel);
+        flex-wrap:wrap;}
+  .vrow.live{background:rgba(255,206,0,.06);}
+  .vmain{flex:1 1 220px; min-width:0;}
+  .vwhen{font-size:.92rem;}
+  .vmeta{font-family:var(--mono); font-size:.68rem; letter-spacing:.05em; color:var(--dim-2); margin-top:3px;}
+  .vnote{font-size:.85rem; color:var(--dim); margin-top:5px; overflow-wrap:anywhere;}
+  .vrow .pill{align-self:center;}
+  a.btnish{
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.13em;
+    text-transform:uppercase; text-decoration:none; color:var(--paper);
+    border:1px solid var(--line); border-radius:3px; padding:9px 14px;
+    white-space:nowrap; transition:border-color .18s ease, color .18s ease;
+  }
+  a.btnish:hover{border-color:var(--accent); color:var(--accent);}
 </style>
 </head>
 <body>
@@ -190,6 +243,7 @@
   <input class="search" id="q" type="search" placeholder="Filter by text or key…" aria-label="Filter fields">
   <span class="grow"></span>
   <span class="count" id="count">loading…</span>
+  <button id="versions">Versions</button>
   <button id="view">Open site</button>
 </header>
 
@@ -198,9 +252,10 @@
 <main>
   <p class="note" id="intro">
     <b>Edits save to this browser and preview on the site straight away</b> — open the site in
-    another tab and it updates as you type. Nothing is published until you export.
-    When you are happy, use <b>Export content.json</b>, drop the file into
-    <code>assets/</code>, and download any images you replaced into their own paths.
+    another tab and it updates as you type. They stay private to this browser until you
+    press <b>Publish to site</b>, which writes <code>assets/content.json</code> on the server
+    and keeps the previous file in <b>Versions</b>, where any earlier one can be put back.
+    <b>Download content.json</b> is still there if you would rather place the file by hand.
     Text fields accept HTML, so <code>&lt;b&gt;bold&lt;/b&gt;</code> works.
   </p>
   <div id="list"><p class="empty">Reading the site…</p></div>
@@ -211,7 +266,12 @@
   <span class="grow"></span>
   <button class="quiet" id="reset">Discard all</button>
   <button id="dlimg" disabled>Download changed images</button>
-  <button class="primary" id="export" disabled>Export content.json</button>
+  <button id="export" disabled>Download content.json</button>
+  <button class="primary" id="publish" disabled>Publish to site</button>
+</div>
+
+<div class="veil" id="veil" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
+  <div class="sheet" id="sheet"></div>
 </div>
 
 <script>
@@ -257,6 +317,23 @@
   var fields = [];          // {page,label,section,key,kind,tag,orig,path,el}
   var q = '', tab = 'index';
 
+  /* Three layers, and keeping them apart is what makes the history mean
+     anything. `orig` on a field is what the page file itself says. `live` is
+     what assets/content.json says — the state the public site is actually in.
+     `store` is this browser's unpublished working copy, laid over the top.
+     A field counts as changed when it differs from `live`, not from `orig`:
+     once something is published, the published value is the thing to differ
+     from, or every published edit would sit here forever marked unsaved. */
+  var live = {texts:{}, images:{}};
+
+  /* The endpoint's state. Declared here rather than beside the publishing
+     code below it because boot calls probe() before that point is reached. */
+  var API = 'api/publish.php';
+  var TOKEN_KEY = 'djarri:token';
+  var api = {ready:false, configured:false, reachable:false, token:null,
+             versions:[], current:'', why:''};
+  try{ api.token = sessionStorage.getItem(TOKEN_KEY) || null; }catch(e){}
+
   function load(){
     try{ return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; }
     catch(e){ return {}; }
@@ -272,6 +349,11 @@
   }
   function texts(){ return store.texts || (store.texts = {}); }
   function images(){ return store.images || (store.images = {}); }
+  function liveTexts(){ return live.texts || (live.texts = {}); }
+  function liveImages(){ return live.images || (live.images = {}); }
+  // what this field reads as on the published site right now
+  function baseText(f){ var v = liveTexts()[f.key]; return v != null ? v : f.orig; }
+  function baseImage(f){ return liveImages()[f.key] || ''; }
   function changeCount(){
     return Object.keys(store.texts||{}).length + Object.keys(store.images||{}).length;
   }
@@ -283,6 +365,7 @@
     var n = changeCount();
     document.getElementById('export').disabled = !n;   // any change at all
     document.getElementById('dlimg').disabled  = !(store.images && Object.keys(store.images).length);
+    document.getElementById('publish').disabled = !n || !(api && api.ready);
     if(!n) setStatus('No changes');
   }
 
@@ -414,7 +497,7 @@
     var list = fields.filter(function(f){
       if(f.page !== tab) return false;
       if(!needle) return true;
-      var cur = f.kind === 'text' ? (texts()[f.key] != null ? texts()[f.key] : f.orig) : f.path;
+      var cur = f.kind === 'text' ? (texts()[f.key] != null ? texts()[f.key] : baseText(f)) : f.path;
       return (cur + ' ' + f.key + ' ' + f.section + ' ' + f.alt).toLowerCase().indexOf(needle) > -1;
     });
     if(!list.length){
@@ -443,8 +526,9 @@
 
   function textRow(f){
     var over = texts()[f.key];
-    var val = over != null ? over : f.orig;
-    var changed = over != null && over !== f.orig;
+    var base = baseText(f);
+    var val = over != null ? over : base;
+    var changed = over != null && over !== base;
     var rows = Math.min(8, Math.max(1, Math.ceil(val.length / 74)));
     return '<div class="row' + (changed ? ' changed' : '') + '" data-key="' + f.key + '">' +
       '<div class="key"><span class="tagname">' + f.tag + '</span>' + f.key + '</div>' +
@@ -456,7 +540,7 @@
     var over = images()[f.key];
     // the thumbnail wants whatever actually renders here: an inlined blob in a
     // published build, the file itself when served from the folder
-    var src = over ||
+    var src = over || baseImage(f) ||
       (f.src.slice(0,5) === 'data:' ? f.src : (f.base + (f.path || f.src)));
     var changed = !!over;
     return '<div class="row' + (changed ? ' changed' : '') + '" data-key="' + f.key + '">' +
@@ -466,7 +550,8 @@
         '<div class="img-meta">' +
           '<div class="path">' + esc(f.path || (f.alt ? f.alt : 'embedded image')) + '</div>' +
           (f.path && f.alt ? '<div>alt: ' + esc(f.alt) + '</div>' : '') +
-          (changed ? '<div><span class="pill new">replaced — not yet exported</span></div>' : '') +
+          (changed ? '<div><span class="pill new">replaced — not yet published</span></div>' : '') +
+          (!changed && baseImage(f) ? '<div><span class="pill">from the published content file</span></div>' : '') +
         '</div>' +
         '<div class="img-actions">' +
           '<button data-pick="' + f.key + '">Replace</button>' +
@@ -481,7 +566,7 @@
     [].forEach.call(host.querySelectorAll('textarea'), function(ta){
       ta.addEventListener('input', function(){
         var f = byKey(ta.getAttribute('data-key'));
-        if(ta.value === f.orig) delete texts()[f.key];
+        if(ta.value === baseText(f)) delete texts()[f.key];
         else texts()[f.key] = ta.value;
         ta.closest('.row').classList.toggle('changed', texts()[f.key] != null);
         save();
@@ -554,7 +639,9 @@
   }
 
   // ---- boot ---------------------------------------------------------------
-  Promise.all(PAGES.map(read)).then(function(){
+  // the published file first: it is the baseline every field is compared against,
+  // and reading it before the rows are drawn saves drawing them twice
+  Promise.all([Promise.all(PAGES.map(read)), readLive(), probe()]).then(function(){
     document.getElementById('count').innerHTML =
       '<b>' + fields.filter(function(f){return f.kind==='text';}).length + '</b> texts · <b>' +
       fields.filter(function(f){return f.kind==='image';}).length + '</b> images';
@@ -611,6 +698,289 @@
         setStatus('Could not save ' + imageName(f) + ' (' + r + ')', 'warn');
       });
     })();
+  });
+
+  /* ======================================================================
+     PUBLISHING
+     ======================================================================
+     A page served from a folder cannot write into that folder, so every
+     write goes through api/publish.php. The editor only ever asks it for
+     four things — is it there, sign me in, here is the new content, put
+     that older one back — and treats a missing or unconfigured endpoint as
+     an ordinary state rather than an error: the download route still works
+     and the buttons say why.
+
+     The password never persists. It is exchanged once for a token that the
+     server expires by itself, and the token lives in sessionStorage, so
+     closing the tab signs this browser out. */
+  function call(action, body){
+    var payload = {action:action};
+    if(body) for(var k in body) if(Object.prototype.hasOwnProperty.call(body,k)) payload[k] = body[k];
+    if(api.token) payload.token = api.token;
+    return fetch(API, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    }).then(function(r){
+      return r.text().then(function(t){
+        var d = null;
+        try{ d = JSON.parse(t); }catch(e){}
+        if(!d){
+          // not JSON: either the file is not there, or PHP did not run and the
+          // browser was handed the source, or the server cut the request short
+          throw new Error(r.status === 404
+            ? 'api/publish.php was not found on the server.'
+            : (r.status === 413 || r.status === 0
+                ? 'The server refused the upload — it is too large for its limits.'
+                : 'The server did not answer with JSON (HTTP ' + r.status + '). ' +
+                  'PHP may not be running here.'));
+        }
+        if(!d.ok){
+          if(r.status === 401){ api.token = null; forgetToken(); }
+          throw new Error(d.error || ('Request failed — HTTP ' + r.status));
+        }
+        return d;
+      });
+    });
+  }
+  function forgetToken(){ try{ sessionStorage.removeItem(TOKEN_KEY); }catch(e){} }
+  function keepToken(t){ api.token = t; try{ sessionStorage.setItem(TOKEN_KEY, t); }catch(e){} }
+
+  // the published file, read straight from the folder like any visitor would
+  function readLive(){
+    return fetch('assets/content.json', {cache:'no-cache'}).then(function(r){
+      return r.ok ? r.json() : null;
+    }).then(function(d){
+      if(d && typeof d === 'object'){
+        live = {texts:d.texts || {}, images:d.images || {}};
+      }
+    }).catch(function(){ /* no published file yet: the pages are the baseline */ });
+  }
+
+  function probe(){
+    return call('status').then(function(d){
+      api.reachable = true;
+      api.configured = !!d.configured;
+      api.ready = api.configured;
+      if(!d.signedIn && api.token){ api.token = null; forgetToken(); }
+      if(api.configured && d.writable === false){
+        api.why = 'The server cannot write into assets/ — check its permissions.';
+      }else if(!api.configured){
+        api.why = 'Publishing is not set up yet. Open api/setup.php once to choose a password.';
+      }
+    }).catch(function(e){
+      api.reachable = false; api.ready = false; api.why = e.message;
+    });
+  }
+
+  /* What the published file should contain after this publish: everything
+     already live, with this browser's edits laid over it. Publishing one
+     page's change must not drop another page's published text. */
+  function merged(){
+    var t = {}, im = {}, k;
+    for(k in liveTexts())  t[k]  = liveTexts()[k];
+    for(k in texts())      t[k]  = texts()[k];
+    for(k in liveImages()) im[k] = liveImages()[k];
+    for(k in images())     im[k] = images()[k];
+    return {texts:t, images:im};
+  }
+
+  // ---- the overlay --------------------------------------------------------
+  var veil = document.getElementById('veil'), sheet = document.getElementById('sheet');
+  var lastFocus = null;
+  function openSheet(html){
+    lastFocus = document.activeElement;
+    sheet.innerHTML = html;
+    veil.classList.add('on');
+    var first = sheet.querySelector('input,button');
+    if(first) first.focus();
+  }
+  function closeSheet(){
+    veil.classList.remove('on'); sheet.innerHTML = '';
+    if(lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  veil.addEventListener('click', function(e){ if(e.target === veil) closeSheet(); });
+  addEventListener('keydown', function(e){ if(e.key === 'Escape' && veil.classList.contains('on')) closeSheet(); });
+  function sheetMsg(html, cls){
+    var box = sheet.querySelector('#sheet-msg');
+    if(box){ box.className = 'msg ' + (cls || 'bad'); box.innerHTML = html; box.style.display = 'block'; }
+  }
+
+  function unavailable(title){
+    openSheet(
+      '<h2 id="sheet-title">' + title + '</h2>' +
+      '<div class="msg bad">' + esc(api.why || 'The publishing endpoint did not answer.') + '</div>' +
+      '<p class="lede">Until that is sorted, <b>Download content.json</b> still works: put the ' +
+      'file into <code>assets/</code> yourself and the site picks it up exactly the same way.</p>' +
+      '<div class="sheet-foot"><span class="grow"></span>' +
+      '<button data-close>Close</button></div>');
+    wireSheet();
+  }
+
+  // ---- signing in ---------------------------------------------------------
+  function askPassword(then){
+    openSheet(
+      '<h2 id="sheet-title">Password</h2>' +
+      '<p class="lede">The site asks for this once per browser session before it will ' +
+      'let anything be written.</p>' +
+      '<div class="msg bad" id="sheet-msg" style="display:none"></div>' +
+      '<label for="pw">Publishing password</label>' +
+      '<input id="pw" type="password" autocomplete="current-password">' +
+      '<div class="sheet-foot"><span class="grow"></span>' +
+      '<button data-close>Cancel</button>' +
+      '<button class="primary" id="go">Sign in</button></div>');
+    wireSheet();
+    var pw = sheet.querySelector('#pw'), go = sheet.querySelector('#go');
+    function submit(){
+      var v = pw.value;
+      if(!v) return;
+      go.disabled = true; go.textContent = 'Checking…';
+      call('login', {password:v}).then(function(d){
+        keepToken(d.token);
+        closeSheet();
+        then();
+      }).catch(function(e){
+        go.disabled = false; go.textContent = 'Sign in';
+        pw.value = ''; pw.focus();
+        sheetMsg(esc(e.message));
+      });
+    }
+    go.addEventListener('click', submit);
+    pw.addEventListener('keydown', function(e){ if(e.key === 'Enter') submit(); });
+  }
+
+  function wireSheet(){
+    [].forEach.call(sheet.querySelectorAll('[data-close]'), function(b){
+      b.addEventListener('click', closeSheet);
+    });
+  }
+
+  function signedInThen(fn){
+    if(!api.ready) return unavailable('Cannot publish yet');
+    if(api.token) return fn();
+    askPassword(fn);
+  }
+
+  // ---- publish ------------------------------------------------------------
+  function publishSheet(){
+    var m = merged();
+    var json = JSON.stringify({generated:'', texts:m.texts, images:m.images});
+    var nT = Object.keys(store.texts || {}).length,
+        nI = Object.keys(store.images || {}).length;
+    openSheet(
+      '<h2 id="sheet-title">Publish to the site</h2>' +
+      '<p class="lede">This writes <code>assets/content.json</code> on the server. ' +
+      'The file that is live now is kept, so this can be undone from <b>Versions</b>.</p>' +
+      '<div class="msg bad" id="sheet-msg" style="display:none"></div>' +
+      '<div class="msg good">Publishing <b>' + nT + '</b> changed text' + (nT===1?'':'s') +
+        ' and <b>' + nI + '</b> changed image' + (nI===1?'':'s') + '. The whole file will be about ' +
+        size(json.length) + ' — ' + plural(Object.keys(m.texts).length, 'text') + ' and ' +
+        plural(Object.keys(m.images).length, 'image') + ' in total.</div>' +
+      '<label for="note">Note — optional, so the version list means something later</label>' +
+      '<input id="note" type="text" maxlength="120" placeholder="e.g. real Evolab photographs">' +
+      '<div class="sheet-foot"><span class="grow"></span>' +
+      '<button data-close>Cancel</button>' +
+      '<button class="primary" id="go">Publish now</button></div>');
+    wireSheet();
+    var go = sheet.querySelector('#go');
+    go.addEventListener('click', function(){
+      go.disabled = true; go.textContent = 'Publishing…';
+      call('publish', {content:m, note:sheet.querySelector('#note').value}).then(function(d){
+        live = m;                       // what is live is now what we just sent
+        store = {}; save();             // and this browser has nothing pending
+        api.versions = d.versions || []; api.current = d.current || '';
+        closeSheet(); drawTabs(); render(); refreshDock();
+        setStatus('Published — live now (' + plural(d.texts, 'text') + ', ' +
+                  plural(d.images, 'image') + ', ' + size(d.bytes) + ')', 'ok');
+      }).catch(function(e){
+        go.disabled = false; go.textContent = 'Publish now';
+        sheetMsg(esc(e.message));
+      });
+    });
+  }
+
+  // ---- the history --------------------------------------------------------
+  // KB rounds a small file to a flat 0, which reads as an error rather than
+  // as "small"; and a count of one is not plural
+  function size(b){
+    if(b < 1024) return b + 'B';
+    if(b < 1024*1024) return (b/1024).toFixed(b < 10240 ? 1 : 0) + 'KB';
+    return (b/(1024*1024)).toFixed(1) + 'MB';
+  }
+  function plural(n, word){ return n + ' ' + word + (n === 1 ? '' : 's'); }
+
+  function when(iso){
+    var d = new Date(iso);
+    if(isNaN(d)) return iso;
+    return d.toLocaleString(undefined, {year:'numeric', month:'short', day:'numeric',
+                                        hour:'2-digit', minute:'2-digit'});
+  }
+  function versionRows(){
+    if(!api.versions.length){
+      return '<p class="empty">Nothing published through here yet. The first publish ' +
+             'starts the history.</p>';
+    }
+    return '<div class="vlist">' + api.versions.map(function(v){
+      var isLive = v.id === api.current;
+      return '<div class="vrow' + (isLive ? ' live' : '') + '">' +
+        '<div class="vmain">' +
+          '<div class="vwhen">' + esc(when(v.time)) + '</div>' +
+          '<div class="vmeta">' + plural(v.texts, 'text') + ' · ' +
+            plural(v.images, 'image') + ' · ' + size(v.bytes) + '</div>' +
+          (v.note ? '<div class="vnote">' + esc(v.note) + '</div>' : '') +
+        '</div>' +
+        (isLive ? '<span class="pill new">live</span>'
+                : '<button data-restore="' + esc(v.id) + '">Restore</button>') +
+        '<a class="btnish" href="assets/versions/' + esc(v.id) + '.json" download>Download</a>' +
+      '</div>';
+    }).join('') + '</div>';
+  }
+  function versionsSheet(){
+    openSheet(
+      '<h2 id="sheet-title">Versions</h2>' +
+      '<p class="lede">Every publish keeps a copy of the file it wrote. Restoring one ' +
+      'copies it back over <code>assets/content.json</code> — it does not delete anything, ' +
+      'so a restore can itself be undone by restoring the other one.</p>' +
+      '<div class="msg bad" id="sheet-msg" style="display:none"></div>' +
+      '<div id="vhost">' + versionRows() + '</div>' +
+      '<div class="sheet-foot"><span class="grow"></span><button data-close>Close</button></div>');
+    wireSheet();
+    wireVersions();
+  }
+  function wireVersions(){
+    [].forEach.call(sheet.querySelectorAll('[data-restore]'), function(b){
+      b.addEventListener('click', function(){
+        var id = b.getAttribute('data-restore');
+        if(!confirm('Put that version back as the live content?\n\n' +
+                    'Unpublished edits in this browser are kept and stay laid over it.')) return;
+        b.disabled = true; b.textContent = 'Restoring…';
+        call('restore', {id:id}).then(function(d){
+          live = {texts:(d.content && d.content.texts) || {}, images:(d.content && d.content.images) || {}};
+          api.versions = d.versions || api.versions; api.current = d.current;
+          sheet.querySelector('#vhost').innerHTML = versionRows();
+          wireVersions();
+          drawTabs(); render(); refreshDock();
+          setStatus('Restored — the site is on the earlier version', 'ok');
+        }).catch(function(e){
+          b.disabled = false; b.textContent = 'Restore';
+          sheetMsg(esc(e.message));
+        });
+      });
+    });
+  }
+
+  document.getElementById('publish').addEventListener('click', function(){
+    if(!changeCount()) return;
+    signedInThen(publishSheet);
+  });
+  document.getElementById('versions').addEventListener('click', function(){
+    if(!api.ready) return unavailable('No version history here');
+    signedInThen(function(){
+      call('versions').then(function(d){
+        api.versions = d.versions || []; api.current = d.current || '';
+        versionsSheet();
+      }).catch(function(e){ api.why = e.message; unavailable('Could not read the history'); });
+    });
   });
 
   document.getElementById('reset').addEventListener('click', function(){

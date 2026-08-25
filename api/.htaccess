@@ -1,0 +1,28 @@
+# The endpoint and the setup page are meant to be reachable. Everything the
+# endpoint keeps for itself — the password hash, live tokens, the lock — is
+# not, and lives in data/ which carries its own deny rule as well.
+<FilesMatch "\.(json|lock|tmp)$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+Options -Indexes
+
+# A content file with images in it runs to a few megabytes, which is larger
+# than the default a PHP install accepts. Ignored by servers that do not let
+# .htaccess set these; if publishing fails on size, raise them in the hosting
+# panel's PHP configuration instead.
+<IfModule mod_php.c>
+  php_value post_max_size 64M
+  php_value upload_max_filesize 64M
+  php_value memory_limit 256M
+</IfModule>
+<IfModule lsapi_module>
+  php_value post_max_size 64M
+  php_value upload_max_filesize 64M
+  php_value memory_limit 256M
+</IfModule>
