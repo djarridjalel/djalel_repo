@@ -258,16 +258,17 @@ a{color:inherit;}
    one square to the viewer and two receding either side.
 
    Built to the reference the client gave, and only its colour and its
-   blending moved: the frame that was a pale glass panel is the site's own
-   hairline over ink, and the cards either side sit back behind a scrim in
-   the ground's colour instead of a lilac haze. The geometry — portrait
-   sheets, the deep overlap, the turned neighbours, the caption riding under
-   each card rather than in one fixed place — is the reference's.
+   blending moved. It now sits on bone rather than ink, which changes more
+   than a palette: on a dark ground a frame is drawn by adding light, on a
+   light one by taking it away. So the glass pane multiplies into whatever is
+   behind it — the ground where it overhangs, the neighbouring sheet where it
+   crosses one — and the sheets either side recede into the paper instead of
+   into the dark.
 
    Every card is an A4 sheet, because every piece of work in it is one.
 
-   Five wraps exactly: the offset a card is drawn at is its distance from
-   the current one taken the short way round, which always lands in -2..2, so
+   Five wraps exactly: the offset a card is drawn at is its distance from the
+   current one taken the short way round, which always lands in -2..2, so
    every position of the reel looks like every other and there is no ragged
    end to design around. Script sets only that number; every decision about
    how far a card travels, turns and fades is here.
@@ -276,14 +277,17 @@ a{color:inherit;}
    Pointing at one brings it forward — the same gesture the rest of the site
    uses for the accent — and the case study is reached by the line beneath. */
 .reel{
-  --cardw:clamp(148px, 15.5vw, 236px);
-  --cardh:calc(var(--cardw) * 1.4142);      /* A4, upright */
+  --cardw:clamp(196px, 21vw, 328px);
+  --cardh:calc((var(--cardw) - var(--glass) * 2) * 1.4142);   /* A4, upright */
+  --glass:14px;                             /* the pane around the sheet */
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --pace:1.67s;                             /* deliberate, not brisk */
   position:relative;
   width:100%;
 }
 .reel-stage{
   position:relative;
-  height:calc(var(--cardh) + 4.6rem);       /* the sheet, and the caption under it */
+  height:calc(var(--cardh) + var(--glass) * 2 + 4.2rem);
 }
 .reel-track{
   list-style:none; margin:0; padding:0;
@@ -301,125 +305,146 @@ a{color:inherit;}
   width:var(--cardw); margin-left:calc(var(--cardw) / -2);
   transform:
     perspective(1500px)
-    translateX(calc(var(--o, 0) * var(--cardw) * 0.78))
+    translateX(calc(var(--o, 0) * var(--cardw) * 0.85))
     translateZ(calc(var(--ao, 0) * -190px))
     rotateY(calc(var(--o, 0) * -26deg));
   z-index:calc(10 - var(--ao, 0));
-  transition:transform .5s cubic-bezier(.22,.61,.36,1);
+  transition:transform var(--pace) var(--ease);
 }
-/* the mat around the sheet — the reference's frame, in the site's materials */
+
+/* the pane the sheet is set into */
 .reel-sheet{
   position:relative;
-  padding:7px; border-radius:9px;
-  background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.12);
-  box-shadow:0 30px 64px rgba(0,0,0,.5);
-  transition:background-color .5s ease, border-color .5s ease, box-shadow .5s ease;
+  padding:var(--glass);
+  border-radius:calc(var(--glass) + 3px);
 }
-.reel-card.on .reel-sheet{
-  background:rgba(255,255,255,.1);
-  border-color:rgba(255,255,255,.34);
-  box-shadow:0 38px 80px rgba(0,0,0,.6);
+/* The pane itself is a layer of its own, behind the sheet, so the blend
+   reaches the ground and the neighbouring cards without also going through
+   the artwork it is holding. Multiply is what glass does to paper: it can
+   only darken, so the pane reads as a real pane wherever it overhangs and
+   disappears to nothing over white. */
+.reel-sheet::before{
+  content:""; position:absolute; inset:0; z-index:0;
+  border-radius:inherit;
+  background:rgba(10,10,11,.055);
+  box-shadow:inset 0 0 0 1px rgba(10,10,11,.13);
+  mix-blend-mode:multiply;
+  transition:background-color var(--pace) ease, box-shadow var(--pace) ease;
+}
+.reel-card.on .reel-sheet::before{
+  background:rgba(10,10,11,.085);
+  box-shadow:inset 0 0 0 1px rgba(10,10,11,.2);
 }
 .reel-card img{
+  position:relative; z-index:1;
   display:block; width:100%; height:auto;
   aspect-ratio:210 / 297; object-fit:cover;
   border-radius:4px;
+  /* the sheets are the content; the lift under the current one is the only
+     thing that says which is being read */
+  box-shadow:0 10px 26px rgba(10,10,11,.14);
+  transition:box-shadow var(--pace) ease;
 }
-/* The cards either side recede behind a scrim in the ground's own colour
-   rather than by going transparent. Fading works on one sheet and not the
-   next: these are printed pages, some near-white and some near-black, so
-   over ink a pale one glows as it fades while a dark one disappears — the
-   two move in opposite directions and the row stops reading as one depth. */
+.reel-card.on img{box-shadow:0 22px 52px rgba(10,10,11,.24);}
+
+/* The cards either side recede into the paper rather than by going
+   transparent. Fading works on one sheet and not the next: these are printed
+   pages, some near-white and some near-black, so a pale one would hold while
+   a dark one vanished — the two move at different rates and the row stops
+   reading as one depth. A veil in the ground's own colour takes every sheet
+   the same way. */
 .reel-sheet::after{
-  content:""; position:absolute; inset:0; pointer-events:none;
-  border-radius:9px; background:var(--ink);
-  opacity:calc(var(--ao, 0) * 0.42);
-  transition:opacity .5s ease;
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  border-radius:inherit; background:var(--bone);
+  opacity:calc(var(--ao, 0) * 0.2);
+  transition:opacity var(--pace) ease;
 }
 .reel-cap{
-  margin:14px 2px 0; text-align:center;
-  opacity:calc(1 - var(--ao, 0) * 0.42);
-  transition:opacity .5s ease;
+  margin:18px 2px 0; text-align:center;
+  opacity:calc(1 - var(--ao, 0) * 0.34);
+  transition:opacity var(--pace) ease;
 }
 .reel-cap b{
-  display:block; font-weight:600; letter-spacing:-.01em;
-  font-size:clamp(.82rem, .95vw, .96rem); line-height:1.25;
+  display:block; font-weight:600; letter-spacing:-.012em;
+  font-size:clamp(.86rem, 1vw, 1rem); line-height:1.25;
+  color:var(--ink);
 }
 .reel-cap span{
-  display:block; margin-top:3px; font-weight:300;
-  font-size:clamp(.72rem, .82vw, .84rem); line-height:1.3;
-  color:rgba(255,255,255,.56);
+  display:block; margin-top:5px;
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.15em;
+  text-transform:uppercase; line-height:1.4;
+  color:rgba(10,10,11,.5);
 }
 
-/* The two arms are for the devices that cannot point. The reference has no
-   arrows and neither does this where a pointer exists — hovering is the
-   whole gesture, and a pair of buttons stranded at the far edges of the band
-   only says the reel is not confident the gesture will be found. The dots
-   below stay in both cases: they are the reel's position as much as its
-   controls, and they are what a keyboard tabs to. */
+/* the two arms — for the devices that cannot point */
 .reel-arms{display:contents;}
 @media (hover: hover) and (pointer: fine){
   .reel-arms{display:none;}
 }
 .reel-arm{
-  position:absolute; top:calc(var(--cardh) / 2); translate:0 -50%; z-index:12;
+  position:absolute; top:calc(var(--cardh) / 2 + var(--glass)); translate:0 -50%; z-index:12;
   width:42px; height:42px; padding:0;
   display:grid; place-items:center;
-  background:rgba(10,10,11,.5); color:#fff;
-  border:1px solid rgba(255,255,255,.2); border-radius:50%;
+  background:rgba(255,255,255,.7); color:var(--ink);
+  border:1px solid rgba(10,10,11,.16); border-radius:50%;
   font:400 15px/1 var(--mono); cursor:pointer;
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-  transition:border-color .2s ease, color .2s ease, background-color .2s ease;
+  transition:border-color .2s ease, color .2s ease;
 }
-.reel-arm:hover{border-color:var(--accent); color:var(--accent); background:rgba(10,10,11,.74);}
-.reel-arm:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+.reel-arm:hover{border-color:var(--a-dark); color:var(--a-dark);}
+.reel-arm:focus-visible{outline:2px solid var(--a-dark); outline-offset:3px;}
 .reel-prev{left:0;}
 .reel-next{right:0;}
 
-.reel-dots{display:flex; gap:9px; justify-content:center; margin-top:18px;}
+.reel-dots{display:flex; gap:10px; justify-content:center; margin-top:20px;}
 .reel-dots button{
   width:6px; height:6px; padding:0; border:0; border-radius:50%;
-  background:rgba(255,255,255,.24); cursor:pointer;
+  background:rgba(10,10,11,.18); cursor:pointer;
   transition:background-color .3s ease, transform .3s ease;
 }
-.reel-dots button[aria-current="true"]{background:var(--accent); transform:scale(1.5);}
-.reel-dots button:focus-visible{outline:2px solid var(--accent); outline-offset:4px;}
+.reel-dots button[aria-current="true"]{background:var(--a-dark); transform:scale(1.5);}
+.reel-dots button:focus-visible{outline:2px solid var(--a-dark); outline-offset:4px;}
 
-/* --- the showcase the reels sit in ------------------------------ */
-.showcase + .showcase{margin-top:clamp(56px, 8vh, 104px);}
+/* --- the showcase the reels sit in ------------------------------
+   Three brands down one column. The air between them is the only thing
+   separating them — no rules, no cards, nothing drawn — so it has to be
+   unmistakably more than the air inside one. */
+.showcase + .showcase{margin-top:clamp(104px, 15vh, 208px);}
 .showcase-head{
-  display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
-  margin-bottom:clamp(20px, 3vh, 34px);
+  display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+  padding-bottom:16px; margin-bottom:clamp(40px, 6vh, 72px);
+  border-bottom:1px solid var(--rule);
 }
 .showcase-n{
   font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
-  color:var(--accent);
+  color:var(--a-dark);
 }
 .showcase-client{
-  font-size:clamp(1.05rem, 1.7vw, 1.45rem); font-weight:600; letter-spacing:-.02em;
+  font-size:clamp(1.15rem, 2vw, 1.7rem); font-weight:600; letter-spacing:-.025em;
 }
 .showcase-sector{
   font-family:var(--mono); font-size:.6rem; letter-spacing:.16em;
-  text-transform:uppercase; color:rgba(255,255,255,.48);
+  text-transform:uppercase; color:rgba(10,10,11,.46);
+  margin-left:auto;
 }
 .showcase-foot{
-  display:flex; align-items:flex-start; gap:clamp(20px,4vw,56px);
-  flex-wrap:wrap; margin-top:clamp(22px, 3.4vh, 38px);
+  display:flex; align-items:flex-start; gap:clamp(24px,5vw,72px);
+  flex-wrap:wrap; margin-top:clamp(40px, 6vh, 72px);
 }
 .showcase-line{
-  flex:1 1 32ch; margin:0; max-width:62ch;
-  font-weight:300; line-height:1.55; color:rgba(255,255,255,.76);
-  font-size:clamp(.92rem, 1.1vw, 1.02rem);
+  flex:1 1 32ch; margin:0; max-width:60ch;
+  font-weight:300; line-height:1.6; color:rgba(10,10,11,.72);
+  font-size:clamp(.94rem, 1.1vw, 1.06rem);
 }
 
 @media (max-width:1100px){
-  .reel{--cardw:clamp(140px, 21vw, 210px);}
+  .reel{--cardw:clamp(168px, 25vw, 250px); --glass:11px;}
+  .showcase-sector{margin-left:0; flex-basis:100%;}
 }
 @media (max-width:720px){
   /* the outer sheets are meant to run off the sides; without this they run
      off the document instead and the whole page scrolls sideways */
-  .reel{--cardw:min(52vw, 240px); overflow:hidden; padding-bottom:12px;}
+  .reel{--cardw:min(58vw, 260px); --glass:10px; overflow:hidden; padding-bottom:12px;}
   .reel-card{
     transform:
       perspective(1500px)
@@ -427,13 +452,13 @@ a{color:inherit;}
       translateZ(calc(var(--ao, 0) * -210px))
       rotateY(calc(var(--o, 0) * -22deg));
   }
-  /* no room beside the sheets for an arm without it landing on one */
   .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:20px;}
   .reel-arm{position:static; translate:none;}
+  .showcase + .showcase{margin-top:clamp(72px, 11vh, 120px);}
 }
 
 @media (prefers-reduced-motion: reduce){
-  .reel-card, .reel-sheet, .reel-sheet::after, .reel-cap{transition:none;}
+  .reel{--pace:1ms;}
 }
 
 /* --- dossier -------------------------------------------------- */
@@ -567,6 +592,10 @@ a{color:inherit;}
 @media (max-width:760px){
   .proof{grid-template-columns:repeat(2,1fr);}
 }
+/* the same hairline grid, on the other ground */
+.band-bone .proof{background:var(--rule); border-block-color:var(--rule);}
+.band-bone .proof > div{background:var(--bone);}
+.band-bone .proof .l{color:rgba(10,10,11,.52);}
 
 /* ==========================================================================
    SELECTED WORK — a reel per brand
@@ -576,7 +605,12 @@ a{color:inherit;}
    studies rather than as a separate gallery. The reel itself is built
    further up, beside the rest of the shared furniture.
    ========================================================================== */
-.showcases{display:grid; gap:0;}
+.showcases{
+  display:grid; gap:0;
+  /* the section's own air: the heading needs to finish before the first
+     brand starts, and the last brand needs to finish before the band does */
+  margin:clamp(56px, 8vh, 112px) 0 clamp(16px, 3vh, 40px);
+}
 
 /* ==========================================================================
    EXPERTISE — what is actually being sold
@@ -601,6 +635,12 @@ a{color:inherit;}
   text-transform:uppercase; color:rgba(10,10,11,.44);
 }
 @media (max-width:760px){ .caps{grid-template-columns:1fr;} }
+/* the grid is hairlines and air, not cards — which means the tiles take the
+   band's own ground rather than carrying one of their own */
+.band-ink .caps{background:var(--rule-dk); border-color:var(--rule-dk);}
+.band-ink .cap{background:var(--ink);}
+.band-ink .cap p{color:rgba(255,255,255,.76);}
+.band-ink .cap .k{color:rgba(255,255,255,.46);}
 
 /* ==========================================================================
    KIND WORDS
@@ -624,6 +664,7 @@ a{color:inherit;}
   font-family:var(--mono); font-size:.66rem; letter-spacing:.16em;
   text-transform:uppercase; color:rgba(255,255,255,.5); line-height:1.8;
 }
+.band-bone .quote-attr{color:rgba(10,10,11,.5);}
 .quote-pair{
   display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
   gap:clamp(24px,4vw,64px);
@@ -631,11 +672,13 @@ a{color:inherit;}
   padding-top:clamp(28px,4vw,44px);
   border-top:1px solid var(--rule-dk);
 }
+.band-bone .quote-pair{border-top-color:var(--rule);}
 .quote-sm p{
   margin:0; font-weight:300; line-height:1.6;
   font-size:clamp(.98rem,1.3vw,1.1rem);
   color:rgba(255,255,255,.82);
 }
+.band-bone .quote-sm p{color:rgba(10,10,11,.78);}
 @media (max-width:760px){ .quote-pair{grid-template-columns:1fr;} }
 
 /* An editorial slot that is deliberately empty, and says so. Marked in the
