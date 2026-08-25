@@ -191,11 +191,23 @@
     cards.forEach(function(c, i){
       if(!fine){ c.addEventListener('click', function(){ to(i); }); return; }
       c.addEventListener('mouseenter', function(e){
-        if(held && Math.abs(e.clientX - held.x) < 3 && Math.abs(e.clientY - held.y) < 3) return;
+        // exactly equal, not merely close: a synthesized enter carries the
+        // pointer's current position unchanged, so it matches to the pixel,
+        // while a real move of even one pixel does not. A tolerance here
+        // throws away slow, deliberate movement — the kind used to pick out
+        // one sheet from the next — and the reel stops answering it.
+        if(held && e.clientX === held.x && e.clientY === held.y) return;
         held = {x:e.clientX, y:e.clientY};
         to(i);
       });
     });
+    /* The row is evenly pitched, so a step lands the next sheet on exactly
+       the position the last one occupied. That is what makes the guard above
+       necessary — and also what makes it wrong at the door: leave the reel,
+       read something, come back to the same sheet, and the enter arrives at
+       a position the guard still holds as the last one it accepted. Leaving
+       is the end of that gesture, so it forgets. */
+    if(fine) reel.addEventListener('mouseleave', function(){ held = null; });
 
     reel.addEventListener('click', function(e){
       var arm = e.target.closest('[data-arm]');
