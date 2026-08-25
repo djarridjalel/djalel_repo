@@ -126,23 +126,29 @@
   })();
 
   /* ---- the reel ---------------------------------------------------------
-     The case-study opener. Everything about how a card looks at a given
-     distance from the current one lives in the stylesheet; this decides only
-     what that distance is.
+     The homepage gallery. Everything about how a card looks at a given
+     distance from the current one lives in the stylesheet; this decides
+     only what that distance is.
 
      Five cards wrap, so the distance is taken the short way round and always
      lands in -2..2 — the reel looks the same at every position and there is
-     no end to run into. Nothing here writes text: the captions are all in
-     the markup and only the current one is shown, which is what keeps each
-     of them an editable node rather than a string in a script. */
+     no end to run into.
+
+     Pointing selects. Nothing here navigates and nothing responds to a
+     click: the case study is reached by the line under the reel, and a card
+     that moved the page out from under the pointer would make the gallery
+     hostile to the very gesture that drives it. On a touch screen there is
+     no pointing, so a tap selects instead — the arms and the dots are there
+     for the same reason, and for the keyboard.
+
+     Nothing writes text either: the captions are all in the markup, each
+     riding under its own card, which is what keeps them editable. */
   [].forEach.call(document.querySelectorAll('[data-reel]'), function(reel){
     var cards = [].slice.call(reel.querySelectorAll('.reel-card'));
-    var caps  = [].slice.call(reel.querySelectorAll('.reel-caps > *'));
     var n = cards.length;
     if(n < 2) return;
 
     var dots = reel.querySelector('.reel-dots');
-    var count = reel.querySelector('.reel-count b');
     var at = 0;
 
     if(dots){
@@ -150,13 +156,12 @@
         var b = document.createElement('button');
         b.type = 'button';
         b.setAttribute('data-go', d);
-        b.setAttribute('aria-label', 'Image ' + (d + 1) + ' of ' + n);
+        b.setAttribute('aria-label', 'Sheet ' + (d + 1) + ' of ' + n);
         dots.appendChild(b);
       }
     }
 
-    // half the deck, rounded down: with five that is two either side
-    var reach = Math.floor(n / 2);
+    var reach = Math.floor(n / 2);        // half the deck: with five, two a side
 
     function paint(){
       cards.forEach(function(c, i){
@@ -164,33 +169,47 @@
         c.style.setProperty('--o', o);
         c.style.setProperty('--ao', Math.abs(o));
         c.classList.toggle('on', o === 0);
-        var btn = c.querySelector('button');
-        // only the current card is a stop for the keyboard; the others are
-        // still reachable, but through the arms and the dots
-        if(btn) btn.tabIndex = o === 0 ? -1 : 0;
       });
-      caps.forEach(function(el, i){ el.classList.toggle('on', i === at); });
       if(dots){
         [].forEach.call(dots.children, function(b, i){
           b.setAttribute('aria-current', i === at ? 'true' : 'false');
         });
       }
-      if(count) count.textContent = ('0' + (at + 1)).slice(-2);
     }
-    function to(i){ at = ((i % n) + n) % n; paint(); }
+    function to(i){
+      i = ((i % n) + n) % n;
+      if(i === at) return;
+      at = i; paint();
+    }
     function go(d){ to(at + d); }
 
-    var dragged = false;
+    /* Pointing at a card selects it — but only a real pointer. A touch
+       screen reports a hover on tap, and taking it here as well as in the
+       tap below would count one tap twice.
+
+       The guard is the whole trick. Selecting re-deals the reel, which slides
+       a different card under a pointer that has not moved, which the browser
+       reports as another mouseenter, which selects again — the deck runs away
+       on its own and settles wherever the churn happens to end. A synthesized
+       enter of that kind carries the pointer's current position, and the
+       pointer is exactly where it was when the last one was accepted; a real
+       one cannot be. So the position is what is tested, not the event. */
+    var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    var held = null;
+    cards.forEach(function(c, i){
+      if(!fine){ c.addEventListener('click', function(){ to(i); }); return; }
+      c.addEventListener('mouseenter', function(e){
+        if(held && Math.abs(e.clientX - held.x) < 3 && Math.abs(e.clientY - held.y) < 3) return;
+        held = {x:e.clientX, y:e.clientY};
+        to(i);
+      });
+    });
+
     reel.addEventListener('click', function(e){
-      // a drag ends in a click on whatever card it started over; without this
-      // the reel would advance for the drag and then jump to that card as well
-      if(dragged){ dragged = false; return; }
       var arm = e.target.closest('[data-arm]');
-      if(arm){ go(+arm.getAttribute('data-arm')); return; }
+      if(arm) return go(+arm.getAttribute('data-arm'));
       var dot = e.target.closest('[data-go]');
-      if(dot){ to(+dot.getAttribute('data-go')); return; }
-      var card = e.target.closest('.reel-card');
-      if(card) to(cards.indexOf(card));
+      if(dot) return to(+dot.getAttribute('data-go'));
     });
 
     reel.addEventListener('keydown', function(e){
@@ -198,20 +217,17 @@
       else if(e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
     });
 
-    /* Drag, for a trackpad as much as for a thumb. The threshold is a tenth
-       of the card rather than a fixed count of pixels, so the same flick
-       means the same thing on a phone and on a wide screen. */
+    /* Drag, for a thumb as much as for a trackpad. The threshold is a
+       fraction of the stage rather than a fixed count of pixels, so the same
+       flick means the same thing on a phone and on a wide screen. */
     var stage = reel.querySelector('.reel-stage'), down = null;
     if(stage){
-      stage.addEventListener('pointerdown', function(e){
-        if(e.button) return;
-        down = e.clientX;
-      });
+      stage.addEventListener('pointerdown', function(e){ if(!e.button) down = e.clientX; });
       stage.addEventListener('pointerup', function(e){
         if(down === null) return;
         var dx = e.clientX - down;
         down = null;
-        if(Math.abs(dx) > stage.clientWidth * 0.04){ dragged = true; go(dx < 0 ? 1 : -1); }
+        if(Math.abs(dx) > stage.clientWidth * 0.04) go(dx < 0 ? 1 : -1);
       });
       stage.addEventListener('pointercancel', function(){ down = null; });
     }

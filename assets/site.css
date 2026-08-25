@@ -254,113 +254,117 @@ a{color:inherit;}
 .poster-concept b{font-weight:700;}
 
 /* --- the reel --------------------------------------------------
-   The opener used to be one photograph behind the concept line. It is now
-   the five images that carry the project, dealt out in perspective with the
-   current one square to the viewer and two receding on either side.
+   The gallery on the homepage: five sheets of work per brand, the current
+   one square to the viewer and two receding either side.
 
-   Five is exactly enough to wrap: the offset each card is drawn at is its
-   distance from the current one taken the short way round, which always
-   lands in -2..2, so every position of the reel looks like every other and
-   there is no ragged end to design around. JS sets only that number and its
-   size; every decision about how far a card travels, turns and fades is
-   here, where it can be tuned by eye.
+   Built to the reference the client gave, and only its colour and its
+   blending moved: the frame that was a pale glass panel is the site's own
+   hairline over ink, and the cards either side sit back behind a scrim in
+   the ground's colour instead of a lilac haze. The geometry — portrait
+   sheets, the deep overlap, the turned neighbours, the caption riding under
+   each card rather than in one fixed place — is the reference's.
 
-   The captions are not moved or copied by script. All five sit stacked in
-   one grid cell and the current one is the only one shown, so each stays a
-   real element in the markup — which is what keeps it editable. */
-.poster-reel{
-  min-height:min(100svh, 940px);
-  align-content:center;
-  gap:clamp(20px, 3vh, 38px);
-  padding-block:clamp(76px, 9vh, 112px);
-}
-.poster-reel .poster-body{max-width:min(100%, 44ch);}
-/* The opener now has to seat an argument and five photographs in one screen.
-   The concept line gives up the size it had when it was the only thing here,
-   because a caption the reader has to scroll to find is not a caption. */
-.poster-reel .poster-concept{font-size:clamp(1.3rem, 2.45vw, 2.05rem);}
-.poster-reel .poster-tension{margin-bottom:14px;}
+   Every card is an A4 sheet, because every piece of work in it is one.
 
-/* The client's mark was the whole ground when the opener was one photograph.
-   Against five cards it competes with them instead, so it drops behind the
-   scrim — still the device, no longer the subject — and moves up out of the
-   reel's band, where it was cutting across the outer cards and the arm. */
-.poster-reel .poster-mark{
-  top:34%; right:-5%;
-  width:min(38%, 470px);
-  z-index:0;
-  opacity:.8;
-}
+   Five wraps exactly: the offset a card is drawn at is its distance from
+   the current one taken the short way round, which always lands in -2..2, so
+   every position of the reel looks like every other and there is no ragged
+   end to design around. Script sets only that number; every decision about
+   how far a card travels, turns and fades is here.
 
+   Nothing in the reel is a link and nothing happens when a card is clicked.
+   Pointing at one brings it forward — the same gesture the rest of the site
+   uses for the accent — and the case study is reached by the line beneath. */
 .reel{
-  --cardw:clamp(200px, 25.5vw, 376px);
-  position:relative; z-index:3;
+  --cardw:clamp(148px, 15.5vw, 236px);
+  --cardh:calc(var(--cardw) * 1.4142);      /* A4, upright */
+  position:relative;
   width:100%;
 }
 .reel-stage{
   position:relative;
-  height:calc(var(--cardw) * 0.667);
-  perspective:1400px;
-  perspective-origin:50% 50%;
+  height:calc(var(--cardh) + 4.6rem);       /* the sheet, and the caption under it */
 }
 .reel-track{
   list-style:none; margin:0; padding:0;
   position:absolute; inset:0;
-  transform-style:preserve-3d;
 }
+/* Each card carries its own perspective rather than sharing one declared on
+   the track. A single 3D space would be the more correct way to build this —
+   one vanishing point for the whole reel — but inside `transform-style:
+   preserve-3d` the browser only hit-tests the frontmost card: the four
+   behind it become unpointable, and pointing is the whole interaction.
+   Flattening each card into its own perspective costs a vanishing point
+   nobody can see is missing, and buys back the gesture. */
 .reel-card{
   position:absolute; left:50%; top:0;
   width:var(--cardw); margin-left:calc(var(--cardw) / -2);
-  aspect-ratio:3 / 2;
   transform:
-    translateX(calc(var(--o, 0) * var(--cardw) * 0.54))
-    translateZ(calc(var(--ao, 0) * -132px))
-    rotateY(calc(var(--o, 0) * -23deg));
-  opacity:calc(1 - var(--ao, 0) * 0.1);
+    perspective(1500px)
+    translateX(calc(var(--o, 0) * var(--cardw) * 0.78))
+    translateZ(calc(var(--ao, 0) * -190px))
+    rotateY(calc(var(--o, 0) * -26deg));
   z-index:calc(10 - var(--ao, 0));
-  transition:transform .58s cubic-bezier(.22,.61,.36,1), opacity .58s ease;
+  transition:transform .5s cubic-bezier(.22,.61,.36,1);
 }
-.reel-card button{
-  display:block; width:100%; height:100%; padding:0;
-  background:none; border:0; cursor:pointer;
-  /* the frame is a hairline, not a glass panel: the site is drawn in rules */
-  outline:1px solid rgba(255,255,255,.14); outline-offset:-1px;
-  box-shadow:0 26px 60px rgba(0,0,0,.55);
-  border-radius:2px; overflow:hidden;
+/* the mat around the sheet — the reference's frame, in the site's materials */
+.reel-sheet{
   position:relative;
+  padding:7px; border-radius:9px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 30px 64px rgba(0,0,0,.5);
+  transition:background-color .5s ease, border-color .5s ease, box-shadow .5s ease;
 }
-/* The cards either side recede behind a scrim rather than by going
-   transparent. Fading them would work on one photograph and not the next:
-   these are white cartons on pale grey, so losing opacity over a near-black
-   ground makes a light image glow and a dark one disappear — the two move
-   in opposite directions and the row stops reading as one depth. A veil in
-   the ground's own colour takes every card the same way. */
-.reel-card button::after{
-  content:""; position:absolute; inset:0; pointer-events:none;
-  background:var(--slate);
-  opacity:calc(var(--ao, 0) * 0.3);
-  transition:opacity .58s ease;
+.reel-card.on .reel-sheet{
+  background:rgba(255,255,255,.1);
+  border-color:rgba(255,255,255,.34);
+  box-shadow:0 38px 80px rgba(0,0,0,.6);
 }
 .reel-card img{
-  display:block; width:100%; height:100%;
-  object-fit:cover; border-radius:2px;
-  /* the ones either side sit back into the ground rather than competing */
-  filter:saturate(calc(1 - var(--ao, 0) * 0.3));
-  transition:filter .58s ease;
+  display:block; width:100%; height:auto;
+  aspect-ratio:210 / 297; object-fit:cover;
+  border-radius:4px;
 }
-.reel-card.on button{
-  outline-color:rgba(255,255,255,.42);
-  box-shadow:0 34px 74px rgba(0,0,0,.62);
+/* The cards either side recede behind a scrim in the ground's own colour
+   rather than by going transparent. Fading works on one sheet and not the
+   next: these are printed pages, some near-white and some near-black, so
+   over ink a pale one glows as it fades while a dark one disappears — the
+   two move in opposite directions and the row stops reading as one depth. */
+.reel-sheet::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  border-radius:9px; background:var(--ink);
+  opacity:calc(var(--ao, 0) * 0.42);
+  transition:opacity .5s ease;
 }
-.reel-card button:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
-.reel-card.on button{cursor:default;}
+.reel-cap{
+  margin:14px 2px 0; text-align:center;
+  opacity:calc(1 - var(--ao, 0) * 0.42);
+  transition:opacity .5s ease;
+}
+.reel-cap b{
+  display:block; font-weight:600; letter-spacing:-.01em;
+  font-size:clamp(.82rem, .95vw, .96rem); line-height:1.25;
+}
+.reel-cap span{
+  display:block; margin-top:3px; font-weight:300;
+  font-size:clamp(.72rem, .82vw, .84rem); line-height:1.3;
+  color:rgba(255,255,255,.56);
+}
 
-/* the two arms, on the stage rather than under it, so the reel reads as one
-   object and the caption below stays uncluttered */
+/* The two arms are for the devices that cannot point. The reference has no
+   arrows and neither does this where a pointer exists — hovering is the
+   whole gesture, and a pair of buttons stranded at the far edges of the band
+   only says the reel is not confident the gesture will be found. The dots
+   below stay in both cases: they are the reel's position as much as its
+   controls, and they are what a keyboard tabs to. */
 .reel-arms{display:contents;}
+@media (hover: hover) and (pointer: fine){
+  .reel-arms{display:none;}
+}
 .reel-arm{
-  position:absolute; top:calc(var(--cardw) * 0.3335); translate:0 -50%; z-index:12;
-  width:44px; height:44px; padding:0;
+  position:absolute; top:calc(var(--cardh) / 2); translate:0 -50%; z-index:12;
+  width:42px; height:42px; padding:0;
   display:grid; place-items:center;
   background:rgba(10,10,11,.5); color:#fff;
   border:1px solid rgba(255,255,255,.2); border-radius:50%;
@@ -368,62 +372,68 @@ a{color:inherit;}
   backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
   transition:border-color .2s ease, color .2s ease, background-color .2s ease;
 }
-.reel-arm:hover{border-color:var(--accent); color:var(--accent); background:rgba(10,10,11,.72);}
+.reel-arm:hover{border-color:var(--accent); color:var(--accent); background:rgba(10,10,11,.74);}
 .reel-arm:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
-.reel-prev{left:max(calc(var(--edge) - 22px), 8px);}
-.reel-next{right:max(calc(var(--edge) - 22px), 8px);}
+.reel-prev{left:0;}
+.reel-next{right:0;}
 
-.reel-foot{
-  display:flex; flex-direction:column; align-items:center; gap:16px;
-  margin-top:clamp(22px, 3.4vh, 40px); text-align:center;
-}
-.reel-caps{display:grid; width:min(100%, 46ch);}
-.reel-caps > *{
-  grid-area:1 / 1; margin:0;
-  font-size:clamp(.9rem, 1.15vw, 1.02rem); font-weight:300; line-height:1.5;
-  color:rgba(255,255,255,.82);
-  opacity:0; transition:opacity .34s ease; pointer-events:none;
-}
-.reel-caps > .on{opacity:1;}
-.reel-dots{display:flex; gap:9px; align-items:center;}
+.reel-dots{display:flex; gap:9px; justify-content:center; margin-top:18px;}
 .reel-dots button{
-  width:7px; height:7px; padding:0; border:0; border-radius:50%;
-  background:rgba(255,255,255,.26); cursor:pointer;
-  transition:background-color .25s ease, transform .25s ease;
+  width:6px; height:6px; padding:0; border:0; border-radius:50%;
+  background:rgba(255,255,255,.24); cursor:pointer;
+  transition:background-color .3s ease, transform .3s ease;
 }
-.reel-dots button[aria-current="true"]{background:var(--accent); transform:scale(1.4);}
-.reel-dots button:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
-.reel-count{
-  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
-  text-transform:uppercase; color:rgba(255,255,255,.44);
-}
-.reel-count b{color:var(--accent); font-weight:500;}
+.reel-dots button[aria-current="true"]{background:var(--accent); transform:scale(1.5);}
+.reel-dots button:focus-visible{outline:2px solid var(--accent); outline-offset:4px;}
 
-/* Narrow: the outer pair would be mostly off-screen and the arms would sit
-   over the current card, so the spread tightens and the arms drop below. */
-/* Between the two, the cards would be sized off a viewport width the layout
-   no longer spends on anything else — the text column has stopped growing,
-   so the reel should take what is left rather than shrink with it. */
-@media (min-width:721px) and (max-width:1100px){
-  .reel{--cardw:min(34vw, 330px);}
+/* --- the showcase the reels sit in ------------------------------ */
+.showcase + .showcase{margin-top:clamp(56px, 8vh, 104px);}
+.showcase-head{
+  display:flex; align-items:baseline; gap:16px; flex-wrap:wrap;
+  margin-bottom:clamp(20px, 3vh, 34px);
+}
+.showcase-n{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
+  color:var(--accent);
+}
+.showcase-client{
+  font-size:clamp(1.05rem, 1.7vw, 1.45rem); font-weight:600; letter-spacing:-.02em;
+}
+.showcase-sector{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.16em;
+  text-transform:uppercase; color:rgba(255,255,255,.48);
+}
+.showcase-foot{
+  display:flex; align-items:flex-start; gap:clamp(20px,4vw,56px);
+  flex-wrap:wrap; margin-top:clamp(22px, 3.4vh, 38px);
+}
+.showcase-line{
+  flex:1 1 32ch; margin:0; max-width:62ch;
+  font-weight:300; line-height:1.55; color:rgba(255,255,255,.76);
+  font-size:clamp(.92rem, 1.1vw, 1.02rem);
+}
+
+@media (max-width:1100px){
+  .reel{--cardw:clamp(140px, 21vw, 210px);}
 }
 @media (max-width:720px){
-  .reel{--cardw:min(74vw, 340px);}
+  /* the outer sheets are meant to run off the sides; without this they run
+     off the document instead and the whole page scrolls sideways */
+  .reel{--cardw:min(52vw, 240px); overflow:hidden; padding-bottom:12px;}
   .reel-card{
     transform:
-      translateX(calc(var(--o, 0) * var(--cardw) * 0.46))
-      translateZ(calc(var(--ao, 0) * -150px))
-      rotateY(calc(var(--o, 0) * -19deg));
+      perspective(1500px)
+      translateX(calc(var(--o, 0) * var(--cardw) * 0.62))
+      translateZ(calc(var(--ao, 0) * -210px))
+      rotateY(calc(var(--o, 0) * -22deg));
   }
-  /* no room beside the card for an arm, so they come out from under it */
-  .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
+  /* no room beside the sheets for an arm without it landing on one */
+  .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:20px;}
   .reel-arm{position:static; translate:none;}
-  /* and the client's mark stops crossing the opening paragraph */
-  .poster-reel .poster-mark{top:auto; bottom:6%; right:-14%; width:62%; opacity:.55;}
 }
 
 @media (prefers-reduced-motion: reduce){
-  .reel-card, .reel-card img, .reel-caps > *{transition:none;}
+  .reel-card, .reel-sheet, .reel-sheet::after, .reel-cap{transition:none;}
 }
 
 /* --- dossier -------------------------------------------------- */
@@ -559,77 +569,14 @@ a{color:inherit;}
 }
 
 /* ==========================================================================
-   SELECTED WORK — the glimpses
-   Not cards. A card would put a border around work that is already framed by
-   its own photograph. Each entry is a full-bleed image with its metadata set
-   beneath it on the same grid the dossiers use, so the homepage reads as the
-   contents page of the case studies rather than as a separate gallery.
+   SELECTED WORK — a reel per brand
+   Not cards laid out on a grid. Each entry is the brand's name, the sheets
+   themselves dealt out in perspective, and the line that sends you into the
+   case study — so the homepage reads as the contents page of the case
+   studies rather than as a separate gallery. The reel itself is built
+   further up, beside the rest of the shared furniture.
    ========================================================================== */
-.glimpses{display:grid; gap:var(--slab);}
-.glimpse{text-decoration:none; display:block; color:inherit;}
-.glimpse-media{
-  position:relative;
-  overflow:hidden;
-  background:#141416;
-  aspect-ratio:16/9;
-}
-.glimpse-media img{
-  width:100%; height:100%; object-fit:cover;
-  transition:transform .9s cubic-bezier(.2,.7,.3,1), filter .6s ease;
-  filter:grayscale(1) contrast(1.04);
-}
-.glimpse:hover .glimpse-media img{transform:scale(1.035); filter:grayscale(.55) contrast(1.06);}
-@media (prefers-reduced-motion:reduce){
-  .glimpse-media img{transition:none;}
-  .glimpse:hover .glimpse-media img{transform:none;}
-}
-/* the client's own mark, knocked out over its photograph */
-.glimpse-mark{
-  position:absolute; left:clamp(18px,3vw,42px); top:clamp(18px,3vw,42px);
-  width:clamp(58px,7vw,104px);
-  mix-blend-mode:difference; pointer-events:none;
-}
-.glimpse-mark img{width:100%; height:auto; filter:brightness(0) invert(1);}
-
-.glimpse-foot{
-  display:grid;
-  grid-template-columns:3.4rem minmax(0,1fr) minmax(0,1.15fr) auto;
-  gap:clamp(12px,2.4vw,40px);
-  align-items:baseline;
-  padding-top:22px;
-  border-top:1px solid var(--rule-dk);
-  margin-top:20px;
-}
-.glimpse-n{
-  font-family:var(--mono); font-size:.7rem; letter-spacing:.12em;
-  color:rgba(255,255,255,.42); font-variant-numeric:tabular-nums;
-}
-.glimpse-client{
-  display:block;
-  font-size:clamp(1.05rem,1.9vw,1.5rem); font-weight:600; letter-spacing:-.015em;
-}
-.glimpse-sector{
-  display:block; margin-top:7px;
-  font-family:var(--mono); font-size:.62rem; letter-spacing:.16em;
-  text-transform:uppercase; color:rgba(255,255,255,.46);
-}
-.glimpse-line{
-  font-weight:300; line-height:1.55;
-  font-size:clamp(.9rem,1.15vw,1.02rem);
-  color:rgba(255,255,255,.76);
-}
-.glimpse-go{
-  font-family:var(--mono); font-size:.66rem; letter-spacing:.16em;
-  text-transform:uppercase; white-space:nowrap;
-  color:rgba(255,255,255,.58);
-  transition:color .25s ease;
-}
-.glimpse:hover .glimpse-go{color:var(--accent);}
-@media (max-width:900px){
-  .glimpse-foot{grid-template-columns:2.6rem 1fr; row-gap:14px;}
-  .glimpse-line{grid-column:2 / -1;}
-  .glimpse-go{grid-column:2 / -1;}
-}
+.showcases{display:grid; gap:0;}
 
 /* ==========================================================================
    EXPERTISE — what is actually being sold
@@ -767,7 +714,7 @@ a{color:inherit;}
    The narrative order the brief sets: opener, context, challenge, role,
    approach, visual system, applications, outcome, client voice, next.
    The poster and dossier come from the homepage's original act two and are
-   reused verbatim, so a case study opens in the same voice its glimpse did.
+   reused verbatim, so a case study opens in the same voice the homepage did.
    ========================================================================== */
 .case-opener{padding-top:58px;}          /* clears the fixed bar */
 
@@ -800,6 +747,21 @@ a{color:inherit;}
 @media (max-width:700px){
   .narrative{grid-template-columns:1fr; gap:12px;}
 }
+
+/* Applications — the pictures, at three weights: full bleed, pair, single. */
+.plates{display:grid; gap:clamp(16px,2.2vw,30px); margin-top:var(--slab);}
+.plates figure{margin:0;}
+.plates img{width:100%; height:auto;}
+.plate-wide img{aspect-ratio:16/9; object-fit:cover;}
+.plate-pair{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(16px,2.2vw,30px);}
+.plate-pair img{aspect-ratio:4/3; object-fit:cover;}
+@media (max-width:700px){ .plate-pair{grid-template-columns:1fr;} }
+.plates figcaption{
+  margin-top:12px;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.14em;
+  text-transform:uppercase; color:rgba(10,10,11,.5); line-height:1.6;
+}
+.band-ink .plates figcaption{color:rgba(255,255,255,.5);}
 
 /* Next project — never a dead end. */
 .next{
@@ -873,8 +835,8 @@ a{color:inherit;}
 .idx-client{--gt-r:104px;}
 .idx-concept{--gt-r:96px;}
 .poster-concept{--gt-r:118px;}
-.glimpse-client{--gt-r:104px;}
-.glimpse-line{--gt-r:96px;}
+.showcase-client{--gt-r:104px;}
+.showcase-line{--gt-r:96px;}
 .quote-lead{--gt-r:130px;}
 .h-sec{--gt-r:118px;}
 .close-line{--gt-r:130px;}
