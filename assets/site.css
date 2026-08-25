@@ -278,7 +278,20 @@ a{color:inherit;}
   --cardw:clamp(180px, 19vw, 300px);
   --cardh:calc(var(--cardw) * 1.4142);      /* A4, upright */
   --lift:calc(var(--cardw) * 0.11);         /* how much lower the current one sits */
-  --pace:.84s;
+  /* Snap, not travel. A sheet leaves at speed, covers most of the distance
+     in the first third, overshoots its mark by a hair and settles — which is
+     what reads as responsive. This is the opposite of the constant rate the
+     reel ran at before: constant speed is honest about the distance and
+     completely lifeless, because nothing in the physical world starts and
+     stops at the same pace it crosses at.
+
+     Light and focus run shorter still and without the overshoot. A sheet
+     that is sharp before it has finished arriving feels quicker than one
+     that resolves on landing, and overshooting a blur has nothing to
+     overshoot into. */
+  --pace:.42s;
+  --ease:cubic-bezier(.2,1.22,.4,1);
+  --pace-fx:.28s;
   position:relative;
   /* The fan is wider than the text column it sits under. It breaks out to
      the full width and is clipped there, which is where the reference puts
@@ -322,12 +335,12 @@ a{color:inherit;}
     scale(calc(1 - var(--cao, 0) * 0.07));
   z-index:calc(10 - var(--ao, 0));
   opacity:calc(1 - min(var(--ao, 0), 4) * 0.2);
-  transition:transform var(--pace) linear, opacity var(--pace) linear;
+  transition:transform var(--pace) var(--ease), opacity var(--pace-fx) ease-out;
 }
 .reel-sheet{
   position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;
   filter:blur(min(calc(var(--ao, 0) * 2.6px), 9px));
-  transition:filter var(--pace) linear;
+  transition:filter var(--pace-fx) ease-out;
 }
 /* The glass the sheet is set behind. Two layers, because they answer to
    different things: the rim is a property of the pane and is always there,
@@ -362,14 +375,14 @@ a{color:inherit;}
     rgba(255,255,255,.2) 74%,
     rgba(255,255,255,.44) 100%);
   opacity:calc(min(var(--ao, 0), 3) * 0.19);
-  transition:opacity var(--pace) linear;
+  transition:opacity var(--pace-fx) ease-out;
 }
 .reel-card img{
   display:block; width:100%; height:auto;
   aspect-ratio:210 / 297; object-fit:cover;
 }
 .reel-card:not(.on) img{opacity:.92;}
-.reel-card img{transition:opacity var(--pace) linear;}
+.reel-card img{transition:opacity var(--pace-fx) ease-out;}
 
 /* The name sits under the sheet, not across it.
 
@@ -383,7 +396,7 @@ a{color:inherit;}
 .reel-cap{
   margin:16px 4px 0; text-align:center;
   opacity:calc(1 - var(--ao, 0) * 0.3);
-  transition:opacity var(--pace) linear;
+  transition:opacity var(--pace-fx) ease-out;
 }
 .reel-cap b{
   display:block; font-weight:500; letter-spacing:-.005em;
@@ -472,7 +485,7 @@ a{color:inherit;}
 }
 
 @media (prefers-reduced-motion: reduce){
-  .reel{--pace:1ms;}
+  .reel{--pace:1ms; --pace-fx:1ms;}
 }
 
 /* --- dossier -------------------------------------------------- */
