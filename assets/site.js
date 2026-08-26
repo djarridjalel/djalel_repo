@@ -235,117 +235,165 @@
     }
 
     /* ---- the lens ------------------------------------------------------
-       The hero's aperture, on the sheet in focus. The magnified copy is
-       cloned here rather than written into the markup for two reasons: it
-       always carries whatever the sheet is currently showing, including an
-       image swapped in from the editor, and it never appears as a second
-       editable field for the same picture.
+       A patch of the picture, re-drawn warped, laid exactly over the part it
+       replaces.
 
-       Only the sheet in focus gets one. The others are blurred and behind
-       glass — a lens on them would be reading through two panes — and it
-       keeps this to one extra layer on the page rather than fifteen. */
+       Every earlier attempt put a whole transformed copy on top and cut a
+       hole for it, and every one of them had a boundary: a uniform scale
+       displaces a pixel in proportion to its distance from the centre, so
+       the displacement is largest exactly where the two copies have to meet.
+       The displacement has to fall to zero at the rim instead, which means
+       it has to vary per pixel, which no CSS transform can do.
+
+       So the interior is drawn a pixel at a time. Each pixel asks where it
+       should be reading from: a point at distance d from the pointer takes
+       its colour from d * k(d) instead, with k above one inside the disc and
+       exactly one at the rim. Sampling from further out is what pulls the
+       picture inward. The bend is zero at the centre — a point on the axis
+       has nowhere to move — rises through the middle of the disc, and
+       returns to zero at the edge, which is a real lens profile and is what
+       the reference shows.
+
+       Dispersion comes free. Red, green and blue are bent by slightly
+       different amounts in the same pass, which is what dispersion is,
+       rather than three offset copies of a picture stacked up.
+
+       The cost is bounded: only the sheet in focus has a lens, the canvas
+       is only as big as the aperture, and the distance-to-bend curve is a
+       lookup table indexed by squared distance, so the inner loop has no
+       square root in it. */
     if(fine){
-      refractor();
       cards.forEach(function(c){
         var sheet = c.querySelector('.reel-sheet'), img = sheet && sheet.querySelector('img');
         if(!sheet || !img) return;
 
-        var glass = null;
-        function build(){
-          if(glass) return;
-          glass = document.createElement('div');
-          glass.className = 'reel-glass';
-          glass.setAttribute('aria-hidden', 'true');
-          var copy = img.cloneNode(false);
-          copy.removeAttribute('data-ed');      // invisible to the editor
-          copy.removeAttribute('loading');
-          copy.alt = '';
-          glass.appendChild(copy);
-          sheet.appendChild(glass);
+        var cv = null, ctx = null, src = null, sctx = null, out = null;
+        var DPR = Math.min(2, window.devicePixelRatio || 1);
+        var R = 0, S = 0, srcW = 0, srcH = 0, srcKey = '';
+        var amt = 0, want = 0, raf = null, last = 0, px = 0, py = 0;
+        var BEND = 0.42;          // how far out the middle of the disc reads
+        var SPREAD = 0.075;       // how much further red goes than blue
+        var lutB = null, lutD = null;
+
+        function radius(){
+          var b = sheet.getBoundingClientRect();
+          return Math.max(40, Math.min(b.width, b.height) * 0.29);
         }
 
-        var raf = null, px = 0, py = 0;
-        function place(){
-          raf = null;
-          sheet.style.setProperty('--bx', px.toFixed(2) + '%');
-          sheet.style.setProperty('--by', py.toFixed(2) + '%');
+        /* the source: the sheet's own picture at the size it is displayed,
+           so a pixel here is a pixel there. Rebuilt when the sheet resizes
+           or the picture is swapped, not per frame. */
+        function source(){
+          var b = sheet.getBoundingClientRect();
+          var w = Math.round(b.width * DPR), h = Math.round(b.height * DPR);
+          var key = w + 'x' + h + '|' + img.currentSrc;
+          if(src && key === srcKey) return true;
+          if(!img.complete || !img.naturalWidth) return false;
+          src = src || document.createElement('canvas');
+          src.width = w; src.height = h;
+          sctx = src.getContext('2d', {willReadFrequently:true});
+          // object-fit: cover, computed by hand — the canvas has no such thing
+          var s = Math.max(w / img.naturalWidth, h / img.naturalHeight);
+          var dw = img.naturalWidth * s, dh = img.naturalHeight * s;
+          sctx.drawImage(img, (w - dw) / 2, (h - dh) / 2, dw, dh);
+          try{ out = sctx.getImageData(0, 0, w, h); }catch(e){ return false; }
+          srcW = w; srcH = h; srcKey = key;
+          return true;
         }
+
+        /* Two curves, not one, because the bend and the dispersion are
+           strongest in different places.
+
+           The bend has to be zero on the axis — a point at the centre has
+           nowhere to move — and zero at the rim, or there is a boundary. It
+           peaks in between, which is the profile the reference shows.
+
+           The dispersion is a property of how hard the light is being bent,
+           not of how far the picture has moved, so it belongs near the edge
+           where a real lens bends most: barely there on the axis, rising
+           through the disc, and brought back to nothing in the last of it
+           so the split does not simply stop at the rim and draw the ring
+           all over again. */
+        function tables(n){
+          if(lutB && lutB.length === n) return;
+          lutB = new Float32Array(n);
+          lutD = new Float32Array(n);
+          for(var i = 0; i < n; i++){
+            var t = Math.sqrt(i / (n - 1));        // 0 at the centre, 1 at the rim
+            lutB[i] = Math.sin(Math.PI * t) * (1 - t) * 1.9;   // 0, up, 0
+            lutD[i] = t * t * (1 - t) * 6.75;                  // 0, up late, 0
+          }
+        }
+
+        function draw(){
+          var r = Math.round(R * DPR), n = r * 2;
+          if(cv.width !== n){ cv.width = n; cv.height = n; ctx = cv.getContext('2d'); }
+          var im = ctx.createImageData(n, n), d = im.data, sd = out.data;
+          tables(r * r + 1);
+          var kb = lutB, kd = lutD, lim = kb.length;
+          var ox = Math.round(px * DPR) - r, oy = Math.round(py * DPR) - r;
+          var bend = BEND * amt, sp = SPREAD * amt;
+          for(var y = 0; y < n; y++){
+            var dy = y - r + 0.5;
+            for(var x = 0; x < n; x++){
+              var dx = x - r + 0.5;
+              var q = (dx * dx + dy * dy) | 0;
+              var o = (y * n + x) * 4;
+              if(q >= lim){ d[o + 3] = 0; continue; }
+              var fb = kb[q] * bend, fd = kd[q] * sp;
+              // three bends, one per channel — the dispersion
+              for(var ch = 0; ch < 3; ch++){
+                var m = 1 + fb + (ch - 1) * fd;
+                var sx = (ox + r + dx * m) | 0, sy = (oy + r + dy * m) | 0;
+                if(sx < 0) sx = 0; else if(sx >= srcW) sx = srcW - 1;
+                if(sy < 0) sy = 0; else if(sy >= srcH) sy = srcH - 1;
+                d[o + ch] = sd[(sy * srcW + sx) * 4 + ch];
+              }
+              d[o + 3] = 255;
+            }
+          }
+          ctx.putImageData(im, 0, 0);
+          cv.style.left = (px - R) + 'px';
+          cv.style.top  = (py - R) + 'px';
+          cv.style.width  = (R * 2) + 'px';
+          cv.style.height = (R * 2) + 'px';
+        }
+
+        function tick(now){
+          raf = null;
+          var dt = last ? Math.min(64, now - last) : 16; last = now;
+          // open quickly, close slowly — the hero's asymmetry
+          var rate = want > amt ? dt / 240 : dt / 700;
+          amt += (want > amt ? 1 : -1) * rate;
+          if(amt > 1) amt = 1; if(amt < 0) amt = 0;
+          if(amt <= 0){ cv.style.display = 'none'; last = 0; return; }
+          if(!source()){ last = 0; return; }
+          cv.style.display = 'block';
+          R = radius();
+          draw();
+          if(amt !== want) raf = requestAnimationFrame(tick);
+        }
+        function kick(){ if(raf === null) raf = requestAnimationFrame(tick); }
+
         sheet.addEventListener('mousemove', function(e){
           if(!c.classList.contains('on')) return;
           var b = sheet.getBoundingClientRect();
           if(!b.width) return;
-          px = (e.clientX - b.left) / b.width * 100;
-          py = (e.clientY - b.top) / b.height * 100;
-          build();
-          // the copy has to be in place before the aperture is asked to open,
-          // or the first frame opens onto nothing
-          if(!sheet.classList.contains('lit')){ place(); sheet.classList.add('lit'); return; }
-          if(raf === null) raf = requestAnimationFrame(place);
+          px = e.clientX - b.left; py = e.clientY - b.top;
+          if(!cv){
+            cv = document.createElement('canvas');
+            cv.className = 'reel-lens';
+            cv.setAttribute('aria-hidden', 'true');
+            sheet.appendChild(cv);
+          }
+          want = 1; kick();
         });
-        sheet.addEventListener('mouseleave', function(){ sheet.classList.remove('lit'); });
+        sheet.addEventListener('mouseleave', function(){ want = 0; kick(); });
       });
     }
 
     paint();
   });
-
-  /* The refraction the lens interior is seen through.
-
-     Light bends by a different amount for each wavelength, which is why a
-     glass edge fringes blue on one side and warm on the other — it is one
-     thing seen three times, slightly apart. That is what this does to the
-     picture: the red channel is pushed one way, the blue the other, the
-     green held, and the three are put back together with screen. It is the
-     same statement the hero makes on its glyphs, made on a photograph
-     instead, and it needs SVG because CSS has no way to move one channel
-     without the other two.
-
-     feOffset, feColorMatrix and feBlend only. Not feImage, which is what
-     the hero's displacement map used and why it had to be abandoned: when
-     that primitive yields nothing the whole filter output goes empty and
-     whatever it was applied to disappears. These three fail closed at
-     worst by doing nothing visible. */
-  function refractor(){
-    if(document.getElementById('dj-refract')) return;
-    var NS = 'http://www.w3.org/2000/svg';
-    var svg = document.createElementNS(NS, 'svg');
-    svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
-    svg.setAttribute('aria-hidden', 'true');
-    svg.setAttribute('focusable', 'false');
-    svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
-    var f = document.createElementNS(NS, 'filter');
-    f.setAttribute('id', 'dj-refract');
-    // the offsets push past the element's own box, so the region is grown
-    f.setAttribute('x', '-6%'); f.setAttribute('y', '-6%');
-    f.setAttribute('width', '112%'); f.setAttribute('height', '112%');
-    f.setAttribute('color-interpolation-filters', 'sRGB');
-    var only = {
-      r:'1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0',
-      g:'0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0',
-      b:'0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0'
-    };
-    function el(name, attrs){
-      var n = document.createElementNS(NS, name);
-      for(var k in attrs) n.setAttribute(k, attrs[k]);
-      f.appendChild(n);
-      return n;
-    }
-    el('feOffset',      {in:'SourceGraphic', dx:'1.6',  dy:'0', result:'ro'});
-    el('feColorMatrix', {in:'ro', type:'matrix', values:only.r, result:'R'});
-    el('feColorMatrix', {in:'SourceGraphic', type:'matrix', values:only.g, result:'G'});
-    el('feOffset',      {in:'SourceGraphic', dx:'-1.6', dy:'0', result:'bo'});
-    el('feColorMatrix', {in:'bo', type:'matrix', values:only.b, result:'B'});
-    /* added, not screened. Three isolated channels put back together with
-       screen do not reconstruct the picture — screen only ever lightens, so
-       the result comes back pale and washed, which on a near-white poster
-       is most of the picture gone. Arithmetic addition with k2=k3=1 is the
-       inverse of the split: at zero offset it returns the original exactly,
-       and at this one it returns the original with a fringe. */
-    el('feComposite', {in:'R',  in2:'G', operator:'arithmetic', k1:'0', k2:'1', k3:'1', k4:'0', result:'RG'});
-    el('feComposite', {in:'RG', in2:'B', operator:'arithmetic', k1:'0', k2:'1', k3:'1', k4:'0'});
-    svg.appendChild(f);
-    document.body.appendChild(svg);
-  }
 
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything

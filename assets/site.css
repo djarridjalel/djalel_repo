@@ -411,76 +411,30 @@ a{color:inherit;}
 }
 
 /* --- the lens, on a sheet ---------------------------------------
-   The hero's device, applied to a photograph instead of a line of type.
+   A patch of the picture, re-drawn warped, laid exactly over the part it
+   replaces. No second copy, no aperture to mask, no edge.
 
-   The structure is the hero's, unchanged: two copies of the same thing
-   stacked, masked by complementary radial gradients cut from one registered
-   length, so at every radius their alphas sum to exactly one. That is what
-   makes it an iris rather than a cross-fade — a fade would leave the
-   interior semi-transparent while the copy under it is still masked out of
-   that same disc, and the ground would show through the gap.
+   Everything before this put a whole transformed copy of the image on top
+   and cut a hole for it. That can only ever produce a boundary: a uniform
+   scale displaces a pixel in proportion to its distance from the centre, so
+   the displacement is largest exactly where the two copies have to meet,
+   and no mask hides a jump that large. Softening the mask does not help
+   either — two layers at .45 and .55 do not replace one another, they
+   composite, and the picture doubles across the whole band.
 
-   Inside the disc the picture is drawn smaller and pulled toward the
-   pointer, and its colour is split. That is the hero's interior exactly: it
-   contracts its glyphs toward the pointer and edges them blue on one side
-   and warm on the other. Nothing is drawn AT the aperture — no ring, no
-   rim, no edge. The only thing that says where the glass ends is that the
-   picture stops being contracted.
+   The displacement has to fall to zero at the rim instead, which means it
+   has to vary per pixel, which no CSS transform can do. So the interior is
+   drawn a pixel at a time into a canvas the size of the aperture. At the
+   rim every pixel maps to itself and the canvas is indistinguishable from
+   what is under it; there is nothing to blend and nothing to hide.
 
-   The hand-off has to be nearly hard, and that is not a stylistic choice.
-   Two layers masked to .45 and .55 do not replace one another — alpha
-   compositing shows the top at .55 and what is left of the bottom through
-   it, so both are on screen at once and the picture is doubled across the
-   whole band. Only stops at 0 and 1, with a short crossfade between, hand
-   one copy to the other. The hero's stops, for the hero's reason. */
-@property --lr{syntax:'<length>'; inherits:true; initial-value:0px;}
-
-.reel-sheet{
-  --lr:0.01px;
-  --bx:50%; --by:50%;
-  transition:filter var(--pace-fx) ease-out,
-             --lr .8s cubic-bezier(.5,0,.5,1);          /* slow close */
-}
-.reel-card.on .reel-sheet.lit{
-  transition:filter var(--pace-fx) ease-out,
-             --lr .26s cubic-bezier(.22,.61,.36,1);     /* quicker open */
-  /* lengths only: --lr is registered as <length>, and a percentage inside
-     it makes the whole declaration invalid, which drops it back to the
-     initial 0px and the aperture never opens at all */
-  --lr:clamp(54px, 5.4vw, 78px);
-}
-
-/* the contracted copy, made at runtime so it always carries whatever the
-   sheet is currently showing */
-.reel-glass{
-  position:absolute; inset:0; z-index:1;
-  pointer-events:none; overflow:hidden;
-  border-radius:inherit;
-  -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
-    #000 0%, #000 80%, rgba(0,0,0,0) 94%, rgba(0,0,0,0) 100%);
-          mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
-    #000 0%, #000 80%, rgba(0,0,0,0) 94%, rgba(0,0,0,0) 100%);
-}
-.reel-glass img{
-  display:block; width:100%; height:100%; object-fit:cover;
-  transform:scale(.8);
-  transform-origin:var(--bx) var(--by);
-  /* the refraction: the picture's own channels pulled apart, so the light
-     bends through the content rather than being drawn around it */
-  filter:url(#dj-refract);
-  transition:transform .26s cubic-bezier(.22,.61,.36,1);
-}
-/* and the sheet itself takes the complementary hole, so the two never
-   paint the same pixel at full strength */
-.reel-card.on .reel-sheet.lit > img{
-  -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
-    rgba(0,0,0,0) 0%, rgba(0,0,0,0) 80%, #000 94%, #000 100%);
-          mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
-    rgba(0,0,0,0) 0%, rgba(0,0,0,0) 80%, #000 94%, #000 100%);
-}
-
-@media (prefers-reduced-motion: reduce){
-  .reel-glass img{transition:none;}
+   The dispersion comes free with it: red, green and blue are bent by
+   slightly different amounts in the same pass, which is what dispersion
+   actually is, rather than three offset copies of a picture. */
+.reel-lens{
+  position:absolute; z-index:1;
+  pointer-events:none;
+  display:block;
 }
 
 /* the two arms — only for the devices that cannot point, and absent
