@@ -245,11 +245,12 @@
        glass — a lens on them would be reading through two panes — and it
        keeps this to one extra layer on the page rather than fifteen. */
     if(fine){
+      refractor();
       cards.forEach(function(c){
         var sheet = c.querySelector('.reel-sheet'), img = sheet && sheet.querySelector('img');
         if(!sheet || !img) return;
 
-        var glass = null, rim = null;
+        var glass = null;
         function build(){
           if(glass) return;
           glass = document.createElement('div');
@@ -260,11 +261,7 @@
           copy.removeAttribute('loading');
           copy.alt = '';
           glass.appendChild(copy);
-          rim = document.createElement('div');
-          rim.className = 'reel-rim';
-          rim.setAttribute('aria-hidden', 'true');
           sheet.appendChild(glass);
-          sheet.appendChild(rim);
         }
 
         var raf = null, px = 0, py = 0;
@@ -291,6 +288,64 @@
 
     paint();
   });
+
+  /* The refraction the lens interior is seen through.
+
+     Light bends by a different amount for each wavelength, which is why a
+     glass edge fringes blue on one side and warm on the other — it is one
+     thing seen three times, slightly apart. That is what this does to the
+     picture: the red channel is pushed one way, the blue the other, the
+     green held, and the three are put back together with screen. It is the
+     same statement the hero makes on its glyphs, made on a photograph
+     instead, and it needs SVG because CSS has no way to move one channel
+     without the other two.
+
+     feOffset, feColorMatrix and feBlend only. Not feImage, which is what
+     the hero's displacement map used and why it had to be abandoned: when
+     that primitive yields nothing the whole filter output goes empty and
+     whatever it was applied to disappears. These three fail closed at
+     worst by doing nothing visible. */
+  function refractor(){
+    if(document.getElementById('dj-refract')) return;
+    var NS = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(NS, 'svg');
+    svg.setAttribute('width', '0'); svg.setAttribute('height', '0');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false');
+    svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+    var f = document.createElementNS(NS, 'filter');
+    f.setAttribute('id', 'dj-refract');
+    // the offsets push past the element's own box, so the region is grown
+    f.setAttribute('x', '-6%'); f.setAttribute('y', '-6%');
+    f.setAttribute('width', '112%'); f.setAttribute('height', '112%');
+    f.setAttribute('color-interpolation-filters', 'sRGB');
+    var only = {
+      r:'1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0',
+      g:'0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0',
+      b:'0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0'
+    };
+    function el(name, attrs){
+      var n = document.createElementNS(NS, name);
+      for(var k in attrs) n.setAttribute(k, attrs[k]);
+      f.appendChild(n);
+      return n;
+    }
+    el('feOffset',      {in:'SourceGraphic', dx:'1.6',  dy:'0', result:'ro'});
+    el('feColorMatrix', {in:'ro', type:'matrix', values:only.r, result:'R'});
+    el('feColorMatrix', {in:'SourceGraphic', type:'matrix', values:only.g, result:'G'});
+    el('feOffset',      {in:'SourceGraphic', dx:'-1.6', dy:'0', result:'bo'});
+    el('feColorMatrix', {in:'bo', type:'matrix', values:only.b, result:'B'});
+    /* added, not screened. Three isolated channels put back together with
+       screen do not reconstruct the picture — screen only ever lightens, so
+       the result comes back pale and washed, which on a near-white poster
+       is most of the picture gone. Arithmetic addition with k2=k3=1 is the
+       inverse of the split: at zero offset it returns the original exactly,
+       and at this one it returns the original with a fringe. */
+    el('feComposite', {in:'R',  in2:'G', operator:'arithmetic', k1:'0', k2:'1', k3:'1', k4:'0', result:'RG'});
+    el('feComposite', {in:'RG', in2:'B', operator:'arithmetic', k1:'0', k2:'1', k3:'1', k4:'0'});
+    svg.appendChild(f);
+    document.body.appendChild(svg);
+  }
 
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything
