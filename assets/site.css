@@ -41,6 +41,13 @@ body{
   -moz-osx-font-smoothing:grayscale;
 }
 img{display:block;}
+/* `hidden` has to actually hide. The attribute only carries the user agent's
+   own display:none, which any component rule setting a display beats — and
+   the homepage's own stylesheet loads after this one, so order will not
+   settle it either. This is the one place !important is the correct tool:
+   the attribute is a statement about whether the element exists at all, not
+   a style to be negotiated with. */
+[hidden]{display:none !important;}
 a{color:inherit;}
 :focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
 

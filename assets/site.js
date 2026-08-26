@@ -271,7 +271,9 @@
         var DPR = Math.min(2, window.devicePixelRatio || 1);
         var R = 0, S = 0, srcW = 0, srcH = 0, srcKey = '';
         var amt = 0, want = 0, raf = null, last = 0, px = 0, py = 0;
-        var BEND = 0.42;          // how far out the middle of the disc reads
+        var moved = 0;            // when the pointer last actually moved
+        var GRACE = 90;           // how long stillness is tolerated before it fades
+        var BEND = 0.21;          // how far out the middle of the disc reads
         var SPREAD = 0.075;       // how much further red goes than blue
         var lutB = null, lutD = null;
 
@@ -362,6 +364,12 @@
         function tick(now){
           raf = null;
           var dt = last ? Math.min(64, now - last) : 16; last = now;
+          /* The lens is a consequence of movement, not of presence. Holding
+             the pointer still over a sheet lets it drain away; moving again
+             brings it back. The grace period is there because a pointer is
+             never perfectly steady and a frame or two without an event is
+             not the same as stopping. */
+          if(want > 0 && now - moved > GRACE) want = 0;
           // open quickly, close slowly — the hero's asymmetry
           var rate = want > amt ? dt / 240 : dt / 700;
           amt += (want > amt ? 1 : -1) * rate;
@@ -371,7 +379,9 @@
           cv.style.display = 'block';
           R = radius();
           draw();
-          if(amt !== want) raf = requestAnimationFrame(tick);
+          // keep running while it is fading, and while it is up waiting to
+          // find out whether the pointer has stopped
+          raf = requestAnimationFrame(tick);
         }
         function kick(){ if(raf === null) raf = requestAnimationFrame(tick); }
 
@@ -380,6 +390,7 @@
           var b = sheet.getBoundingClientRect();
           if(!b.width) return;
           px = e.clientX - b.left; py = e.clientY - b.top;
+          moved = (window.performance || Date).now();
           if(!cv){
             cv = document.createElement('canvas');
             cv.className = 'reel-lens';
