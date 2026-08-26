@@ -234,6 +234,61 @@
       stage.addEventListener('pointercancel', function(){ down = null; });
     }
 
+    /* ---- the lens ------------------------------------------------------
+       The hero's aperture, on the sheet in focus. The magnified copy is
+       cloned here rather than written into the markup for two reasons: it
+       always carries whatever the sheet is currently showing, including an
+       image swapped in from the editor, and it never appears as a second
+       editable field for the same picture.
+
+       Only the sheet in focus gets one. The others are blurred and behind
+       glass — a lens on them would be reading through two panes — and it
+       keeps this to one extra layer on the page rather than fifteen. */
+    if(fine){
+      cards.forEach(function(c){
+        var sheet = c.querySelector('.reel-sheet'), img = sheet && sheet.querySelector('img');
+        if(!sheet || !img) return;
+
+        var glass = null, rim = null;
+        function build(){
+          if(glass) return;
+          glass = document.createElement('div');
+          glass.className = 'reel-glass';
+          glass.setAttribute('aria-hidden', 'true');
+          var copy = img.cloneNode(false);
+          copy.removeAttribute('data-ed');      // invisible to the editor
+          copy.removeAttribute('loading');
+          copy.alt = '';
+          glass.appendChild(copy);
+          rim = document.createElement('div');
+          rim.className = 'reel-rim';
+          rim.setAttribute('aria-hidden', 'true');
+          sheet.appendChild(glass);
+          sheet.appendChild(rim);
+        }
+
+        var raf = null, px = 0, py = 0;
+        function place(){
+          raf = null;
+          sheet.style.setProperty('--bx', px.toFixed(2) + '%');
+          sheet.style.setProperty('--by', py.toFixed(2) + '%');
+        }
+        sheet.addEventListener('mousemove', function(e){
+          if(!c.classList.contains('on')) return;
+          var b = sheet.getBoundingClientRect();
+          if(!b.width) return;
+          px = (e.clientX - b.left) / b.width * 100;
+          py = (e.clientY - b.top) / b.height * 100;
+          build();
+          // the copy has to be in place before the aperture is asked to open,
+          // or the first frame opens onto nothing
+          if(!sheet.classList.contains('lit')){ place(); sheet.classList.add('lit'); return; }
+          if(raf === null) raf = requestAnimationFrame(place);
+        });
+        sheet.addEventListener('mouseleave', function(){ sheet.classList.remove('lit'); });
+      });
+    }
+
     paint();
   });
 

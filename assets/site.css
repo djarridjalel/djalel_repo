@@ -410,6 +410,102 @@ a{color:inherit;}
   color:rgba(10,10,11,.46);
 }
 
+/* --- the lens, on a sheet ---------------------------------------
+   The hero's device, applied to a photograph instead of a line of type —
+   and it wants less machinery here, not more.
+
+   The structure is the hero's, unchanged: two copies of the same thing
+   stacked, masked by complementary radial gradients cut from one registered
+   length, so at every radius their alphas sum to exactly one. That is what
+   makes it an iris rather than a cross-fade — a fade would leave the
+   interior semi-transparent while the copy under it is still masked out of
+   that same disc, and the ground would show through the gap.
+
+   What the hero had to fight, an image gives away. There the squeeze had to
+   be done by moving glyphs one at a time, because the honest way — a
+   displacement map — leaned on the one SVG primitive engines disagree
+   about, and when it yields nothing the whole filter goes empty and the
+   line vanishes. A photograph needs none of that: a scale about the pointer
+   IS magnification, which is what a lens does to what is behind it.
+
+   The seam that would have cost the hero everything costs nothing here
+   either. A uniform scale displaces a pixel in proportion to its distance
+   from the centre, so the displacement is largest at the rim — the one
+   place the two copies have to meet. At 1.07 across a 150px aperture that
+   is about ten pixels, and the mask's own feather is wider than that, so
+   the mismatch is spent inside the blend rather than drawn as an edge.
+
+   The refraction stays at the rim rather than going through the picture.
+   Splitting every channel across the whole image is what the reference
+   effect does, and on a photograph of a printed page it reads as damage; a
+   cool edge and a warm one where the glass ends say the same thing about
+   light bending, and leave the work alone. */
+@property --lr{syntax:'<length>'; inherits:true; initial-value:0px;}
+
+.reel-sheet{
+  --lr:0.01px;
+  --bx:50%; --by:50%;
+  transition:filter var(--pace-fx) ease-out,
+             --lr .8s cubic-bezier(.5,0,.5,1);          /* slow close */
+}
+.reel-card.on .reel-sheet.lit{
+  transition:filter var(--pace-fx) ease-out,
+             --lr .26s cubic-bezier(.22,.61,.36,1);     /* quicker open */
+  /* lengths only: --lr is registered as <length>, and a percentage inside
+     it makes the whole declaration invalid, which drops it back to the
+     initial 0px and the aperture never opens at all */
+  --lr:clamp(66px, 7.4vw, 106px);
+}
+
+/* the magnified copy, made at runtime so it always carries whatever the
+   sheet is currently showing */
+.reel-glass{
+  position:absolute; inset:0; z-index:1;
+  pointer-events:none; overflow:hidden;
+  border-radius:inherit;
+  -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
+    #000 0%, #000 74%, rgba(0,0,0,0) 96%, rgba(0,0,0,0) 100%);
+          mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
+    #000 0%, #000 74%, rgba(0,0,0,0) 96%, rgba(0,0,0,0) 100%);
+}
+.reel-glass img{
+  display:block; width:100%; height:100%; object-fit:cover;
+  transform:scale(1.07);
+  transform-origin:var(--bx) var(--by);
+  transition:transform .26s cubic-bezier(.22,.61,.36,1);
+}
+/* and the sheet itself takes the exactly complementary hole, so the two
+   never paint the same pixel */
+.reel-card.on .reel-sheet.lit > img{
+  -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
+    rgba(0,0,0,0) 0%, rgba(0,0,0,0) 74%, #000 96%, #000 100%);
+          mask-image:radial-gradient(circle var(--lr) at var(--bx) var(--by),
+    rgba(0,0,0,0) 0%, rgba(0,0,0,0) 74%, #000 96%, #000 100%);
+}
+/* the rim: where the glass ends, light splits cool one side and warm the
+   other — the hero's two colours, at the edge instead of through the line */
+.reel-rim{
+  position:absolute; inset:0; z-index:4;
+  pointer-events:none; border-radius:inherit; overflow:hidden;
+  opacity:0; transition:opacity .26s ease;
+  /* one edge with a fringe on it, not three rings. The bands are a few
+     pixels wide and the two colours are two pixels apart, which is the
+     width of the glass — any more and it stops being where the lens ends
+     and becomes a thing drawn on the poster. */
+  background:
+    radial-gradient(circle calc(var(--lr) + 2px) at var(--bx) var(--by),
+      rgba(0,0,0,0) 0%, rgba(0,0,0,0) 95.5%, rgba(56,140,255,.3) 98.5%, rgba(0,0,0,0) 100%),
+    radial-gradient(circle calc(var(--lr) - 2px) at var(--bx) var(--by),
+      rgba(0,0,0,0) 0%, rgba(0,0,0,0) 95.5%, rgba(255,206,0,.32) 98.5%, rgba(0,0,0,0) 100%),
+    radial-gradient(circle var(--lr) at var(--bx) var(--by),
+      rgba(255,255,255,0) 0%, rgba(255,255,255,0) 96.5%, rgba(255,255,255,.26) 99%, rgba(255,255,255,0) 100%);
+}
+.reel-card.on .reel-sheet.lit .reel-rim{opacity:1;}
+
+@media (prefers-reduced-motion: reduce){
+  .reel-glass img{transition:none;}
+}
+
 /* the two arms — only for the devices that cannot point, and absent
    everywhere else, as in the reference */
 .reel-arms{display:contents;}
