@@ -370,8 +370,12 @@
              never perfectly steady and a frame or two without an event is
              not the same as stopping. */
           if(want > 0 && now - moved > GRACE) want = 0;
-          // open quickly, close slowly — the hero's asymmetry
-          var rate = want > amt ? dt / 240 : dt / 700;
+          /* Opening still takes 240ms. Closing is now 233ms rather than
+             700ms — three times the old rate — so lifting off, or simply
+             holding still, drops the glass almost as fast as moving raised
+             it. The asymmetry that remains is a few milliseconds, which is
+             to say none. */
+          var rate = want > amt ? dt / 240 : dt / 233;
           amt += (want > amt ? 1 : -1) * rate;
           if(amt > 1) amt = 1; if(amt < 0) amt = 0;
           if(amt <= 0){ cv.style.display = 'none'; last = 0; return; }
