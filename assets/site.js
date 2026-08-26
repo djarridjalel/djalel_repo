@@ -277,7 +277,7 @@
 
         function radius(){
           var b = sheet.getBoundingClientRect();
-          return Math.max(40, Math.min(b.width, b.height) * 0.29);
+          return Math.max(60, Math.min(b.width, b.height) * 0.435);
         }
 
         /* the source: the sheet's own picture at the size it is displayed,
