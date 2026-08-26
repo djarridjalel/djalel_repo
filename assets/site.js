@@ -273,8 +273,8 @@
         var amt = 0, want = 0, raf = null, last = 0, px = 0, py = 0;
         var moved = 0;            // when the pointer last actually moved
         var GRACE = 90;           // how long stillness is tolerated before it fades
-        var BEND = 0.21;          // how far out the middle of the disc reads
-        var SPREAD = 0.075;       // how much further red goes than blue
+        var BEND = 0.147;         // how far out the middle of the disc reads
+        var SPREAD = 0.0525;      // how much further red goes than blue
         var lutB = null, lutD = null;
 
         function radius(){
@@ -365,19 +365,17 @@
           raf = null;
           var dt = last ? Math.min(64, now - last) : 16; last = now;
           /* The lens is a consequence of movement, not of presence. Holding
-             the pointer still over a sheet lets it drain away; moving again
-             brings it back. The grace period is there because a pointer is
-             never perfectly steady and a frame or two without an event is
-             not the same as stopping. */
+             the pointer still over a sheet puts it out; moving again brings
+             it back. */
           if(want > 0 && now - moved > GRACE) want = 0;
-          /* Opening still takes 240ms. Closing is now 233ms rather than
-             700ms — three times the old rate — so lifting off, or simply
-             holding still, drops the glass almost as fast as moving raised
-             it. The asymmetry that remains is a few milliseconds, which is
-             to say none. */
-          var rate = want > amt ? dt / 240 : dt / 233;
-          amt += (want > amt ? 1 : -1) * rate;
-          if(amt > 1) amt = 1; if(amt < 0) amt = 0;
+          /* Opening still takes 240ms. Closing takes none: the moment the
+             pointer stops — or leaves the sheet — the glass is gone on that
+             frame rather than draining away. GRACE is what decides that the
+             pointer has stopped, and it is doing more work now than it was:
+             with no fade to soften a gap in the event stream, anything under
+             it would read as a blink rather than a dip. */
+          if(want <= 0){ amt = 0; }
+          else { amt += dt / 240; if(amt > 1) amt = 1; }
           if(amt <= 0){ cv.style.display = 'none'; last = 0; return; }
           if(!source()){ last = 0; return; }
           cv.style.display = 'block';
