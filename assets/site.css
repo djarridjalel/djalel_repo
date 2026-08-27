@@ -1,0 +1,560 @@
+/* ==========================================================================
+   Djarri Design — portfolio template
+   Token-driven. Swap a licensed face by changing one --font-* variable.
+   ========================================================================== */
+
+/* --- 1. Tokens ----------------------------------------------------------- */
+:root{
+  /* Grounds — the only two full-strength values on the site */
+  --ink:  #0A0A0B;
+  --bone: #F2F1EE;
+  --ash:  #8A8880;
+
+  /* Tints derived from the two grounds. No third hue anywhere. */
+  --ink-a:  #3A3936;   /* ink over bone, heavy   */
+  --ink-b:  #5A5853;   /* ink over bone, muted text */
+  --ink-c:  #D2D0CB;   /* ink over bone, hairline */
+  --ink-d:  #E4E3DF;   /* ink over bone, slot fill */
+  --bone-a: #9A9891;   /* bone over ink, muted text */
+  --bone-b: #444442;   /* bone over ink, hairline */
+  --bone-c: #1B1B1C;   /* bone over ink, slot fill */
+
+  /* The mandatory-panel texture: --ash laid over --ink at print-ink weights.
+     Decorative by intent — it must read as tone before it reads as text. */
+  --field:      #262625;  /* --ash at 22% over --ink: panel body       */
+  --field-key:  #2B2B29;  /* --ash at 26% over --ink: panel key lines  */
+  --field-rule: #1C1C1B;  /* --ash at 14% over --ink: panel hairlines  */
+
+  /* Type roles. Licensed swap: replace the first family only.
+     display -> GT Sectra Fine | PP Editorial New | Ogg
+     body    -> Söhne | ABC Diatype | Suisse Int'l
+     mono    -> Martian Mono | JetBrains Mono                              */
+  --font-display: "Instrument Serif", Georgia, "Times New Roman", serif;
+  --font-body:    "Inter Tight", Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-mono:    "Martian Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+
+  /* Scale — deliberately bimodal. 10/13/17, then 96-120. */
+  --t-micro:  10px;               /* 7.5pt equivalent: mandatory field    */
+  --t-cap:    13px;               /* captions, specs, batch codes         */
+  --t-body:   1.0625rem;          /* 17px                                 */
+  --t-fact:   clamp(2.5rem, 5vw, 4rem);
+  --t-head:   clamp(2.25rem, 6vw, 6rem);
+  --t-hero:   clamp(2.75rem, 11.5vw, 7.5rem);
+
+  /* Layout */
+  --gutter:  clamp(1.25rem, 6vw, 8rem);
+  --colgap:  clamp(1rem, 1.6vw, 2rem);
+  --maxw:    1680px;
+  --section: clamp(6rem, 14vh, 12rem);
+
+  /* Motion */
+  --reveal: 400ms;
+  --fan:    320ms;
+}
+
+/* --- 2. Base ------------------------------------------------------------- */
+*,*::before,*::after{ box-sizing:border-box; }
+html{ -webkit-text-size-adjust:100%; scroll-behavior:smooth; }
+body{
+  margin:0;
+  background:var(--ink);
+  color:var(--bone);
+  font-family:var(--font-body);
+  font-size:var(--t-body);
+  line-height:1.6;
+  font-weight:400;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img,video{ display:block; max-width:100%; height:auto; }
+a{ color:inherit; }
+button{ font:inherit; color:inherit; background:none; border:0; padding:0; }
+
+:where(a,button,[tabindex]):focus-visible{
+  outline:2px solid currentColor;
+  outline-offset:3px;
+  border-radius:1px;
+}
+
+.sr-only{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; border:0;
+}
+
+.skip{
+  position:absolute; left:var(--gutter); top:-4rem; z-index:200;
+  background:var(--bone); color:var(--ink);
+  padding:.75rem 1rem; font-family:var(--font-mono); font-size:var(--t-cap);
+  transition:top 150ms linear;
+}
+.skip:focus{ top:1rem; }
+
+/* --- 3. Grounds ---------------------------------------------------------- */
+.ground-bone{
+  --bg:var(--bone); --fg:var(--ink); --muted:var(--ink-b);
+  --rule:var(--ink-c); --slot:var(--ink-d); --slotline:var(--ash);
+}
+.ground-ink{
+  --bg:var(--ink); --fg:var(--bone); --muted:var(--bone-a);
+  --rule:var(--bone-b); --slot:var(--bone-c); --slotline:var(--ash);
+}
+.ground-bone,.ground-ink{ background:var(--bg); color:var(--fg); }
+
+/* --- 4. Structure -------------------------------------------------------- */
+/* Sections stack above the hero's fixed mandatory field and cover it on
+   scroll. DOM order breaks the tie, so each section paints over the last. */
+main > section, .foot{ position:relative; z-index:1; }
+
+.wrap{ max-width:var(--maxw); margin-inline:auto; padding-inline:var(--gutter); }
+.grid{ display:grid; grid-template-columns:repeat(12,minmax(0,1fr)); gap:var(--colgap); }
+.section{ padding-block:var(--section); }
+
+/* Off-axis text columns — never centred */
+.col-left  { grid-column:2 / 8;  }
+.col-right { grid-column:6 / 12; }
+.col-wide  { grid-column:1 / 13; }
+.measure   { max-width:60ch; }
+
+/* --- 5. Type ------------------------------------------------------------- */
+.display{
+  font-family:var(--font-display);
+  font-weight:400;
+  line-height:.9;
+  letter-spacing:-.02em;
+  margin:0;
+  text-wrap:balance;
+}
+.h-section{ font-size:var(--t-head); }
+.mono{
+  font-family:var(--font-mono);
+  font-size:var(--t-cap);
+  font-weight:400;
+  letter-spacing:-.02em;
+  line-height:1.5;
+}
+.label{
+  font-family:var(--font-mono);
+  font-size:var(--t-cap);
+  letter-spacing:.02em;
+  color:var(--muted);
+  margin:0 0 1.5rem;
+}
+.lede{ font-size:var(--t-body); line-height:1.6; max-width:60ch; margin:0; }
+.muted{ color:var(--muted); }
+p{ margin:0 0 1.15em; }
+p:last-child{ margin-bottom:0; }
+
+/* Placeholder markers.
+   .ph   — a short swappable value, inline, keeps the surrounding face.
+   .ph-b — a block of copy still to be written. Marked at the edge so the
+           type system stays legible underneath it. */
+.ph{
+  font-family:inherit;
+  color:var(--muted);
+  border-bottom:1px dashed var(--rule);
+  padding-bottom:.08em;
+}
+.ph-b{
+  color:var(--muted);
+  border-left:1px dashed var(--rule);
+  padding-left:1rem;
+}
+
+/* --- 6. Braille rule ----------------------------------------------------- */
+/* Marburg Medium geometry: 1.6mm dot, 2.5mm in-cell pitch, 6.0mm cell pitch */
+.brl{
+  display:flex; align-items:center; gap:1rem;
+  margin:0 0 2.5rem;
+}
+.brl svg{ display:block; height:16px; width:auto; flex:none; fill:var(--muted); }
+.brl::after{
+  content:""; flex:1 1 auto; height:1px; background:var(--rule);
+}
+.brl--tight{ margin-bottom:1.25rem; }
+
+/* --- 7. Placeholder slots ------------------------------------------------ */
+.slot{
+  position:relative;
+  display:grid; place-items:center;
+  aspect-ratio:var(--ar, 3 / 2);
+  background:var(--slot);
+  padding:1.5rem;
+  isolation:isolate;
+}
+/* crop marks, 8mm-ish, the way a printer proofs a panel */
+.slot::before,.slot::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  background-repeat:no-repeat;
+}
+.slot::before{
+  background-image:
+    linear-gradient(var(--slotline),var(--slotline)),linear-gradient(var(--slotline),var(--slotline)),
+    linear-gradient(var(--slotline),var(--slotline)),linear-gradient(var(--slotline),var(--slotline));
+  background-size:1px 18px,18px 1px,1px 18px,18px 1px;
+  background-position:12px 0,0 12px,calc(100% - 12px) 0,100% calc(100% - 12px);
+}
+.slot::after{
+  background-image:
+    linear-gradient(var(--slotline),var(--slotline)),linear-gradient(var(--slotline),var(--slotline)),
+    linear-gradient(var(--slotline),var(--slotline)),linear-gradient(var(--slotline),var(--slotline));
+  background-size:1px 18px,18px 1px,1px 18px,18px 1px;
+  background-position:12px 100%,100% 12px,calc(100% - 12px) 100%,0 calc(100% - 12px);
+}
+.slot__label{
+  font-family:var(--font-mono);
+  font-size:11px; line-height:1.6; letter-spacing:.02em;
+  color:var(--muted); text-align:center; max-width:36ch;
+  text-transform:none;
+}
+.slot__label b{ display:block; font-weight:500; color:var(--fg); }
+
+.caption{
+  font-family:var(--font-mono); font-size:var(--t-cap);
+  color:var(--muted); margin:.9rem 0 0; max-width:52ch;
+}
+
+/* --- 8. Hero ------------------------------------------------------------- */
+.hero{
+  position:relative;
+  min-height:100svh;
+  display:flex; flex-direction:column; justify-content:space-between;
+  padding-block:clamp(2rem,5vh,3rem) clamp(3rem,7vh,5rem);
+  color:var(--bone);
+  --muted:var(--bone-a);
+  /* the field behind is busy — the print-code cluster needs more presence */
+  --rule:#57565222;
+}
+.hero .brl::after{ background:#565550; }
+.hero .brl svg{ fill:var(--bone); height:18px; }
+/* The mandatory field. Fixed: type travels over it, it does not move.
+   Following sections are opaque and cover it as the page scrolls. */
+.field{
+  position:fixed; inset:0; z-index:0;
+  background:var(--ink);
+  overflow:hidden;
+  pointer-events:none;
+  animation:fieldUp 700ms linear both;
+}
+.field__inner{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(210px,1fr));
+  gap:0;
+  /* rows take their content height and overflow (the field is clipped);
+     stretching them would thin the texture out into a list */
+  align-content:start;
+  transform:translateY(-2%);
+}
+.panel{
+  border-right:1px solid var(--field-rule);
+  border-bottom:1px solid var(--field-rule);
+  padding:14px 16px;
+  overflow:hidden;
+}
+.panel p,.panel div{
+  font-family:var(--font-body);
+  font-size:var(--t-micro);
+  line-height:1.45;
+  letter-spacing:0;
+  color:var(--field);
+  margin:0 0 7px;
+}
+.panel .k{ color:var(--field-key); }
+.panel .m{ font-family:var(--font-mono); font-size:9px; letter-spacing:-.03em; }
+.panel .rulebar{
+  height:1px; background:var(--field-key); margin:9px 0;
+}
+.panel .code{
+  display:flex; gap:2px; align-items:flex-end; height:22px; margin:9px 0 7px;
+}
+.panel .code i{ display:block; width:2px; background:var(--field); height:100%; }
+.panel .code i:nth-child(3n){ width:1px; height:80%; }
+.panel .code i:nth-child(4n){ width:3px; }
+
+.hero__inner{ position:relative; z-index:1; width:100%; }
+.hero__line{
+  font-size:var(--t-hero);
+  max-width:14ch;
+  animation:lineUp 600ms 700ms linear both;
+}
+.hero__meta{
+  display:block;
+  margin-top:clamp(2.5rem,6vh,4.5rem);
+  animation:lineUp 500ms 1250ms linear both;
+}
+.hero__batch{ color:var(--bone-a); letter-spacing:-.02em; margin:0; }
+.hero__meta .brl{ margin-bottom:1.1rem; }
+.hero__top{ position:relative; z-index:1; width:100%; }
+.hero__eyebrow{
+  color:var(--bone-a);
+  animation:lineUp 500ms 900ms linear both;
+  margin:0;
+}
+
+@keyframes fieldUp{ from{ opacity:0 } to{ opacity:1 } }
+@keyframes lineUp{ from{ opacity:0; transform:translateY(10px) } to{ opacity:1; transform:none } }
+
+/* --- 9. Positioning band ------------------------------------------------- */
+.facts{ row-gap:clamp(2.5rem,5vw,4rem); }
+.fact{ grid-column:span 3; }
+.fact__v{ font-family:var(--font-display); font-size:var(--t-fact); line-height:1; letter-spacing:-.02em; }
+.fact__k{ font-family:var(--font-mono); font-size:var(--t-cap); color:var(--muted); margin-top:.9rem; max-width:24ch; }
+
+/* --- 10. Reels ----------------------------------------------------------- */
+.reel{ margin-bottom:clamp(4rem,9vh,7rem); }
+.reel:last-of-type{ margin-bottom:0; }
+.reel__head{ display:flex; flex-wrap:wrap; align-items:baseline; gap:.5rem 1.5rem; margin-bottom:1.75rem; }
+.reel__name{ font-family:var(--font-display); font-size:clamp(1.75rem,3vw,2.75rem); line-height:1; letter-spacing:-.02em; }
+.reel__note{ font-family:var(--font-mono); font-size:var(--t-cap); color:var(--muted); }
+
+.reel__stage{ overflow:hidden; padding-block:clamp(1rem,3vh,2.5rem); }
+.reel__track{
+  --card-w:clamp(118px,12.5vw,208px);
+  --overlap:calc(var(--card-w) * -.14);
+  --push:calc(var(--card-w) * .17);
+  --step:calc(var(--card-w) * .47);
+  display:flex; justify-content:center; align-items:flex-start;
+  transform:translateX(var(--shift,0px));
+  transition:transform var(--fan) linear;
+  will-change:transform;
+}
+.sheet{
+  --dir:0; --d:0;
+  flex:none;
+  width:var(--card-w);
+  aspect-ratio:210 / 297;              /* A4 */
+  margin-left:var(--overlap);
+  position:relative;
+  display:block;
+  cursor:pointer;
+  transform:translateX(calc(var(--dir) * var(--push))) scale(var(--sc,1));
+  filter:blur(calc(var(--d) * 1.5px));
+  opacity:calc(1 - var(--d) * .15);
+  transition:transform var(--fan) linear, filter var(--fan) linear, opacity var(--fan) linear;
+  z-index:calc(10 - var(--d));
+}
+.sheet:first-child{ margin-left:0; }
+.sheet__face{
+  position:absolute; inset:0;
+  background:var(--slot);
+  border:1px solid var(--slotline);
+  display:grid; place-items:center; padding:10px;
+}
+.sheet__n{
+  font-family:var(--font-mono); font-size:10px; line-height:1.6;
+  color:var(--muted); text-align:center;
+}
+.sheet__n b{ display:block; color:var(--fg); font-weight:500; }
+
+/* Touch / narrow: a scroller, not a broken fan */
+.reel__scrollnote{ display:none; }
+
+/* --- 11. Plates (CSS :target lightbox — works with JS blocked) ----------- */
+html.plate-open{ overflow:hidden; }
+.plate{
+  position:fixed; inset:0; z-index:120;
+  display:none;
+  background:var(--ink);
+  overscroll-behavior:contain;
+}
+.plate:target{ display:grid; grid-template-rows:auto 1fr; }
+.plate__bar{
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:1rem var(--gutter);
+  border-bottom:1px solid var(--bone-b);
+  font-family:var(--font-mono); font-size:var(--t-cap); color:var(--bone-a);
+}
+.plate__close{
+  text-decoration:none; color:var(--bone);
+  border:1px solid var(--bone-b); padding:.5rem .9rem; line-height:1;
+}
+.plate__body{
+  display:grid; place-items:center;
+  padding:clamp(1rem,4vh,3rem) var(--gutter);
+  overflow:auto;
+}
+.plate__sheet{
+  --slot:var(--bone-c); --rule:var(--bone-b); --muted:var(--bone-a); --fg:var(--bone);
+  --slotline:var(--ash);
+  width:min(100%, calc((100svh - 12rem) * .707));
+  aspect-ratio:210 / 297;
+}
+
+/* --- 12. Case entries ---------------------------------------------------- */
+.entry{
+  display:block; text-decoration:none;
+  padding-block:clamp(2.5rem,6vh,4.5rem);
+  border-top:1px solid var(--rule);
+}
+.entry:last-of-type{ border-bottom:1px solid var(--rule); }
+.entry .slot{ --ar:16 / 7; transition:opacity var(--reveal) linear; }
+.entry:hover .slot,.entry:focus-visible .slot{ opacity:.88; }
+.entry__meta{ margin-top:1.5rem; }
+.entry__client{ font-family:var(--font-display); font-size:clamp(1.75rem,3.4vw,3rem); line-height:1; letter-spacing:-.02em; }
+.entry__line{ margin-top:1rem; max-width:52ch; color:var(--muted); }
+
+/* --- 13. Film ------------------------------------------------------------ */
+.film .slot{ --ar:16 / 9; }
+
+/* --- 14. Availability + footer ------------------------------------------- */
+.avail dl{ margin:0; }
+.avail__row{
+  display:grid; grid-template-columns:minmax(0,14rem) minmax(0,1fr);
+  gap:1rem var(--colgap);
+  padding-block:1.25rem;
+  border-top:1px solid var(--rule);
+}
+.avail__row:last-child{ border-bottom:1px solid var(--rule); }
+.avail dt{ font-family:var(--font-mono); font-size:var(--t-cap); color:var(--muted); }
+.avail dd{ margin:0; }
+.avail a{ text-underline-offset:.25em; }
+
+.foot{ padding-block:clamp(3rem,8vh,5rem); border-top:1px solid var(--rule); }
+.foot__row{ display:flex; flex-wrap:wrap; gap:1rem 2.5rem; align-items:baseline; }
+.foot a{ text-decoration:none; border-bottom:1px solid var(--rule); }
+.foot a:hover{ border-color:currentColor; }
+
+/* --- 15. Case study ------------------------------------------------------ */
+.cs-open__title{ font-size:var(--t-head); max-width:16ch; }
+.cs-open__facts{ margin-top:clamp(2.5rem,6vh,4rem); }
+.bleed{ width:100%; max-width:none; }
+.bleed .slot{ --ar:21 / 9; }
+.two-up{ row-gap:clamp(2rem,5vh,3.5rem); }
+.three-up{ row-gap:clamp(2rem,5vh,3.5rem); }
+.rejected{ }
+.rejected .slot{ opacity:.55; }
+.rejected .slot__label{ color:var(--muted); }
+.spec{
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:1rem var(--colgap); margin-top:2rem;
+  border-top:1px solid var(--rule); padding-top:1.5rem;
+}
+.spec div{ font-family:var(--font-mono); font-size:var(--t-cap); }
+.spec dt{ color:var(--muted); margin-bottom:.4rem; }
+.spec dd{ margin:0; }
+.dieline .slot{ --ar:32 / 9; }
+.context .slot{ --ar:21 / 8; }
+.exit__next{
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:.75rem 1.5rem;
+  text-decoration:none; margin-top:2.5rem;
+}
+.exit__next .display{ font-size:clamp(2rem,5vw,4rem); }
+
+/* --- 16. Reveal ---------------------------------------------------------- */
+/* Gated on .js so content is visible when scripts are blocked or slow. */
+.js .reveal{
+  opacity:0; transform:translateY(8px);
+  transition:opacity var(--reveal) cubic-bezier(.2,.6,.2,1),
+             transform var(--reveal) cubic-bezier(.2,.6,.2,1);
+}
+.js .reveal.is-in{ opacity:1; transform:none; }
+
+/* --- 17. Responsive ------------------------------------------------------ */
+@media (max-width:1000px){
+  .col-left,.col-right,.col-wide{ grid-column:1 / 13; }
+  .fact{ grid-column:span 6; }
+}
+@media (max-width:900px){
+  .reel__stage{ overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory; padding-inline:var(--gutter);
+    margin-inline:calc(var(--gutter) * -1); }
+  .reel__track{ justify-content:flex-start; transform:none !important; gap:.75rem; }
+  .sheet{ --card-w:min(58vw,240px); margin-left:0 !important;
+    transform:none !important; filter:none !important; opacity:1 !important;
+    scroll-snap-align:center; }
+  .reel__scrollnote{ display:block; }
+  .avail__row{ grid-template-columns:1fr; gap:.35rem; }
+}
+@media (max-width:640px){
+  .fact{ grid-column:1 / 13; }
+  .field__inner{ grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .panel{ padding:10px 11px; }
+  .panel p,.panel div{ font-size:9px; margin-bottom:5px; }
+  .hero__eyebrow,.hero__batch{ font-size:11px; }
+  .plate__sheet{ width:100%; }
+}
+
+/* --- 18. Reduced motion -------------------------------------------------- */
+@media (prefers-reduced-motion:reduce){
+  html{ scroll-behavior:auto; }
+  *,*::before,*::after{
+    animation-duration:1ms !important; animation-delay:0ms !important;
+    transition-duration:1ms !important;
+  }
+  .js .reveal{ opacity:1 !important; transform:none !important; }
+  .sheet{ filter:none !important; opacity:1 !important; transform:none !important; }
+  .reel__track{ transform:none !important; }
+}
+
+/* --- 19. Print ----------------------------------------------------------- */
+@media print{
+  .field,.plate{ display:none !important; }
+  body,.ground-ink{ background:#fff; color:#000; }
+}
+
+
+/* --- 20. Reel fan — generated, pure CSS -----------------------------------
+   Hovering (or keyboard-focusing) a sheet shifts the track toward centre and
+   opens ONE gap: everything left of it moves left, everything right moves
+   right, by a constant push. Blur and dim scale with distance. Linear timing
+   so the five sheets read as one object. DOM order is never changed.
+   -------------------------------------------------------------------- */
+.reel__track:has(.sheet:nth-child(1):hover),
+.reel__track:has(.sheet:nth-child(1):focus-visible){ --shift:calc(var(--step) * 2); }
+.reel__track:has(.sheet:nth-child(2):hover),
+.reel__track:has(.sheet:nth-child(2):focus-visible){ --shift:calc(var(--step) * 1); }
+.reel__track:has(.sheet:nth-child(3):hover),
+.reel__track:has(.sheet:nth-child(3):focus-visible){ --shift:0px; }
+.reel__track:has(.sheet:nth-child(4):hover),
+.reel__track:has(.sheet:nth-child(4):focus-visible){ --shift:calc(var(--step) * -1); }
+.reel__track:has(.sheet:nth-child(5):hover),
+.reel__track:has(.sheet:nth-child(5):focus-visible){ --shift:calc(var(--step) * -2); }
+.reel__track:has(.sheet:nth-child(1):hover) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(1):focus-visible) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(2):hover) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(2):focus-visible) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(3):hover) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(3):focus-visible) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(4):hover) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(4):focus-visible) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(5):hover) .sheet:nth-child(5),
+.reel__track:has(.sheet:nth-child(5):focus-visible) .sheet:nth-child(5){ --d:0; --dir:0; --sc:1.05; z-index:20; }
+.reel__track:has(.sheet:nth-child(2):hover) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(2):focus-visible) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(3):hover) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(3):focus-visible) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(4):hover) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(4):focus-visible) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(5):hover) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(5):focus-visible) .sheet:nth-child(4){ --dir:-1; --d:1; }
+.reel__track:has(.sheet:nth-child(3):hover) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(3):focus-visible) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(4):hover) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(4):focus-visible) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(5):hover) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(5):focus-visible) .sheet:nth-child(3){ --dir:-1; --d:2; }
+.reel__track:has(.sheet:nth-child(4):hover) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(4):focus-visible) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(5):hover) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(5):focus-visible) .sheet:nth-child(2){ --dir:-1; --d:3; }
+.reel__track:has(.sheet:nth-child(5):hover) .sheet:nth-child(1),
+.reel__track:has(.sheet:nth-child(5):focus-visible) .sheet:nth-child(1){ --dir:-1; --d:4; }
+.reel__track:has(.sheet:nth-child(1):hover) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(1):focus-visible) .sheet:nth-child(2),
+.reel__track:has(.sheet:nth-child(2):hover) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(2):focus-visible) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(3):hover) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(3):focus-visible) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(4):hover) .sheet:nth-child(5),
+.reel__track:has(.sheet:nth-child(4):focus-visible) .sheet:nth-child(5){ --dir:1; --d:1; }
+.reel__track:has(.sheet:nth-child(1):hover) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(1):focus-visible) .sheet:nth-child(3),
+.reel__track:has(.sheet:nth-child(2):hover) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(2):focus-visible) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(3):hover) .sheet:nth-child(5),
+.reel__track:has(.sheet:nth-child(3):focus-visible) .sheet:nth-child(5){ --dir:1; --d:2; }
+.reel__track:has(.sheet:nth-child(1):hover) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(1):focus-visible) .sheet:nth-child(4),
+.reel__track:has(.sheet:nth-child(2):hover) .sheet:nth-child(5),
+.reel__track:has(.sheet:nth-child(2):focus-visible) .sheet:nth-child(5){ --dir:1; --d:3; }
+.reel__track:has(.sheet:nth-child(1):hover) .sheet:nth-child(5),
+.reel__track:has(.sheet:nth-child(1):focus-visible) .sheet:nth-child(5){ --dir:1; --d:4; }
