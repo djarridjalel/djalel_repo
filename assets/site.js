@@ -272,6 +272,7 @@
         var R = 0, S = 0, srcW = 0, srcH = 0, srcKey = '';
         var amt = 0, want = 0, raf = null, last = 0, px = 0, py = 0;
         var moved = 0;            // when the pointer last actually moved
+        var leaving = false;      // the pointer left the sheet, rather than paused on it
         var GRACE = 90;           // how long stillness is tolerated before it fades
         var BEND = 0.147;         // how far out the middle of the disc reads
         var SPREAD = 0.0525;      // how much further red goes than blue
@@ -365,17 +366,22 @@
           raf = null;
           var dt = last ? Math.min(64, now - last) : 16; last = now;
           /* The lens is a consequence of movement, not of presence. Holding
-             the pointer still over a sheet puts it out; moving again brings
-             it back. */
+             the pointer still over a sheet lets it drain away; moving again
+             brings it back. */
           if(want > 0 && now - moved > GRACE) want = 0;
-          /* Opening still takes 240ms. Closing takes none: the moment the
-             pointer stops — or leaves the sheet — the glass is gone on that
-             frame rather than draining away. GRACE is what decides that the
-             pointer has stopped, and it is doing more work now than it was:
-             with no fade to soften a gap in the event stream, anything under
-             it would read as a blink rather than a dip. */
-          if(want <= 0){ amt = 0; }
-          else { amt += dt / 240; if(amt > 1) amt = 1; }
+          /* Opening takes 240ms. Pausing takes 2.5s to undo, which also
+             means a gap in the event stream costs a barely visible dip
+             rather than a blink: GRACE still decides when the pointer has
+             stopped, but it no longer has to be right about it to the frame.
+
+             Leaving the sheet is a different gesture and gets its own exit.
+             At 2.5s the disc would still be lit on a sheet the hand left
+             two sheets ago — riding along as that sheet slides aside and
+             blurs out, which reads as something stuck rather than
+             something fading. */
+          var rate = want > amt ? dt / 240 : (leaving ? dt / 260 : dt / 2500);
+          amt += (want > amt ? 1 : -1) * rate;
+          if(amt > 1) amt = 1; if(amt < 0) amt = 0;
           if(amt <= 0){ cv.style.display = 'none'; last = 0; return; }
           if(!source()){ last = 0; return; }
           cv.style.display = 'block';
@@ -393,6 +399,7 @@
           if(!b.width) return;
           px = e.clientX - b.left; py = e.clientY - b.top;
           moved = (window.performance || Date).now();
+          leaving = false;
           if(!cv){
             cv = document.createElement('canvas');
             cv.className = 'reel-lens';
@@ -401,7 +408,7 @@
           }
           want = 1; kick();
         });
-        sheet.addEventListener('mouseleave', function(){ want = 0; kick(); });
+        sheet.addEventListener('mouseleave', function(){ leaving = true; want = 0; kick(); });
       });
     }
 
