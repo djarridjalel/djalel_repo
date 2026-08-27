@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Djarri Design Portfolio — Unlocking your brands' unrealised potential</title>
+<meta name="description" content="Djarri Design Portfolio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.">
+<meta property="og:title" content="Djarri Design Portfolio">
+<meta property="og:description" content="Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<style>
+  :root{
+    --ink:#0A0A0B;
+    --paper:#FFFFFF;
+    --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --display:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+    /* hero rhythm */
+    --edge:clamp(24px, 6vw, 104px);
+
+    /* Accent — one flat colour, not a ramp.
+       #FFCE00 is 13.27:1 on the ink ground. It is 1.32:1 on the bone
+       dossier, so the light sections use --a-dark (#6E5400, 6.34:1)
+       instead — same hue, legible on paper. */
+    --accent:#FFCE00;
+    --a-dark:#6E5400;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0; padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--paper);
+    font-family:var(--display);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+  }
+  img{display:block;}
+
+  /* ============================================================
+     HERO
+     Seven asset layers + one type layer, composited over a black
+     ground. Depth order == DOM order == parallax amplitude order.
+     ============================================================ */
+  .hero{
+    position:relative;
+    width:100%;
+    height:100svh;
+    min-height:min(560px, 100svh);  /* never taller than the viewport itself */
+    overflow:hidden;
+    background:var(--ink);
+    isolation:isolate;          /* contain the blend modes to the hero */
+    cursor:default;
+  }
+
+  /* every parallax layer is a full-bleed positioning context.
+     the transform lives on .pl; the art is placed inside it. */
+  .pl{
+    position:absolute;
+    inset:0;
+    will-change:transform;
+    transform:translate3d(0,0,0);
+    pointer-events:none;
+  }
+
+  /* A blended layer must not be promoted to its own GPU layer: once it is,
+     some engines composite it without its backdrop and mix-blend-mode is
+     silently dropped mid-parallax. These layers therefore take a plain 2D
+     transform and no will-change hint. The engine still accelerates the
+     move; it just keeps the layer in the same compositing pass as the
+     scene behind it, which is what the blend needs. */
+  .l2, .shaft{
+    will-change:auto;
+    transform:translate(0,0);
+  }
+
+  /* --- 0 · landscape plate ------------------------------------ */
+  .l0 img{
+    width:100%; height:100%;
+    object-fit:cover; object-position:50% 55%;
+    transform:scale(1.18);      /* overscan; travel is clamped to it at runtime */
+  }
+
+  /* --- 1 · ring ------------------------------------------------ */
+  /* pure white, no blend — unlike the monogram, this one sits on top
+     of the scene rather than inverting against it.
+     The ring is also the one layer that turns: its plane pivots to face
+     the pointer, so the circle foreshortens into an ellipse as the
+     cursor moves off its axis. Perspective lives on the layer, the
+     rotation on the image. */
+  .l1{perspective:900px;}
+  .l1 img{
+    transform:rotateY(var(--ring-ry,0deg)) rotateX(var(--ring-rx,0deg));
+    transform-origin:50% 50%;
+    backface-visibility:visible;
+    position:absolute;
+    left:79.5%; top:35.5%;
+    width:10%; height:auto;
+    aspect-ratio:1/1;       /* the source is a true circle */
+    min-width:86px;
+  }
+
+  /* --- 2 · monogram -------------------------------------------- */
+  /* difference blending is the whole effect here: white over the
+     bright sky inverts to near-black, white over dark rock stays
+     white. it is applied on the layer, not inside the SVG. */
+  .l2{mix-blend-mode:difference;}
+  .l2 img{
+    position:absolute;
+    left:64.5%; top:-0.5%;
+    height:93%;
+    width:auto;
+  }
+
+  /* --- 3 · 4 · 6 · light shafts -------------------------------- */
+  /* The supplied plates were pre-baked at ~33% alpha — which meant the
+     whole ramp lived in 85 of the 255 available steps, and a beam this
+     soft shows every one of them as a contour. The artwork now carries
+     the ramp stretched across the full 8-bit range, and the third is
+     given back here, so the same light is described with 255 levels
+     instead of 85. Opacity sits on the img, not the layer: it has to
+     scale the source before the layer's blend, not dilute the blend. */
+  .shaft{mix-blend-mode:screen;}
+  .shaft img{position:absolute; width:auto; opacity:.3294;}
+
+  .l3 img{left:15.5%; top:-26.5%; height:125%; transform:rotate(-11deg);}
+  .l4 img{left:0%;    top:-14.5%; height:134%; transform:rotate(-11deg);}
+  .l6 img{left:33%;   top:-22.5%; height:144%; transform:rotate(-11deg);}
+
+  /* --- 5 · debris ---------------------------------------------- */
+  .l5 img{
+    position:absolute;
+    left:21.5%; top:44.5%;
+    width:81%; height:auto;
+    aspect-ratio:2000/848;  /* the source plate's own proportion */
+  }
+
+  /* --- scrim ---------------------------------------------------
+     legibility only. sits under the type, above the art, and does
+     not parallax — it belongs to the text, not the scene. */
+  /* Now that the line's resting state is a difference blend, the scrim has
+     a second job. Difference is at its weakest against mid-grey — white
+     over 128 returns 127, which is the backdrop again — and the middle of
+     this frame is mid-grey rock. Pushing the centre darker moves the
+     backdrop away from that dead zone, so the inverted line stays bright
+     without the blend being weakened. */
+  .scrim{
+    position:absolute; inset:0; pointer-events:none;
+    background:
+      radial-gradient(58% 42% at 50% 48%, rgba(0,0,0,.72) 0%, rgba(0,0,0,.34) 45%, rgba(0,0,0,0) 78%),
+      linear-gradient(to bottom, rgba(0,0,0,.30) 0%, rgba(0,0,0,0) 26%, rgba(0,0,0,0) 62%, rgba(0,0,0,.46) 100%);
+  }
+
+  /* --- 7 · type ------------------------------------------------ */
+  /* three bands: the credentials rail at the top, the line in the
+     middle of what is left, the wordmark at the foot. */
+  .type{
+    position:absolute; inset:0;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    padding:var(--edge);
+    will-change:transform;
+    transform:translate3d(0,0,0);
+  }
+
+  .headline{
+    position:relative; top:2.5vh;
+    align-self:center;
+    justify-self:center;
+    text-align:center;
+    max-width:min(92%, 24ch);
+    margin:0;
+    font-weight:300;
+    font-size:clamp(1.45rem, 2.7vw, 2.9rem);
+    line-height:1.16;
+    letter-spacing:-.02em;
+    text-wrap:balance;
+    text-shadow:0 2px 40px rgba(0,0,0,.45);
+  }
+  .headline b{font-weight:700;}
+
+  .footrow{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    flex-wrap:wrap;
+  }
+
+  .wordmark{
+    font-size:clamp(.95rem, 1.5vw, 1.2rem);
+    letter-spacing:.06em;
+    line-height:1;
+    text-shadow:0 2px 24px rgba(0,0,0,.5);
+  }
+  .wordmark .n{font-weight:700;}
+  .wordmark .s{font-weight:300; color:rgba(255,255,255,.72); margin-left:.5em;}
+  /* Pool radius per zone. These are much tighter than the gradient wanted:
+     a ramp could afford to be wide because it faded, but a hard switch
+     cannot — at the old radii a poster line lit 40 of its 48 letters at
+     once, which is a colour change, not a pool travelling along a line.
+     Roughly six to ten characters is what reads as the cursor lighting
+     its neighbours. */
+  .wordmark{--gt-r:96px;}
+  .rail{--gt-r:82px;}
+  .idx-client{--gt-r:104px;}
+  .idx-concept{--gt-r:96px;}
+  .poster-concept{--gt-r:118px;}
+
+  /* the dual-audience rail: credentials to a client,
+     availability to a recruiter. */
+  .rail{
+    font-family:var(--mono);
+    font-size:clamp(.58rem, .78vw, .72rem);
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:rgba(255,255,255,.62);
+    justify-self:start;
+    text-align:left;
+    line-height:1.7;
+    text-shadow:0 2px 20px rgba(0,0,0,.6);
+  }
+  .rail a{color:inherit; text-decoration:none; border-bottom:1px solid rgba(255,255,255,.28);}
+  .rail a:hover{border-bottom-color:var(--accent);}
+
+  /* --- scroll cue ----------------------------------------------
+     Rides the pointer and inverts against whatever it crosses, the
+     same difference blend the monogram uses. It lives inside the hero
+     so it cannot outlive the section, and like every blended layer it
+     stays off the GPU's own compositor pass. */
+  .scrollcue{
+    position:absolute; left:0; top:0;
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--mono);
+    font-size:.62rem; letter-spacing:.22em; text-transform:uppercase;
+    color:#fff;
+    mix-blend-mode:difference;
+    pointer-events:none;
+    opacity:0;
+    transition:opacity .35s ease;
+    will-change:auto;
+    white-space:nowrap;
+  }
+  .scrollcue.on{opacity:1;}
+  .scrollcue .arw{
+    display:inline-block;
+    animation:cuebob 1.9s ease-in-out infinite;
+  }
+  @keyframes cuebob{
+    0%,100%{transform:translateY(-2px);}
+    50%    {transform:translateY(2px);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .scrollcue{display:none;}
+  }
+
+  /* ============================================================
+     CLIENT STRIP
+     A fifth of the hero's height, white, with the marks tracking
+     left-to-right on a loop. Every slot is the same width so the
+     rhythm stays even whatever shape each mark is; the artwork is
+     centred inside its slot rather than filling it.
+     ============================================================ */
+  .clients{
+    height:20svh;
+    min-height:96px;
+    background:var(--paper);
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+  }
+  .marquee{
+    width:100%;
+    overflow:hidden;
+    /* soften the entry and exit so marks don't pop at the edges */
+    -webkit-mask-image:linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+            mask-image:linear-gradient(to right, transparent, #000 6%, #000 94%, transparent);
+  }
+  .track{
+    display:flex;
+    align-items:center;
+    width:max-content;
+    animation:marquee 38s linear infinite;
+    will-change:transform;
+  }
+  /* the spacing is a margin on each slot, not a gap on the track: with a
+     gap the duplicated half is not exactly 50% of the width and the loop
+     drifts a pixel each cycle. */
+  /* The margin has a second job past about 2900px. Half the track has to be
+     at least as wide as the window or the loop runs out of logos before the
+     cycle ends, and with a fully clamped slot and margin the track stops
+     growing while the window does not. The max() leaves the spacing exactly
+     as it was up to that point and only opens it out beyond, where nothing
+     else in CSS was holding the loop together. The script still tops up the
+     copy count on top of this; this is what keeps it honest if the script
+     never runs at all. */
+  .logo{
+    flex:0 0 auto;
+    width:clamp(96px, 11vw, 156px);
+    margin-right:max(clamp(32px, 5vw, 76px), calc(7.5vw - 150px));
+    display:grid;
+    place-items:center;
+  }
+  .logo img{max-width:100%; max-height:56%; object-fit:contain;}
+  @keyframes marquee{
+    from{transform:translateX(-50%);}
+    to  {transform:translateX(0);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .track{animation:none;}
+    .marquee{overflow-x:auto;}
+  }
+
+  /* ============================================================
+     PORTRAIT
+     Keyed to aspect, not width — a 768px iPad in portrait has the
+     same problem a phone does, and a phone in landscape does not.
+
+     The plate is reframed rather than just re-cropped: cover-fitting
+     3:2 art into a tall frame moves the visible slice to the middle
+     of the photo, where the sky is dark. The monogram is a difference
+     blend, so a dark backdrop inverts it to light and it dissolves.
+     Shifting object-position brings the bright horizon back under it,
+     and dropping the shape lower lets it cross both the bright band
+     and the dark rock — the two-tone read the desktop composition has.
+     ============================================================ */
+  @media (max-aspect-ratio:4/5){
+    .l0 img{object-position:64% 46%; transform:scale(1.4);}
+
+    .l2 img{left:47.5%; top:-1.5%; height:63%;}
+    .l1 img{left:71%;   top:22.5%; width:18%;}
+
+    .l3 img{left:-18%;  top:-16%;  height:92%; transform:rotate(-19deg);}
+    .l4 img{left:4%;    top:-22%;  height:84%; transform:rotate(12deg);}
+    .l6 img{left:20%;   top:-12%;  height:78%; transform:rotate(-9deg);}
+
+    .l5 img{left:3.5%;  top:75.5%; width:169%;}
+
+    /* type sits on a controlled ground rather than on rock texture */
+    .scrim{
+      background:
+        radial-gradient(66% 26% at 42% 52%, rgba(0,0,0,.46) 0%, rgba(0,0,0,.16) 52%, rgba(0,0,0,0) 82%),
+        linear-gradient(to bottom, rgba(0,0,0,.34) 0%, rgba(0,0,0,0) 22%, rgba(0,0,0,0) 46%, rgba(0,0,0,.72) 88%, rgba(0,0,0,.86) 100%);
+    }
+
+    .headline{
+      top:0;
+      justify-self:start;
+      text-align:left;
+      max-width:16ch;
+      font-size:clamp(1.7rem, 7.2vw, 2.6rem);
+      line-height:1.12;
+      /* balance produces a one-word first line at ~360px; greedy fill
+         keeps the rag predictable across every phone width */
+      text-wrap:normal;
+    }
+
+    .footrow{flex-direction:column; align-items:flex-start; gap:14px;}
+    .wordmark{font-size:1.05rem;}
+    /* sized so the relocation line holds on one row — a wrapped
+       orphan reads as a bug, not a line break */
+    .rail{
+      text-align:left;
+      font-size:.6rem;
+      letter-spacing:.08em;
+      line-height:1.9;
+      color:rgba(255,255,255,.72);
+      text-wrap:nowrap;
+    }
+    .wide-only{display:none;}
+  }
+
+  /* ------------------------------------------------------------
+     PHONE
+     A phone and a tablet are both portrait but not the same canvas:
+     roughly 0.42–0.47 against 0.66–0.75. The block above holds for
+     both; these four layers are re-placed for the narrower one.
+     ------------------------------------------------------------ */
+  @media (max-aspect-ratio:3/5){
+    .l0 img{object-position:75.5% 46%;}
+    .l1 img{left:78%;  top:23.5%; width:27%;}
+    .l4 img{left:-11%; top:-22%;  height:84%; transform:rotate(12deg);}
+    /* the plate is 2.36:1 — in a 0.46 frame it never reads as a burst */
+    .l5{display:none;}
+  }
+
+  /* very small phones — pull the type in a step */
+  @media (max-aspect-ratio:4/5) and (max-width:360px){
+    .headline{font-size:1.58rem; max-width:17ch;}
+    .rail{font-size:.55rem; letter-spacing:.06em;}
+  }
+
+  /* motion is an enhancement; the rest state is the composition. */
+  @media (prefers-reduced-motion:reduce){
+    .pl,.type{transition:none !important; transform:none !important;}
+  }
+
+  /* ============================================================
+     GOLD — the accent
+     One colour on a monochrome site, and it only ever appears under
+     the pointer. The gradient is radial and centred on the cursor's
+     position inside the element, so it reads as light catching metal
+     rather than as a colour swap: the same pointer-driven logic the
+     ring and the parallax already run on.
+
+     Mechanism: the gradient sits permanently behind the glyphs, clipped
+     to them. Hover fades the text's own colour out to transparent and
+     the gold is what remains. Fading colour rather than swapping it is
+     what makes the transition a warming rather than a flick.
+     ============================================================ */
+  @media (hover:hover) and (pointer:fine){
+    /* No ramp anywhere any more. Every character is its own switch: a
+       letter is either inside the pool and fully the accent, or outside it
+       and untouched. Nothing is ever half a colour, so a glyph never gets
+       cut in two by a gradient edge crossing it. */
+    /* Flat accent and nothing else. The refraction belongs to the hero
+       lens alone — on a yellow glyph the yellow half of the split has
+       nothing to separate itself from and only reads as a bloom. */
+    .gt .ch{transition:color .22s ease;}
+    .gt .ch.on{color:var(--accent);}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .gt .ch{transition:none;}
+  }
+
+  /* On the bone ground a radiant gold cannot be both bright and legible —
+     the ramp's top four stops sit between 1.05:1 and 2.14:1 against
+     #F2F1EE. So the dossier gets the accent as a solid at the one stop
+     that clears AA (#6E5410, 6.33:1) rather than a gradient that would
+     have to be dimmed until it stopped reading as light. */
+  @media (hover:hover) and (pointer:fine){
+    .bronze{transition:color .38s ease;}
+    .outcome.gt-zone:hover .bronze{color:var(--a-dark);}
+    .sys-row .sys-k{transition:color .3s ease;}
+    .sys-row:hover .sys-k{color:var(--a-dark);}
+  }
+
+  /* ============================================================
+     THE LENS — hero headline
+     A piece of glass that travels with the pointer, inverting the line
+     against whatever it crosses.
+
+     The glass CANNOT live inside .type. mix-blend-mode only blends with
+     the backdrop inside the nearest stacking context, and .type makes
+     one for its own parallax transform — so a blended child of it has
+     the scene as a sibling, not a backdrop, and composites against
+     nothing. The glass is therefore a sibling of .type: a second copy
+     of the same block, painted after it, directly inside .hero where
+     the scene actually is.
+
+     The two copies carry exactly complementary masks — identical
+     stops, swapped colours — so the alphas sum to 1 at every radius and
+     only one is painted at a given point. No transform on the glass: a
+     scale on a duplicate displaces every glyph from its original in
+     proportion to its distance from the centre, which is what produced
+     doubled letters.
+     ============================================================ */
+  /* Registering --lr is what lets the aperture open and close rather than
+     appear and vanish. Both copies mask from the same variable, so while it
+     animates they stay exact complements at every radius — which is why the
+     close is an iris and not a cross-fade: a fade would make the interior
+     semi-transparent while the clone is still masked out of that same disc,
+     and the scene would show through the gap between them. */
+  @property --lr{syntax:'<length>'; inherits:true; initial-value:0px;}
+  .lens{
+    position:relative;
+    --lr:0.01px;
+    /* symmetric ease: a front-loaded curve spends the whole budget in the
+       first third and still reads as a snap, whatever the duration says */
+    transition:--lr .85s cubic-bezier(.5,0,.5,1);      /* slow close */
+  }
+  .hero.lens-on .lens{
+    --lr:210px;
+    transition:--lr .24s cubic-bezier(.22,.61,.36,1);  /* quicker open */
+  }
+  /* The base must be a block so its box coincides with the headline's: the
+     aperture coordinates are measured against the headline, and a mask
+     resolves against its own element's box. As an inline span it started
+     67px to the right and the disc was punched in the wrong place. */
+  .lens-base{display:block;}
+
+  /* The clone is now the resting appearance of the line: white, differenced
+     against the scene, all the time. It is the copy that carries no filter
+     and no aperture until the pointer arrives. */
+  .type-glass{
+    mix-blend-mode:difference;
+    will-change:auto;                 /* promotion drops the blend */
+    pointer-events:none;
+    -webkit-user-select:none; user-select:none;
+  }
+  .type-glass .footrow,
+  .type-glass .rail{visibility:hidden;}   /* hold their grid rows, paint nothing */
+  .type-glass .headline{color:#FFFFFF; text-shadow:none;}
+
+  @media (hover:hover) and (pointer:fine){
+    /* The real text is the lens interior: flat white, warped, and clipped
+       to the disc — so it only ever exists where the glass has been cut
+       away. Everywhere else the blended clone is what you see. */
+    .hero.has-glass .type:not(.type-glass) .lens-base{
+      color:#FFFFFF;
+      /* Refraction: the glyph split either side into a blue and a yellow
+         edge. Tighter than before — enough spread to read as light bending
+         through glass, not enough to fog the letter it belongs to. */
+      text-shadow:
+        -2px 0 4px rgba(56,140,255,.9),
+         2px 0 4px rgba(255,206,0,.9),
+        -4px 0 11px rgba(56,140,255,.5),
+         4px 0 11px rgba(255,206,0,.5);
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
+        #000 0%, #000 78%, rgba(0,0,0,0) 92%, rgba(0,0,0,0) 100%);
+              mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
+        #000 0%, #000 78%, rgba(0,0,0,0) 92%, rgba(0,0,0,0) 100%);
+    }
+    /* and the glass takes the exactly complementary hole, so the two never
+       paint the same pixel and there is never a doubled glyph */
+    .type-glass .headline{
+      -webkit-mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 78%, #000 92%, #000 100%);
+              mask-image:radial-gradient(circle var(--lr) at var(--bx,50%) var(--by,50%),
+        rgba(0,0,0,0) 0%, rgba(0,0,0,0) 78%, #000 92%, #000 100%);
+    }
+  }
+
+  /* The contraction.
+     It used to be an SVG displacement map. That warped real pixels, which
+     looked right, but it leaned on feImage — the one primitive here that
+     engines disagree about — and when feImage yields nothing the whole
+     filter output goes empty, so the interior copy vanished and the
+     aperture read as a hole punched clean through the line.
+
+     So the squeeze moves glyphs instead of pixels. Every character of the
+     line is its own inline-block, and the ones inside the disc are pulled
+     toward the pointer and shrunk, by a factor that falls to exactly zero
+     at the rim. Zero at the rim is the whole trick: it is what lets the
+     contracted interior meet the untouched exterior copy without a seam,
+     and it is why a plain scale on the whole copy could never work. No
+     filter is involved, so there is nothing left that can fail closed. */
+  .lword{white-space:nowrap;}
+  .lch{display:inline-block; will-change:auto;}
+  .lens.easing .lch{transition:transform .85s cubic-bezier(.5,0,.5,1);}
+  @media (prefers-reduced-motion:reduce){
+    .lens, .hero.lens-on .lens{transition:none;}
+    .lens.easing .lch{transition:none;}
+    .lch{transform:none !important;}
+  }
+</style>
+</head>
+<body id="top">
+
+
+<div id="mark3d" data-src="assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav nav-hidden" data-reveal-after="#hero" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="#top"><span class="n gt" data-ed="index.t1">DJARRI</span><span class="s gt" data-ed="index.t2">DESIGN&nbsp;PORTFOLIO</span></a>
+  <div class="nav-links">
+    <a href="#work">Work</a>
+    <a href="archive.html">Archive</a>
+    <a href="about.html">About</a>
+    <a href="#contact">Contact</a>
+  </div>
+</nav>
+
+<header class="hero" id="hero">
+
+  <!-- 0 · landscape plate -->
+  <div class="pl l0" data-depth="89" data-overscan="1.13">
+    <img src="assets/layer0.webp" alt="" width="1920" height="1280" fetchpriority="high" decoding="async" data-ed="index.i1">
+  </div>
+
+  <!-- 1 · ring -->
+  <div class="pl l1" data-depth="14">
+    <img src="assets/layer1.svg" alt="" width="328" height="328" decoding="async" data-ed="index.i2">
+  </div>
+
+  <!-- 2 · monogram -->
+  <div class="pl l2" data-depth="20">
+    <img src="assets/layer2.svg" alt="" width="1313" height="1597" decoding="async" data-ed="index.i3">
+  </div>
+
+  <!-- 3 · light shaft -->
+  <div class="pl shaft l3" data-depth="104">
+    <img src="assets/layer3.webp" alt="" width="860" height="1945" decoding="async" data-ed="index.i4">
+  </div>
+
+  <!-- 4 · light shaft -->
+  <div class="pl shaft l4" data-depth="34">
+    <img src="assets/layer4.webp" alt="" width="860" height="1944" decoding="async" data-ed="index.i5">
+  </div>
+
+  <!-- 5 · debris -->
+  <div class="pl l5" data-depth="63">
+    <img src="assets/layer5.webp" alt="" width="2000" height="848" fetchpriority="high" decoding="async" data-ed="index.i6">
+  </div>
+
+  <!-- 6 · light shaft -->
+  <div class="pl shaft l6" data-depth="136">
+    <img src="assets/layer6.webp" alt="" width="860" height="1944" decoding="async" data-ed="index.i7">
+  </div>
+
+  <div class="scrim"></div>
+
+  <!-- 7 · type — front plane, damped amplitude -->
+  <div class="type" id="typeLayer" data-depth="17">
+    <div class="rail gt gt-zone">
+      Abdeldjalil DJARRI · Creative Director<br>
+      <span class="wide-only" data-ed="index.t3">Pharma &amp; parapharma brand systems<br></span>
+      Open to relocation — Geneva / Zurich / Lausanne
+    </div>
+    <h1 class="headline lens"><span class="lens-base"><b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b></span></h1>
+    <div class="footrow">
+      <div class="wordmark gt gt-zone"><span class="n" data-ed="index.t4">DJARRI</span><span class="s" data-ed="index.t5">DESIGN&nbsp;PORTFOLIO</span></div>
+    </div>
+  </div>
+
+  <div class="scrollcue" id="scrollcue"><span class="arw">&#8595;</span> Scroll down</div>
+
+</header>
+
+<!-- The client strip is held back for now. `hidden` rather than deleted:
+     the markup, the logos and the marquee that fits them to the width
+     all stay intact, and taking the attribute off puts it back exactly
+     as it was. -->
+<section class="clients" aria-label="Selected clients" hidden>
+  <div class="marquee">
+    <ul class="track">
+        <li class="logo"><img src="assets/logos/clinique-imen.svg" alt="Clinique Imen" decoding="async" data-ed="index.i8"></li>
+        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="Clinique Dentaire Sahnoun" decoding="async" data-ed="index.i9"></li>
+        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="Luxo Clinique" decoding="async" data-ed="index.i10"></li>
+        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="Chemist Cooper Group" decoding="async" data-ed="index.i11"></li>
+        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="Dermilyne Laboratoire" decoding="async" data-ed="index.i12"></li>
+        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="Direct Pharma" decoding="async" data-ed="index.i13"></li>
+        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="LDM Groupe" decoding="async" data-ed="index.i14"></li>
+        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="Dr Simoud Bilel" decoding="async" data-ed="index.i15"></li>
+        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="Racine Lab" decoding="async" data-ed="index.i16"></li>
+        <li class="logo"><img src="assets/logos/evolab.webp" alt="Evolab Laboratories" decoding="async" data-ed="index.i17"></li>
+        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="Natural Solution" decoding="async" data-ed="index.i18"></li>
+        <li class="logo"><img src="assets/logos/natural-skin.svg" alt="Natural Skin" decoding="async" data-ed="index.i19"></li>
+        <li class="logo"><img src="assets/logos/bioformul.svg" alt="BioFormul" decoding="async" data-ed="index.i20"></li>
+        <li class="logo"><img src="assets/logos/laformul.svg" alt="Laformul" decoding="async" data-ed="index.i21"></li>
+        <li class="logo" aria-hidden="true"><img src="assets/logos/clinique-imen.svg" alt="" decoding="async" data-ed="index.i22"></li>
+        <li class="logo"><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="" decoding="async" data-ed="index.i23"></li>
+        <li class="logo"><img src="assets/logos/luxo-clinique.svg" alt="" decoding="async" data-ed="index.i24"></li>
+        <li class="logo"><img src="assets/logos/chemist-cooper-group.svg" alt="" decoding="async" data-ed="index.i25"></li>
+        <li class="logo"><img src="assets/logos/dermilyne.svg" alt="" decoding="async" data-ed="index.i26"></li>
+        <li class="logo"><img src="assets/logos/direct-pharma.svg" alt="" decoding="async" data-ed="index.i27"></li>
+        <li class="logo"><img src="assets/logos/ldm-groupe.svg" alt="" decoding="async" data-ed="index.i28"></li>
+        <li class="logo"><img src="assets/logos/dr-simoud-bilel.svg" alt="" decoding="async" data-ed="index.i29"></li>
+        <li class="logo"><img src="assets/logos/racine-lab.svg" alt="" decoding="async" data-ed="index.i30"></li>
+        <li class="logo"><img src="assets/logos/evolab.webp" alt="" decoding="async" data-ed="index.i31"></li>
+        <li class="logo"><img src="assets/logos/natural-solution.svg" alt="" decoding="async" data-ed="index.i32"></li>
+        <li class="logo" aria-hidden="true"><img src="assets/logos/natural-skin.svg" alt="" decoding="async" data-ed="index.i33"></li>
+        <li class="logo"><img src="assets/logos/bioformul.svg" alt="" decoding="async" data-ed="index.i34"></li>
+        <li class="logo"><img src="assets/logos/laformul.svg" alt="" decoding="async" data-ed="index.i35"></li>
+    </ul>
+  </div>
+</section>
+
+<section class="band band-bone" id="work">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="index.t6">Verified record</p>
+    <div class="proof">
+      <div><div class="n">10+</div><div class="l">Years in<br>practice</div></div>
+      <div><div class="n">100+</div><div class="l">Products<br>on shelves</div></div>
+      <div><div class="n">30+</div><div class="l">Brand<br>identities</div></div>
+      <div><div class="n">100+</div><div class="l">Client<br>projects</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="band band-bone">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="index.t7">Selected work · 2016—2025</p>
+    <h2 class="h-sec gt gt-zone" data-ed="index.t8">Three brand systems,<br><b>three regulated markets.</b></h2>
+
+    <div class="showcases">
+      <div class="showcase">
+        <div class="showcase-head">
+          <span class="showcase-n" data-ed="index.t9">01</span>
+          <span class="showcase-client gt gt-zone">Evolab Laboratories</span>
+          <span class="showcase-sector" data-ed="index.t10">Pharmaceutical · Identity, packaging, exhibition</span>
+        </div>
+        <div class="reel" data-reel>
+          <div class="reel-stage">
+            <ul class="reel-track">
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/evolab-omeprotect.webp" alt="Omeprotect — Oméprazole 20 mg" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i36">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t51">Omeprotect</b><span data-ed="index.t52">Oméprazole 20 mg</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/evolab-esoprotect.webp" alt="Esoprotect — 40 mg / 20 mg" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i37">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t53">Esoprotect</b><span data-ed="index.t54">40 mg / 20 mg</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/evolab-evofenid.webp" alt="Evofenid — Kétoprofène 100 mg" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i38">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t55">Evofenid</b><span data-ed="index.t56">Kétoprofène 100 mg</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/evolab-xyline.webp" alt="Xyline — Doxycycline hyclate" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i39">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t57">Xyline</b><span data-ed="index.t58">Doxycycline hyclate</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/evolab-evoglucinol.webp" alt="Evoglucinol — Phloroglucinol" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i40">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t59">Evoglucinol</b><span data-ed="index.t60">Phloroglucinol</span></div>
+            </li>
+            </ul>
+          </div>
+          <span class="reel-arms">
+            <button class="reel-arm reel-prev" type="button" data-arm="-1" aria-label="Previous sheet">&#8592;</button>
+            <button class="reel-arm reel-next" type="button" data-arm="1" aria-label="Next sheet">&#8594;</button>
+          </span>
+        </div>
+        <div class="showcase-foot">
+          <p class="showcase-line gt gt-zone" data-ed="index.t11">A full rebrand for a pharmaceutical laboratory — five SKUs, three logo modes and a trade-show build, all held together by one idea: a compressed circle unfurling into a perfect one.</p>
+          <a class="tlink" href="work/evolab.html" data-ed="index.t12">View case study <span class="arw">&#8594;</span></a>
+        </div>
+      </div>
+
+      <div class="showcase">
+        <div class="showcase-head">
+          <span class="showcase-n" data-ed="index.t13">02</span>
+          <span class="showcase-client gt gt-zone">Natural Solution</span>
+          <span class="showcase-sector" data-ed="index.t14">Parapharmaceutical · Three-year partnership · Sub-brand</span>
+        </div>
+        <div class="reel" data-reel>
+          <div class="reel-stage">
+            <ul class="reel-track">
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/natural-ferronat.webp" alt="Ferronat — Bisglycinate de fer 100 mg/ml" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i41">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t61">Ferronat</b><span data-ed="index.t62">Bisglycinate de fer 100 mg/ml</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/natural-hyalucare.webp" alt="HyaluCare — Bain de bouche gel" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i42">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t63">HyaluCare</b><span data-ed="index.t64">Bain de bouche gel</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/natural-linicare.webp" alt="LiniCare — Liniment oléo-calcaire" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i43">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t65">LiniCare</b><span data-ed="index.t66">Liniment oléo-calcaire</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/natural-circuplexh.webp" alt="CircuplexH — Crème anti-hémorroïdaire" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i44">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t67">CircuplexH</b><span data-ed="index.t68">Crème anti-hémorroïdaire</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/natural-pitchouline.webp" alt="Pitchouline — Soin bébé" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i45">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t69">Pitchouline</b><span data-ed="index.t70">Soin bébé</span></div>
+            </li>
+            </ul>
+          </div>
+          <span class="reel-arms">
+            <button class="reel-arm reel-prev" type="button" data-arm="-1" aria-label="Previous sheet">&#8592;</button>
+            <button class="reel-arm reel-next" type="button" data-arm="1" aria-label="Next sheet">&#8594;</button>
+          </span>
+        </div>
+        <div class="showcase-foot">
+          <p class="showcase-line gt gt-zone" data-ed="index.t15">A catalogue that grew past thirty products without the system being redrawn once — and in year three it earned a sub-brand, Natural Skin.</p>
+          <a class="tlink" href="work/natural-solution.html" data-ed="index.t16">View case study <span class="arw">&#8594;</span></a>
+        </div>
+      </div>
+
+      <div class="showcase">
+        <div class="showcase-head">
+          <span class="showcase-n" data-ed="index.t17">03</span>
+          <span class="showcase-client gt gt-zone">Laformul + BioFormul</span>
+          <span class="showcase-sector" data-ed="index.t18">Dermo-cosmetic · Two systems, built from zero</span>
+        </div>
+        <div class="reel" data-reel>
+          <div class="reel-stage">
+            <ul class="reel-track">
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/laformul-lipomega.webp" alt="LipOmega — Oméga 3 + vitamine C" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i46">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t71">LipOmega</b><span data-ed="index.t72">Oméga 3 + vitamine C</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/laformul-nutriboost.webp" alt="NutriBoost — Complément nutritionnel immunité" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i47">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t73">NutriBoost</b><span data-ed="index.t74">Complément nutritionnel immunité</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/laformul-brand.webp" alt="Laformul — Brand key visual" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i48">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t75">Laformul</b><span data-ed="index.t76">Brand key visual</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/laformul-lwiza.webp" alt="Lwiza — Base de maquillage" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i49">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t77">Lwiza</b><span data-ed="index.t78">Base de maquillage</span></div>
+            </li>
+            <li class="reel-card">
+              <div class="reel-sheet">
+                <img src="assets/posters/laformul-lipod.webp" alt="LipO D Spray — Vitamine D3, avec LipOmega" width="900" height="1273" decoding="async" loading="lazy" data-ed="index.i50">
+              </div>
+              <div class="reel-cap"><b data-ed="index.t79">LipO D Spray</b><span data-ed="index.t80">Vitamine D3, avec LipOmega</span></div>
+            </li>
+            </ul>
+          </div>
+          <span class="reel-arms">
+            <button class="reel-arm reel-prev" type="button" data-arm="-1" aria-label="Previous sheet">&#8592;</button>
+            <button class="reel-arm reel-next" type="button" data-arm="1" aria-label="Next sheet">&#8594;</button>
+          </span>
+        </div>
+        <div class="showcase-foot">
+          <p class="showcase-line gt gt-zone" data-ed="index.t19">A brand built before the product existed, then a science-led sibling born two years later because the first one worked.</p>
+          <a class="tlink" href="work/laformul.html" data-ed="index.t20">View case study <span class="arw">&#8594;</span></a>
+        </div>
+      </div>
+    </div>
+
+    <p style="margin-top:var(--slab)"><a class="tlink" href="archive.html">Browse the archive <span class="arw">&#8594;</span></a></p>
+  </div>
+</section>
+
+<section class="band band-ink" id="expertise">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="index.t21">What this is actually for</p>
+    <div class="split">
+      <h2 class="h-sec gt gt-zone" style="margin-bottom:0" data-ed="index.t22">Regulated packaging is a <b>systems problem</b> before it is a visual one.</h2>
+      <div>
+        <p class="lede" data-ed="index.t23">A carton has to satisfy a regulator, survive a print run, sit beside eleven of its own siblings on a pharmacy shelf and still be picked up by someone who is unwell and in a hurry. Most of that work happens before anything is drawn.</p>
+        <p class="lede" style="margin-bottom:0" data-ed="index.t24">What a client is buying is a set of rules that keeps holding once the catalogue doubles and the designer is no longer in the room.</p>
+      </div>
+    </div>
+
+    <div class="caps">
+      <div class="cap">
+        <span class="k" data-ed="index.t25">Packaging architecture</span>
+        <h3 data-ed="index.t26">Rules a range can grow into</h3>
+        <p data-ed="index.t27">Variant logic, dosage hierarchy, indication clarity and the mandatory information that regulation requires — resolved once, at system level, so the thirty-first product does not need a new decision.</p>
+      </div>
+      <div class="cap">
+        <span class="k" data-ed="index.t28">Brand identity</span>
+        <h3 data-ed="index.t29">Marks that survive every substrate</h3>
+        <p data-ed="index.t30">A mark that appears on a screen, a printed carton and one ink on blister foil is really three marks. Drawing all of them up front is what stops a brand improvising them later.</p>
+      </div>
+      <div class="cap">
+        <span class="k" data-ed="index.t31">Product-family coherence</span>
+        <h3 data-ed="index.t32">Family resemblance, without uniformity</h3>
+        <p data-ed="index.t33">Shelf recognition depends on what stays constant; sales depend on what changes. The system has to make both legible at two metres and at arm's length.</p>
+      </div>
+      <div class="cap">
+        <span class="k" data-ed="index.t34">Creative direction</span>
+        <h3 data-ed="index.t35">From strategy to the print floor</h3>
+        <p data-ed="index.t36">Naming support, art direction, campaign, film and exhibition — carried through production rather than handed over at the artwork stage, which is where most systems quietly come apart.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band band-bone" id="kind-words">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="index.t37">Kind words</p>
+
+    <div class="awaiting" style="max-width:70ch; margin-bottom:var(--slab)">
+      <span class="tag" data-ed="index.t38">Editorial placeholder — to be replaced</span>
+      <p data-ed="index.t39">This section is reserved for two to four approved client testimonials, with each speaker's name, role and company. Nothing here is written until real quotes are supplied and cleared — invented praise would undo exactly the credibility the rest of the page is built on.</p>
+    </div>
+
+    <blockquote class="quote-lead gt gt-zone">
+      <span class="gt">Quotes will sit here: one longer passage about how the collaboration ran, set large, in the client's own words.</span>
+    </blockquote>
+    <div class="quote-attr">Name · Role · Company<br>Linked to the relevant case study</div>
+
+    <div class="quote-pair">
+      <div class="quote-sm">
+        <p data-ed="index.t40">A shorter supporting quote — ideally about reliability, communication or the work continuing to hold up.</p>
+        <div class="quote-attr" style="margin-top:18px">Name · Role · Company</div>
+      </div>
+      <div class="quote-sm">
+        <p data-ed="index.t41">A second supporting quote — ideally about commercial usefulness or a long-running partnership.</p>
+        <div class="quote-attr" style="margin-top:18px">Name · Role · Company</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band band-ink" id="about">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="index.t42">About</p>
+    <div class="split">
+      <div>
+        <h2 class="h-sec gt gt-zone" data-ed="index.t43">Ten years inside the categories <b>most designers avoid.</b></h2>
+        <p class="lede" data-ed="index.t44">Creative Director and packaging designer working in pharmaceutical, parapharmaceutical, skincare and consumer-health markets — the places where a design decision has to answer to a regulator as well as to a shelf.</p>
+        <p class="lede" data-ed="index.t45">Currently Co-General Director at Revolution Agency, where the responsibility also covers the filmmaking department. Open to relocation to Switzerland.</p>
+        <p><a class="tlink" href="about.html">Read the full background <span class="arw">&#8594;</span></a></p>
+      </div>
+      <ul class="facts">
+        <li><span class="k">Position</span><span>Creative Director · Packaging &amp; Brand Designer</span></li>
+        <li><span class="k">Leadership</span><span>Co-General Director, Revolution Agency</span></li>
+        <li><span class="k">Also</span><span>Head of the filmmaking department</span></li>
+        <li><span class="k">Education</span><span>Master's, Software Engineering — University of Constantine 2, 2018</span></li>
+        <li><span class="k">Languages</span><span>Arabic · French · English</span></li>
+        <li><span class="k">Location</span><span>Open to relocation — Geneva / Zurich / Lausanne</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="band band-bone" id="contact">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="index.t46">Contact</p>
+    <h2 class="close-line gt gt-zone" data-ed="index.t47">If you are building a range, <b>start with the system.</b></h2>
+    <p class="lede measure" data-ed="index.t48">Open to senior creative roles in Switzerland and to client work in regulated health categories. The quickest way in is an email describing the range and where it is going.</p>
+    <div class="close-actions">
+      <a class="tlink" href="mailto:djaleldjarri@icloud.com">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
+      <a class="tlink" href="work/evolab.html">Start with a case study <span class="arw">&#8594;</span></a>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  <span data-ed="index.t49">Djarri Design Portfolio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="work/evolab.html">Evolab</a>
+    <a href="work/natural-solution.html">Natural Solution</a>
+    <a href="work/laformul.html">Laformul + BioFormul</a>
+    <a href="archive.html">Archive</a>
+    <a href="about.html">About</a>
+    <a href="mailto:djaleldjarri@icloud.com">Email</a>
+  </nav>
+  <span data-ed="index.t50">Abdeldjalil Djarri · Creative Director</span>
+</footer>
+
+<script>
+(function(){
+  var hero = document.getElementById('hero');
+  if(!hero) return;
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var fine   = window.matchMedia('(hover: hover) and (pointer: fine)');
+
+  /* The glass copy of the type layer. It must be a SIBLING of .type inside
+     .hero: .type creates a stacking context for its own parallax transform,
+     and a blended child of it would have the scene as a sibling rather than
+     as a backdrop, so it would composite against nothing. Built here, before
+     the layer list is read, so the parallax loop adopts it — and because it
+     already carries mix-blend-mode by then, the loop gives it the 2D
+     transform that keeps the blend alive. */
+  (function buildGlass(){
+    var type = hero.querySelector('.type');
+    var lens = type && type.querySelector('.lens');
+    if(!type || !lens) return;
+    if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+    /* Split the line into characters BEFORE the clone is taken. Both copies
+       have to lay out to the same pixel — the aperture assumes it — and an
+       inline-block character does not sit exactly where a bare one does. */
+    (function splitLine(root){
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, nodes = [];
+      while((n = w.nextNode())) nodes.push(n);
+      nodes.forEach(function(node){
+        var t = node.nodeValue;
+        if(!/\S/.test(t)) return;
+        var frag = document.createDocumentFragment(), word = null;
+        for(var i = 0; i < t.length; i++){
+          if(/\s/.test(t[i])){
+            word = null;
+            frag.appendChild(document.createTextNode(t[i]));
+            continue;
+          }
+          // Characters go inside a word wrapper. An inline-block is a line
+          // break opportunity, so bare per-character boxes let the line
+          // break anywhere at all — the first pass tore "brands'" in half.
+          if(!word){
+            word = document.createElement('span');
+            word.className = 'lword';
+            frag.appendChild(word);
+          }
+          var c = document.createElement('span');
+          c.className = 'lch';
+          c.textContent = t[i];
+          word.appendChild(c);
+        }
+        node.parentNode.replaceChild(frag, node);
+      });
+    })(lens);
+
+    var glass = type.cloneNode(true);
+    glass.classList.add('type-glass');
+    glass.removeAttribute('id');
+    // the clone must not answer to the base's selectors — it is the glass now
+    var innerBase = glass.querySelector('.lens-base');
+    if(innerBase) innerBase.classList.remove('lens-base');
+    // nor to the accent's: it is pointer-events:none, so its zones could
+    // never fire anyway, but the letter splitter would still walk them
+    [].forEach.call(glass.querySelectorAll('.gt, .gt-zone'), function(el){
+      el.classList.remove('gt'); el.classList.remove('gt-zone');
+    });
+    glass.setAttribute('aria-hidden', 'true');
+    glass.setAttribute('data-depth', type.getAttribute('data-depth') || '17');
+    type.parentNode.insertBefore(glass, type.nextSibling);
+    // only now may the base stop painting outside the aperture: until the
+    // clone exists it is the only copy of the line there is
+    hero.classList.add('has-glass');
+  })();
+
+  var ringImg = hero.querySelector('.l1 img');
+  var cue     = document.getElementById('scrollcue');
+  var ringCx = 0, ringCy = 0;
+
+  // how far in front of the plate the pointer is treated as sitting. the
+  // ring turns to face that point, so a smaller number means a sharper
+  // turn for the same cursor travel.
+  var VIEW_DEPTH = 0.62, MAX_TILT = 52;
+
+  var layers = [].slice.call(hero.querySelectorAll('[data-depth]')).map(function(el){
+    return {
+      el: el,
+      depth: parseFloat(el.dataset.depth) || 0,
+      // a full-bleed cover plate can only travel as far as its own overscan;
+      // past that it pulls off its edge and reveals the ground behind.
+      overscan: parseFloat(el.dataset.overscan) || 0,
+      // a blended layer keeps a 2D transform so it is not promoted away
+      // from the backdrop it needs to blend with
+      blended: getComputedStyle(el).mixBlendMode !== 'normal',
+      maxX: Infinity, maxY: Infinity
+    };
+  });
+
+  function measure(){
+    var r = hero.getBoundingClientRect();
+    for(var i = 0; i < layers.length; i++){
+      var L = layers[i];
+      if(!L.overscan){ L.maxX = L.maxY = Infinity; continue; }
+      var m = (L.overscan - 1) / 2;
+      L.maxX = Math.max(0, m * r.width  - 0.5);
+      L.maxY = Math.max(0, m * r.height - 0.5);
+    }
+    if(ringImg){
+      var q = ringImg.getBoundingClientRect();
+      ringCx = q.left - r.left + q.width  / 2;
+      ringCy = q.top  - r.top  + q.height / 2;
+    }
+  }
+  measure();
+  addEventListener('resize', measure);
+
+  // target (where the pointer says we should be) and current (where we
+  // actually are). easing current toward target is what makes it glide
+  // instead of snap — a CSS transition on transform jitters under a
+  // high-frequency mousemove.
+  var tx = 0, ty = 0, cx = 0, cy = 0;
+  // ring tilt and the pointer-anchored cue ride the same loop
+  var tRX = 0, tRY = 0, cRX = 0, cRY = 0;
+  var tCX = 0, tCY = 0, cCX = 0, cCY = 0, cueSeeded = false;
+  var raf = null, EASE = 0.075, CUE_EASE = 0.16, EPS = 0.0004;
+
+  function render(){
+    cx += (tx - cx) * EASE;
+    cy += (ty - cy) * EASE;
+
+    for(var i = 0; i < layers.length; i++){
+      var L = layers[i];
+      var dx = cx * Math.min(L.depth, L.maxX);
+      var dy = cy * Math.min(L.depth, L.maxY);
+      L.el.style.transform = L.blended
+        ? 'translate('   + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px)'
+        : 'translate3d(' + dx.toFixed(2) + 'px,' + dy.toFixed(2) + 'px,0)';
+    }
+
+    // the ring's plane turns to face the pointer: a circle seen square-on
+    // when the cursor is on its axis, foreshortening to an ellipse as it
+    // moves off. rotateY carries the horizontal swing, rotateX the vertical.
+    if(ringImg){
+      cRX += (tRX - cRX) * EASE;
+      cRY += (tRY - cRY) * EASE;
+      ringImg.style.setProperty('--ring-rx', cRX.toFixed(2) + 'deg');
+      ringImg.style.setProperty('--ring-ry', cRY.toFixed(2) + 'deg');
+    }
+
+    if(cue){
+      cCX += (tCX - cCX) * CUE_EASE;
+      cCY += (tCY - cCY) * CUE_EASE;
+      cue.style.transform = 'translate(' + cCX.toFixed(1) + 'px,' + cCY.toFixed(1) + 'px)';
+    }
+
+    // park the loop once we've effectively arrived
+    var settled = Math.abs(tx - cx) < EPS && Math.abs(ty - cy) < EPS &&
+                  Math.abs(tRX - cRX) < 0.02 && Math.abs(tRY - cRY) < 0.02 &&
+                  Math.abs(tCX - cCX) < 0.3  && Math.abs(tCY - cCY) < 0.3;
+    if(settled){
+      cx = tx; cy = ty; cRX = tRX; cRY = tRY; cCX = tCX; cCY = tCY;
+      raf = null; return;
+    }
+    raf = requestAnimationFrame(render);
+  }
+
+  function kick(){ if(raf === null) raf = requestAnimationFrame(render); }
+
+  function clamp(v, m){ return v < -m ? -m : (v > m ? m : v); }
+
+  function onMove(e){
+    var r = hero.getBoundingClientRect();
+    var px = e.clientX - r.left, py = e.clientY - r.top;
+
+    tx = (px / r.width  - 0.5) * 2;   // -1 … 1
+    ty = (py / r.height - 0.5) * 2;
+
+    var d = r.width * VIEW_DEPTH;
+    tRY =  clamp(Math.atan2(px - ringCx, d) * 180 / Math.PI, MAX_TILT);
+    tRX = -clamp(Math.atan2(py - ringCy, d) * 180 / Math.PI, MAX_TILT);
+
+    tCX = px + 22; tCY = py + 20;
+    if(!cueSeeded){ cCX = tCX; cCY = tCY; cueSeeded = true; }  // no fly-in from 0,0
+    if(cue) cue.classList.add('on');
+
+    kick();
+  }
+
+  function onLeave(){
+    tx = 0; ty = 0; tRX = 0; tRY = 0;
+    if(cue) cue.classList.remove('on');
+    kick();
+  }
+
+  function enable(){
+    hero.addEventListener('mousemove', onMove);
+    hero.addEventListener('mouseleave', onLeave);
+  }
+  function disable(){
+    hero.removeEventListener('mousemove', onMove);
+    hero.removeEventListener('mouseleave', onLeave);
+    tx = 0; ty = 0; tRX = 0; tRY = 0;
+    if(cue) cue.classList.remove('on');
+    cueSeeded = false;
+    kick();
+  }
+
+  function sync(){
+    if(fine.matches && !reduce.matches) enable(); else disable();
+  }
+
+  sync();
+  (reduce.addEventListener ? reduce.addEventListener('change', sync) : reduce.addListener(sync));
+  (fine.addEventListener   ? fine.addEventListener('change', sync)   : fine.addListener(sync));
+})();
+
+/* The accent's light source. Each gradient is positioned from the pointer's
+   own coordinates inside the element it is clipped to, so a row with two
+   gold spans lights both from the same physical point rather than from the
+   same percentage of two different boxes. Pointer devices only — there is no
+   cursor to follow otherwise, and the CSS is already gated the same way. */
+(function(){
+  if(!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  var zones = document.querySelectorAll('.gt-zone, .lens');
+  if(!zones.length) return;
+
+  /* ---- the contraction -------------------------------------------------
+     Only the interior copy squeezes; the blended clone is left alone, and
+     the two have to agree at the aperture's rim. So the pull is scaled by
+     (1 - p^2), which is 1 under the pointer and exactly 0 at the rim: the
+     letters the aperture is about to hand back to the clone are already
+     back where the clone draws them.
+
+     Positions come from offsetLeft/offsetTop, not getBoundingClientRect —
+     an offset is a layout fact and ignores the transforms we are writing,
+     so it can be cached and never drifts as the squeeze accumulates. The
+     offset parent is the headline itself (.lens is positioned), which is
+     the same box bx/by are measured against. */
+  var SQ_R = 0.82,      // reach, as a fraction of the aperture radius
+      SQ_PULL = 0.12,   // how far a letter travels toward the pointer
+      SQ_SHRINK = 0.28; // and how much smaller it gets while it does
+  var sqCache = null;
+
+  function sqChars(zone){
+    if(sqCache) return sqCache;
+    var base = zone.querySelector('.lens-base');
+    if(!base) return (sqCache = []);
+    sqCache = [].map.call(base.querySelectorAll('.lch'), function(el){
+      return {el:el, x:el.offsetLeft + el.offsetWidth/2, y:el.offsetTop + el.offsetHeight/2, set:false};
+    });
+    return sqCache;
+  }
+
+  function squeeze(zone, bx, by){
+    var chars = sqChars(zone);
+    if(!chars.length) return;
+    var R = (parseFloat(getComputedStyle(zone).getPropertyValue('--lr')) || 210) * SQ_R;
+    for(var i = 0; i < chars.length; i++){
+      var c = chars[i], ox = c.x - bx, oy = c.y - by;
+      var p2 = (ox*ox + oy*oy) / (R*R);
+      if(p2 >= 1){
+        if(c.set){ c.el.style.transform = ''; c.set = false; }
+        continue;
+      }
+      var f = 1 - p2;
+      c.el.style.transform = 'translate(' + (-ox*SQ_PULL*f).toFixed(2) + 'px,' +
+                                            (-oy*SQ_PULL*f).toFixed(2) + 'px) scale(' +
+                                            (1 - SQ_SHRINK*f).toFixed(3) + ')';
+      c.set = true;
+    }
+  }
+
+  function unsqueeze(){
+    if(!sqCache) return;
+    sqCache.forEach(function(c){ if(c.set){ c.el.style.transform = ''; c.set = false; } });
+  }
+
+  function paint(zone, e){
+    // The aperture is described once, relative to the headline box, and both
+    // copies mask their own headline with it.
+    if(zone.classList.contains('lens')){
+      var lr = zone.getBoundingClientRect();
+      if(!lr.width || !lr.height) return;
+      // both copies are laid out identically, so one pair of coordinates
+      // relative to the headline box serves both; published on .hero and
+      // inherited rather than written twice
+      var bx = e.clientX - lr.left, by = e.clientY - lr.top;
+      hero.style.setProperty('--bx', bx.toFixed(1) + 'px');
+      hero.style.setProperty('--by', by.toFixed(1) + 'px');
+      squeeze(zone, bx, by);
+      return;
+    }
+    var chars = measure(zone);
+    for(var i = 0; i < chars.length; i++){
+      var c = chars[i];
+      var dx = e.clientX - c.x, dy = e.clientY - c.y;
+      // squared distance — the radius is fixed per zone, so there is no
+      // reason to take a root once per character per frame
+      var lit = dx*dx + dy*dy <= c.r2;
+      if(lit !== c.lit){ c.lit = lit; c.el.classList.toggle('on', lit); }
+    }
+  }
+
+  /* Character boxes, measured once per hover rather than once per frame:
+     reading a rect per glyph per mousemove would force a layout flush on
+     every one of them. Layout cannot change while the pointer is inside a
+     zone, so the cache only has to survive until it leaves — or until the
+     page scrolls or resizes underneath it, since the rects are viewport
+     relative and the pointer coordinates they are compared against are too. */
+  var caches = new WeakMap();
+  function measure(zone){
+    var got = caches.get(zone);
+    if(got) return got;
+    var r = parseFloat(getComputedStyle(zone).getPropertyValue('--gt-r')) || 190;
+    var out = [];
+    [].forEach.call(zone.querySelectorAll('.ch'), function(el){
+      var b = el.getBoundingClientRect();
+      if(!b.width && !b.height) return;
+      out.push({el:el, x:b.left + b.width/2, y:b.top + b.height/2, r2:r*r, lit:false});
+    });
+    caches.set(zone, out);
+    return out;
+  }
+  function drop(zone){ caches['delete'](zone); }
+
+  /* Wrap every character in its own span so a letter can be switched whole.
+     Whitespace is left as bare text: a span around a space still breaks the
+     line, but it also becomes a lit "letter" with nothing to show for it. */
+  function split(root){
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+    var nodes = [], n;
+    while((n = walker.nextNode())) nodes.push(n);
+    nodes.forEach(function(node){
+      var t = node.nodeValue;
+      if(!/\S/.test(t)) return;
+      var frag = document.createDocumentFragment();
+      for(var i = 0; i < t.length; i++){
+        if(/\s/.test(t[i])){ frag.appendChild(document.createTextNode(t[i])); continue; }
+        var s = document.createElement('span');
+        s.className = 'ch';
+        s.textContent = t[i];
+        frag.appendChild(s);
+      }
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  var lettered = [];
+  zones.forEach(function(zone){
+    var frame = null, last = null, isLens = zone.classList.contains('lens');
+    if(isLens){
+      var easeOff = null;
+      zone.addEventListener('mouseenter', function(){
+        // hover has to be instant: a transition here would smear every frame
+        clearTimeout(easeOff); zone.classList.remove('easing');
+        hero.classList.add('lens-on');
+      });
+      zone.addEventListener('mouseleave', function(){
+        hero.classList.remove('lens-on');
+        // let the glyphs travel back over the same span the iris takes to
+        // close, rather than snapping the instant the pointer is gone
+        zone.classList.add('easing');
+        unsqueeze();
+        easeOff = setTimeout(function(){ zone.classList.remove('easing'); }, 950);
+      });
+    }else{
+      [].forEach.call(zone.classList.contains('gt') ? [zone] : zone.querySelectorAll('.gt'),
+        function(el){ split(el); lettered.push(el); });
+      zone.addEventListener('mouseenter', function(){ drop(zone); });
+      zone.addEventListener('mouseleave', function(){
+        measure(zone).forEach(function(c){ c.lit = false; c.el.classList.remove('on'); });
+        drop(zone);
+      });
+    }
+    zone.addEventListener('mousemove', function(e){
+      last = e;
+      if(frame !== null) return;                 // one paint per frame, not per event
+      frame = requestAnimationFrame(function(){
+        frame = null;
+        paint(zone, last);
+      });
+    });
+  });
+
+  // the cached boxes are viewport relative; anything that moves them invalidates
+  var flush = function(){ zones.forEach(drop); unsqueeze(); sqCache = null; };
+  addEventListener('scroll', flush, {passive:true});
+  addEventListener('resize', flush);
+})();
+
+/* Concept lines resolve as they enter. The only motion in act two —
+   one stated behaviour beats several unstated ones. */
+(function(){
+  var targets = document.querySelectorAll('.rv');
+  if(!targets.length) return;
+  if(!('IntersectionObserver' in window) ||
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    targets.forEach(function(el){ el.classList.add('in'); });
+    return;
+  }
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(en){
+      if(!en.isIntersecting) return;
+      // stagger a tension/concept pair so the sentence lands before the idea
+      var d = +(en.target.dataset.rvDelay || 0);
+      setTimeout(function(){ en.target.classList.add('in'); }, d);
+      io.unobserve(en.target);
+    });
+  }, { threshold: 0.28, rootMargin: '0px 0px -6% 0px' });
+  targets.forEach(function(el, i){
+    if(el.classList.contains('poster-concept')) el.dataset.rvDelay = 130;
+    io.observe(el);
+  });
+})();
+</script>
+
+<script src="assets/content.js"></script>
+<script src="assets/site.js" defer></script>
+<script src="assets/logo3d.js" defer></script>
+</body>
+</html>
