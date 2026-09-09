@@ -1,0 +1,985 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Espace client BLM Automotive — suivi d'importation de véhicule. Maquette de refonte : fond clair, gros texte, couleurs lisibles.">
+<title>Suivi BLM Automotive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+
+<style>
+/* =========================================================================
+   BLM Automotive — espace client
+   Palette façon tableau de bord : fond très clair, cartes blanches,
+   indigo vif pour la bannière, rouge BLM pour ce qui demande une action,
+   pastilles pastel vert / orange / bleu / violet pour l'état des étapes.
+   ========================================================================= */
+
+:root{
+  color-scheme: light only;
+
+  --ground:      #F5F7FC;
+  --surface:     #FFFFFF;
+  --tint:        #F8FAFD;
+  --ink:         #101828;
+  --ink-soft:    #667085;
+  --line:        #E7EBF3;
+  --line-strong: #CFD6E4;
+
+  /* indigo — la couleur principale de l'interface */
+  --indigo:      #3B47E0;
+  --indigo-2:    #5B63F0;
+  --indigo-deep: #2A34B8;
+  --indigo-soft: #E8EAFE;
+
+  /* rouge BLM — la marque, et tout ce qui demande une action */
+  --red:         #E11D3D;
+  --red-2:       #C0132F;
+  --red-ink:     #A8112B;
+  --red-soft:    #FFE4E8;
+
+  --green:       #16A34A;
+  --green-ink:   #0B6E32;
+  --green-soft:  #DCFCE7;
+
+  --amber:       #F59E0B;
+  --amber-ink:   #92580A;
+  --amber-soft:  #FEF3C7;
+
+  --blue:        #2E90FA;
+  --blue-ink:    #175CD3;
+  --blue-soft:   #D8ECFE;
+
+  --violet:      #8B5CF6;
+  --violet-ink:  #6027D0;
+  --violet-soft: #EDE7FE;
+
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.05);
+  --shadow:    0 2px 4px rgba(16,24,40,.04), 0 12px 28px -20px rgba(16,24,40,.35);
+  --shadow-lg: 0 18px 42px -22px rgba(59,71,224,.55);
+
+  --ui-scale: 1;
+  --r:  16px;
+  --r2: 12px;
+}
+
+/* ---------------- base ---------------- */
+
+html{
+  font-size: calc(19px * var(--ui-scale));
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.4rem;
+}
+@media (prefers-reduced-motion: reduce){
+  html{ scroll-behavior: auto; }
+  *,*::before,*::after{ animation-duration:.001ms !important; transition-duration:.001ms !important; }
+}
+
+body{
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2,h3{ font-weight: 800; line-height: 1.16; letter-spacing: -.018em; margin: 0; text-wrap: balance; }
+p{ margin: 0; }
+ul,ol{ margin: 0; padding: 0; list-style: none; }
+a{ color: var(--indigo); }
+
+:focus-visible{ outline: 4px solid var(--indigo); outline-offset: 3px; border-radius: 10px; }
+
+.mono{ font-family: "IBM Plex Mono", ui-monospace, monospace; font-weight: 600; }
+
+.kicker{
+  font-size: .74rem; font-weight: 700;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft);
+}
+
+.skip{
+  position: absolute; left: 1rem; top: -6rem; z-index: 90;
+  background: var(--indigo); color: #fff;
+  padding: .8rem 1.2rem; border-radius: 10px; font-weight: 700; text-decoration: none;
+}
+.skip:focus{ top: 1rem; }
+
+.wrap{ width: min(60rem, 100% - 2rem); margin-inline: auto; }
+
+/* ---------------- pastilles d'icône ---------------- */
+
+.chip{
+  width: 3rem; height: 3rem; border-radius: 12px; flex: none;
+  display: grid; place-items: center;
+}
+.chip--green { background: var(--green-soft);  color: var(--green-ink); }
+.chip--amber { background: var(--amber-soft);  color: var(--amber-ink); }
+.chip--blue  { background: var(--blue-soft);   color: var(--blue-ink); }
+.chip--violet{ background: var(--violet-soft); color: var(--violet-ink); }
+.chip--red   { background: var(--red-soft);    color: var(--red-ink); }
+.chip--indigo{ background: var(--indigo-soft); color: var(--indigo-deep); }
+
+/* ---------------- étiquettes ---------------- */
+
+.pill{
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .22rem .7rem; border-radius: 999px;
+  font-size: .82rem; font-weight: 700; white-space: nowrap;
+}
+.pill i{ width: .5rem; height: .5rem; border-radius: 50%; background: currentColor; flex: none; }
+.pill--green { background: var(--green-soft);  color: var(--green-ink); }
+.pill--amber { background: var(--amber-soft);  color: var(--amber-ink); }
+.pill--blue  { background: var(--blue-soft);   color: var(--blue-ink); }
+.pill--red   { background: var(--red-soft);    color: var(--red-ink); }
+.pill--grey  { background: var(--ground);      color: var(--ink-soft); }
+
+/* ---------------- boutons ---------------- */
+
+.btn{
+  display: inline-flex; align-items: center; justify-content: center; gap: .55rem;
+  min-height: 3.2rem; padding: 0 1.35rem;
+  border-radius: 12px; border: 1.5px solid transparent;
+  font: inherit; font-weight: 700; font-size: 1rem;
+  text-decoration: none; cursor: pointer; white-space: nowrap;
+}
+.btn--red    { background: var(--red); color: #fff; box-shadow: 0 10px 20px -12px rgba(225,29,61,.85); }
+.btn--red:hover{ background: var(--red-2); }
+.btn--indigo { background: var(--indigo); color: #fff; box-shadow: 0 10px 20px -12px rgba(59,71,224,.85); }
+.btn--indigo:hover{ background: var(--indigo-deep); }
+.btn--white  { background: #fff; color: var(--red-ink); }
+.btn--white:hover{ background: #FFF1F3; }
+.btn--line   { background: var(--surface); color: var(--ink); border-color: var(--line-strong); }
+.btn--line:hover{ border-color: var(--indigo); color: var(--indigo); }
+.btn--big{ min-height: 3.8rem; font-size: 1.08rem; padding: 0 1.7rem; }
+
+/* ---------------- barre du haut ---------------- */
+
+.topbar{ background: var(--surface); border-bottom: 1.5px solid var(--line); }
+.topbar__inner{
+  display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.3rem;
+  padding-block: .8rem;
+}
+.logo{ display: flex; align-items: center; gap: .7rem; margin-inline-end: auto; }
+.logo__mark{
+  width: 3rem; height: 3rem; border-radius: 12px; flex: none;
+  background: linear-gradient(140deg, var(--red), var(--red-2));
+  color: #fff; display: grid; place-items: center;
+  font-weight: 800; font-size: .95rem; letter-spacing: .03em;
+  box-shadow: 0 10px 20px -14px rgba(225,29,61,.9);
+}
+.logo__name{ font-weight: 800; font-size: 1.05rem; line-height: 1.2; letter-spacing: -.01em; }
+.logo__sub{ font-size: .85rem; color: var(--ink-soft); line-height: 1.3; }
+
+.tools{ display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.tools__label{ font-size: .7rem; font-weight: 700; letter-spacing: .11em; text-transform: uppercase; color: var(--ink-soft); }
+.switch{ display: flex; gap: .3rem; background: var(--ground); padding: .25rem; border-radius: 12px; }
+.switch button{
+  min-height: 2.6rem; min-width: 3rem; padding: 0 .8rem;
+  border: 0; background: transparent; color: var(--ink-soft);
+  border-radius: 9px; font: inherit; font-weight: 700; font-size: .9rem; cursor: pointer;
+}
+.switch button:hover{ color: var(--ink); }
+.switch button[aria-pressed="true"]{ background: var(--surface); color: var(--indigo); box-shadow: var(--shadow-sm); }
+.sizer button:nth-child(1){ font-size: .85rem; }
+.sizer button:nth-child(2){ font-size: 1.1rem; }
+.sizer button:nth-child(3){ font-size: 1.35rem; }
+
+/* ---------------- bannière ---------------- */
+
+main{ padding-block: 1.5rem 3rem; display: grid; gap: 1.4rem; }
+
+.banner{
+  position: relative; overflow: hidden;
+  border-radius: 20px; padding: 1.9rem 1.7rem;
+  background: linear-gradient(135deg, var(--indigo) 0%, var(--indigo-2) 55%, #7A6BF5 100%);
+  color: #fff;
+  box-shadow: var(--shadow-lg);
+}
+.banner::after{
+  content: ""; position: absolute; inset: auto -60px -120px auto;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: rgba(255,255,255,.09);
+}
+.banner > *{ position: relative; z-index: 1; }
+.banner__kicker{ font-size: .74rem; font-weight: 700; letter-spacing: .13em; text-transform: uppercase; opacity: .85; }
+.banner h1{ font-size: clamp(2.2rem, 6.5vw, 3.1rem); margin-top: .35rem; }
+.banner__owner{ font-size: 1.15rem; font-weight: 600; opacity: .92; margin-top: .3rem; }
+.banner__badge{
+  display: inline-flex; align-items: center; gap: .5rem;
+  margin-top: 1.1rem; padding: .45rem 1rem; border-radius: 999px;
+  background: rgba(255,255,255,.18); font-weight: 700; font-size: .95rem;
+}
+.banner__bar{
+  margin-top: 1.2rem; height: .9rem; border-radius: 999px;
+  background: rgba(255,255,255,.24); overflow: hidden; max-width: 34rem;
+}
+.banner__bar > i{ display: block; height: 100%; width: 61.5%; border-radius: 999px; background: #fff; }
+.banner__legend{
+  margin-top: .55rem; font-size: .95rem; font-weight: 600; opacity: .92;
+  display: flex; flex-wrap: wrap; gap: .3rem 1.2rem; max-width: 34rem;
+  justify-content: space-between;
+}
+.banner__foot{
+  margin-top: 1.4rem; display: flex; flex-wrap: wrap; align-items: center; gap: .8rem 1.2rem;
+}
+.banner__foot p{ font-size: .95rem; opacity: .9; margin-inline-end: auto; }
+.banner__foot .btn{
+  background: rgba(255,255,255,.16); color: #fff; border-color: rgba(255,255,255,.35);
+}
+.banner__foot .btn:hover{ background: rgba(255,255,255,.26); }
+
+/* ---------------- alerte action ---------------- */
+
+.alert{
+  border-radius: 20px; padding: 1.5rem 1.6rem;
+  background: linear-gradient(140deg, var(--red) 0%, var(--red-2) 100%);
+  color: #fff;
+  box-shadow: 0 18px 40px -24px rgba(225,29,61,.95);
+  display: grid; gap: 1.1rem;
+}
+.alert__top{ display: flex; align-items: flex-start; gap: .9rem; }
+.alert__top svg{ flex: none; }
+.alert h2{ font-size: 1.4rem; }
+.alert__top p{ margin-top: .35rem; opacity: .93; max-width: 42ch; }
+.alert__what{
+  display: inline-flex; align-items: center; gap: .55rem;
+  background: rgba(255,255,255,.17); border-radius: 12px;
+  padding: .6rem 1rem; font-weight: 700; font-size: 1.05rem;
+}
+.alert__actions{ display: flex; flex-wrap: wrap; gap: .75rem; }
+.alert__actions .btn--line{
+  background: transparent; color: #fff; border-color: rgba(255,255,255,.5);
+}
+.alert__actions .btn--line:hover{ background: rgba(255,255,255,.14); color: #fff; }
+
+/* ---------------- navigation rapide ---------------- */
+
+.jump{
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(245,247,252,.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1.5px solid var(--line);
+  margin-block: -.1rem;
+}
+.jump__inner{ display: flex; gap: .5rem; overflow-x: auto; padding-block: .6rem; }
+.jump a{
+  flex: none; display: inline-flex; align-items: center; gap: .5rem;
+  min-height: 2.9rem; padding: 0 1rem; border-radius: 999px;
+  background: var(--surface); border: 1.5px solid var(--line);
+  color: var(--ink); text-decoration: none; font-weight: 700; font-size: .93rem;
+  white-space: nowrap; box-shadow: var(--shadow-sm);
+}
+.jump a:hover{ border-color: var(--indigo); color: var(--indigo); }
+.jump .dot{ width: .6rem; height: .6rem; border-radius: 50%; flex: none; }
+
+/* ---------------- cartes ---------------- */
+
+.card{
+  background: var(--surface);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.card__head{
+  display: flex; align-items: center; gap: .8rem;
+  padding: 1rem 1.2rem; border-bottom: 1.5px solid var(--line);
+}
+.card__head h2{ font-size: 1.28rem; }
+.card__head .pill{ margin-inline-start: auto; }
+.card__body{ padding: 1.2rem; }
+
+/* ---------------- tuiles chiffrées ---------------- */
+
+.stats{ display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.stat{
+  background: var(--surface); border: 1.5px solid var(--line);
+  border-radius: var(--r); padding: 1.05rem 1.15rem; box-shadow: var(--shadow);
+}
+.stat__top{ display: flex; align-items: center; gap: .6rem; }
+.stat__top span:first-child{ font-weight: 600; color: var(--ink-soft); font-size: .95rem; }
+.stat__top .pill{ margin-inline-start: auto; }
+.stat__value{
+  font-size: 2.1rem; font-weight: 800; letter-spacing: -.03em;
+  line-height: 1.1; margin-top: .35rem; font-variant-numeric: tabular-nums;
+}
+.stat__value small{ font-size: 1rem; font-weight: 700; color: var(--ink-soft); letter-spacing: 0; }
+.stat__rail{ margin-top: .8rem; height: .38rem; border-radius: 999px; background: var(--ground); overflow: hidden; }
+.stat__rail > i{ display: block; height: 100%; border-radius: 999px; }
+.stat__note{ margin-top: .55rem; font-size: .9rem; color: var(--ink-soft); font-weight: 600; }
+
+/* ---------------- où est la voiture ---------------- */
+
+.now{ display: grid; gap: 1.2rem; }
+.now__line{ display: flex; flex-wrap: wrap; align-items: baseline; gap: .5rem 1rem; }
+.now__line h3{ font-size: 1.7rem; color: var(--indigo-deep); }
+.now__line p{ color: var(--ink-soft); font-weight: 600; }
+
+.eta{
+  display: flex; flex-wrap: wrap; align-items: center; gap: .9rem 1.2rem;
+  background: var(--indigo-soft); border-radius: var(--r2); padding: 1rem 1.15rem;
+}
+.eta .chip{ background: #fff; color: var(--indigo); }
+.eta .k{ display: block; font-size: .82rem; font-weight: 700; letter-spacing: .07em; text-transform: uppercase; color: var(--indigo-deep); }
+.eta .v{ font-size: 1.45rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.15; }
+
+.route{ width: 100%; height: auto; display: block; overflow: visible; }
+.route .leg-done{ stroke: var(--indigo); stroke-width: 7; fill: none; stroke-linecap: round; }
+.route .leg-todo{ stroke: var(--line-strong); stroke-width: 7; fill: none; stroke-dasharray: 2 15; stroke-linecap: round; }
+.route .port{ fill: #fff; stroke: var(--indigo); stroke-width: 5; }
+.route .port--done{ fill: var(--indigo); }
+.route .name{ fill: var(--ink); font-weight: 800; font-size: 23px; }
+.route .when{ fill: var(--ink-soft); font-weight: 600; font-size: 18px; }
+.route .boat{ fill: var(--red); }
+.route .boatlabel{ fill: var(--red-ink); font-weight: 800; font-size: 20px; }
+.route text{ font-family: "Plus Jakarta Sans", sans-serif; }
+
+.note{
+  display: flex; gap: .75rem; align-items: flex-start;
+  padding: .9rem 1rem; border-radius: var(--r2);
+  background: var(--tint); border: 1.5px solid var(--line);
+  color: var(--ink-soft); font-size: .95rem;
+}
+.note svg{ flex: none; }
+.note b{ color: var(--ink); }
+.note--amber{ background: var(--amber-soft); border-color: #F7DFA0; color: var(--amber-ink); }
+.note--amber b{ color: var(--amber-ink); }
+
+/* ---------------- photos ---------------- */
+
+.shots{ display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); margin-bottom: 1rem; }
+.shot{ border: 1.5px solid var(--line); border-radius: var(--r2); overflow: hidden; background: var(--tint); }
+.shot svg{ display: block; width: 100%; height: auto; }
+.shot figcaption{ padding: .65rem .9rem; font-weight: 700; font-size: .92rem; background: var(--surface); border-top: 1.5px solid var(--line); }
+
+/* ---------------- étapes ---------------- */
+
+.steps{ display: grid; }
+.step{
+  display: grid; grid-template-columns: 2.4rem 1fr; gap: .95rem;
+  align-items: start; padding: .9rem 0; border-bottom: 1.5px solid var(--line);
+}
+.step:first-child{ padding-top: 0; }
+.step:last-child{ border-bottom: 0; padding-bottom: 0; }
+.mark{ width: 2.4rem; height: 2.4rem; border-radius: 50%; display: grid; place-items: center; }
+.mark--done{ background: var(--green); color: #fff; }
+.mark--wait{ background: var(--ground); color: var(--ink-soft); border: 1.5px solid var(--line-strong); }
+.mark--act { background: var(--red); color: #fff; box-shadow: 0 0 0 5px var(--red-soft); }
+.step h3{ font-size: 1.1rem; font-weight: 700; }
+.step__meta{ color: var(--ink-soft); margin-top: .1rem; font-size: .97rem; }
+.step__meta .mono{ color: var(--ink); }
+.step .pill{ margin-top: .45rem; }
+
+/* ---------------- faits ---------------- */
+
+.facts{ display: grid; gap: .9rem; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); }
+.fact{ background: var(--tint); border: 1.5px solid var(--line); border-radius: var(--r2); padding: .9rem 1rem; }
+.fact .k{ font-size: .76rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft); }
+.fact .v{ font-size: 1.4rem; font-weight: 800; letter-spacing: -.02em; margin-top: .25rem; font-variant-numeric: tabular-nums; }
+.fact--money .v{ font-size: 1.7rem; }
+.fact--paid { background: var(--green-soft);  border-color: #B7EFCB; }
+.fact--paid .v{ color: var(--green-ink); }
+.fact--rest { background: var(--red-soft);    border-color: #FFC7D0; }
+.fact--rest .v{ color: var(--red-ink); }
+
+/* ---------------- journal ---------------- */
+
+.log{ display: grid; margin-top: 1.4rem; }
+.log li{ display: grid; grid-template-columns: 5rem 1.4rem 1fr; gap: .8rem; padding: .75rem 0; border-bottom: 1.5px solid var(--line); }
+.log li:last-child{ border-bottom: 0; padding-bottom: 0; }
+.log .when{ font-weight: 700; color: var(--ink-soft); font-variant-numeric: tabular-nums; line-height: 1.7; font-size: .95rem; }
+.log .pip{ width: 1rem; height: 1rem; border-radius: 50%; margin-top: .5rem; justify-self: center; background: var(--indigo); }
+.log li.is-todo .pip{ background: #fff; border: 3px solid var(--line-strong); }
+.log h3{ font-size: 1.02rem; font-weight: 700; }
+.log p{ color: var(--ink-soft); font-size: .93rem; }
+.log em{ font-style: normal; font-weight: 700; color: var(--ink-soft); }
+
+/* ---------------- documents / actions en ligne ---------------- */
+
+.rows{ display: grid; gap: .8rem; }
+.row{
+  display: grid; grid-template-columns: 3rem 1fr auto; gap: .9rem;
+  align-items: center; padding: .85rem .95rem;
+  border: 1.5px solid var(--line); border-radius: var(--r2); background: var(--surface);
+}
+.row:hover{ border-color: var(--indigo); background: var(--tint); }
+.row__name{ font-size: 1.05rem; font-weight: 700; line-height: 1.3; word-break: break-word; }
+.row__meta{ color: var(--ink-soft); font-size: .92rem; margin-top: .05rem; }
+
+/* ---------------- question ---------------- */
+
+.ask label{ display: block; font-weight: 700; font-size: 1.05rem; margin-bottom: .6rem; }
+.ask textarea{
+  width: 100%; min-height: 7.5rem; resize: vertical; font: inherit;
+  color: var(--ink); background: var(--tint);
+  border: 1.5px solid var(--line-strong); border-radius: var(--r2); padding: .85rem 1rem;
+}
+.ask textarea::placeholder{ color: var(--ink-soft); }
+.ask textarea:focus{ background: #fff; border-color: var(--indigo); }
+.ask__row{ margin-top: 1rem; display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
+.ask__or{ color: var(--ink-soft); font-weight: 700; }
+
+/* ---------------- plus ---------------- */
+
+details.more{ background: var(--surface); border: 1.5px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); }
+details.more summary{
+  list-style: none; cursor: pointer; display: flex; align-items: center; gap: .8rem;
+  padding: 1.05rem 1.2rem; font-weight: 700; font-size: 1.08rem;
+}
+details.more summary::-webkit-details-marker{ display: none; }
+details.more summary::after{ content: "+"; margin-inline-start: auto; font-size: 1.5rem; color: var(--indigo); line-height: 1; }
+details.more[open] summary::after{ content: "–"; }
+details.more .inner{ padding: 0 1.2rem 1.2rem; color: var(--ink-soft); display: grid; gap: 1rem; }
+
+.foot{ border-top: 1.5px solid var(--line); background: var(--surface); padding-block: 1.4rem 2.4rem; color: var(--ink-soft); font-size: .93rem; }
+.foot p + p{ margin-top: .4rem; }
+
+/* ---------------- petits écrans ---------------- */
+
+@media (max-width: 38rem){
+  .row{ grid-template-columns: 3rem 1fr; }
+  .row .btn{ grid-column: 1 / -1; width: 100%; }
+  .logo{ margin-inline-end: 0; width: 100%; }
+  .log li{ grid-template-columns: 4.2rem 1.2rem 1fr; gap: .55rem; }
+}
+
+@media print{
+  .jump, .tools, .alert__actions, .ask, .row .btn{ display: none; }
+  .card, .stat{ break-inside: avoid; box-shadow: none; }
+  body{ background: #fff; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Aller au suivi de votre voiture</a>
+
+<header class="topbar">
+  <div class="wrap topbar__inner">
+    <div class="logo">
+      <div class="logo__mark">BLM</div>
+      <div>
+        <div class="logo__name">BLM Automotive</div>
+        <div class="logo__sub">Importation de véhicules depuis la Chine</div>
+      </div>
+    </div>
+
+    <div class="tools">
+      <span class="tools__label" id="lgLabel">Langue</span>
+      <div class="switch" role="group" aria-labelledby="lgLabel">
+        <button type="button" aria-pressed="true">FR</button>
+        <button type="button" aria-pressed="false">EN</button>
+        <button type="button" aria-pressed="false">العربية</button>
+      </div>
+    </div>
+
+    <div class="tools">
+      <span class="tools__label" id="szLabel">Texte</span>
+      <div class="switch sizer" role="group" aria-labelledby="szLabel">
+        <button type="button" data-scale="1" aria-pressed="true">A</button>
+        <button type="button" data-scale="1.15" aria-pressed="false">A</button>
+        <button type="button" data-scale="1.35" aria-pressed="false">A</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+
+  <!-- ======================= bannière ======================= -->
+  <section class="banner" aria-labelledby="bH">
+    <p class="banner__kicker">Votre espace privé · BLM-2026-0002</p>
+    <h1 id="bH">X70L Luxury</h1>
+    <p class="banner__owner">Dossier de M. Belaloui Nadir</p>
+
+    <p class="banner__badge">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 18.5c1.6 0 1.6 1.4 3.2 1.4s1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4 1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4"/><path d="M4.6 15.4L6 10.6h12l1.4 4.8"/><path d="M9 10.6V7h6v3.6"/></svg>
+      Votre voiture est en mer
+    </p>
+
+    <div class="banner__bar" role="img" aria-label="8 étapes terminées sur 13"><i></i></div>
+    <p class="banner__legend">
+      <span><b>8</b> étapes terminées sur <b>13</b></span>
+      <span>Shanghai → Alger</span>
+    </p>
+
+    <div class="banner__foot">
+      <p>Informations à jour à 14:28, aujourd'hui.</p>
+      <button type="button" class="btn btn--line">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8 8 0 006.3 5.6L3 9"/><path d="M3 4v5h5"/><path d="M4 13a8 8 0 0013.7 5.4L21 15"/><path d="M21 20v-5h-5"/></svg>
+        Actualiser
+      </button>
+    </div>
+  </section>
+
+  <!-- ======================= action demandée ======================= -->
+  <section class="alert" aria-labelledby="alertH">
+    <div class="alert__top">
+      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 7.4v5.2"/><path d="M12 16.4h.01"/></svg>
+      <div>
+        <h2 id="alertH">Nous avons besoin d'une chose de votre part</h2>
+        <p>Sans elle, l'agent en douane ne pourra pas ouvrir votre dossier à l'arrivée du bateau.</p>
+      </div>
+    </div>
+
+    <p class="alert__what">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-5.7 7-11a7 7 0 10-14 0c0 5.3 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
+      Votre adresse de livraison
+    </p>
+
+    <div class="alert__actions">
+      <button type="button" class="btn btn--white btn--big">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20V7"/><path d="M7 12l5-5 5 5"/><path d="M4 4h16"/></svg>
+        Envoyer mon adresse
+      </button>
+      <a class="btn btn--line btn--big" href="tel:+213000000000">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.2a2 2 0 012.1-.5c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>
+        Le dire par téléphone
+      </a>
+    </div>
+  </section>
+
+  <!-- ======================= navigation ======================= -->
+  <nav class="jump" aria-label="Aller à une partie de la page">
+    <div class="jump__inner">
+      <a href="#position"><span class="dot" style="background: var(--indigo)"></span>Où est ma voiture</a>
+      <a href="#etapes"><span class="dot" style="background: var(--green)"></span>Les étapes</a>
+      <a href="#dates"><span class="dot" style="background: var(--blue)"></span>Les dates</a>
+      <a href="#paiements"><span class="dot" style="background: var(--amber)"></span>Paiements</a>
+      <a href="#documents"><span class="dot" style="background: var(--violet)"></span>Vos documents</a>
+      <a href="#question"><span class="dot" style="background: var(--red)"></span>Une question ?</a>
+    </div>
+  </nav>
+
+  <!-- ======================= tuiles ======================= -->
+  <section class="stats" aria-label="Votre dossier en un coup d'œil">
+    <div class="stat">
+      <div class="stat__top">
+        <span>Avancement</span>
+        <span class="pill pill--blue"><i></i>En mer</span>
+      </div>
+      <p class="stat__value">8 <small>/ 13 étapes</small></p>
+      <div class="stat__rail"><i style="width:61.5%;background:var(--indigo)"></i></div>
+      <p class="stat__note">Préparation faite, traversée en cours.</p>
+    </div>
+
+    <div class="stat">
+      <div class="stat__top">
+        <span>Arrivée à Alger</span>
+        <span class="pill pill--amber"><i></i>Estimée</span>
+      </div>
+      <p class="stat__value">14 oct.</p>
+      <div class="stat__rail"><i style="width:35%;background:var(--amber)"></i></div>
+      <p class="stat__note">Dans environ 5 semaines.</p>
+    </div>
+
+    <div class="stat">
+      <div class="stat__top">
+        <span>À faire de votre côté</span>
+        <span class="pill pill--red"><i></i>Action</span>
+      </div>
+      <p class="stat__value">1 <small>chose</small></p>
+      <div class="stat__rail"><i style="width:100%;background:var(--red)"></i></div>
+      <p class="stat__note">Votre adresse de livraison.</p>
+    </div>
+
+    <div class="stat">
+      <div class="stat__top">
+        <span>Reste à payer</span>
+        <span class="pill pill--green"><i></i>À jour</span>
+      </div>
+      <p class="stat__value">0 <small>DZD</small></p>
+      <div class="stat__rail"><i style="width:100%;background:var(--green)"></i></div>
+      <p class="stat__note">Aucune facture en attente.</p>
+    </div>
+  </section>
+
+  <!-- ======================= où est la voiture ======================= -->
+  <section class="card" id="position" aria-labelledby="posH">
+    <div class="card__head">
+      <span class="chip chip--indigo" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18.5c1.6 0 1.6 1.4 3.2 1.4s1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4 1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4"/><path d="M4.6 15.4L6 10.6h12l1.4 4.8"/><path d="M9 10.6V7h6v3.6"/><path d="M12 4v3"/></svg>
+      </span>
+      <h2 id="posH">Où est votre voiture</h2>
+      <span class="pill pill--blue"><i></i>En mer</span>
+    </div>
+
+    <div class="card__body now">
+      <div class="now__line">
+        <h3>Elle est en mer.</h3>
+        <p>À bord du navire <b class="mono">MAERSK CANYON</b></p>
+      </div>
+
+      <div class="eta">
+        <span class="chip" aria-hidden="true">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/><path d="M9 15l2 2 4-4"/></svg>
+        </span>
+        <div>
+          <span class="k">Arrivée prévue au port d'Alger</span>
+          <span class="v">mercredi 14 octobre 2026</span>
+        </div>
+      </div>
+
+      <svg class="route" viewBox="0 0 800 230" role="img"
+           aria-label="Trajet : partie de Shanghai le 5 septembre, actuellement en mer, escale prévue à Algésiras le 7 octobre, arrivée prévue à Alger le 14 octobre.">
+        <path class="leg-done" d="M70 120 L215 120"/>
+        <path class="leg-todo" d="M215 120 L470 120"/>
+        <path class="leg-todo" d="M470 120 L730 120"/>
+
+        <circle class="port port--done" cx="70" cy="120" r="13"/>
+        <circle class="port" cx="470" cy="120" r="13"/>
+        <circle class="port" cx="730" cy="120" r="13"/>
+
+        <g transform="translate(215 120)">
+          <path class="boat" d="M-19 6 L19 6 L13 19 L-13 19 Z"/>
+          <rect class="boat" x="-9" y="-9" width="18" height="14" rx="2"/>
+          <rect class="boat" x="-1.5" y="-19" width="3" height="11" rx="1.5"/>
+        </g>
+        <text class="boatlabel" x="215" y="60" text-anchor="middle">Votre navire</text>
+        <text class="when"      x="215" y="85" text-anchor="middle">position estimée</text>
+
+        <text class="name" x="70"  y="165" text-anchor="start">Shanghai</text>
+        <text class="when" x="70"  y="191" text-anchor="start">parti le 5 sept.</text>
+
+        <text class="name" x="470" y="165" text-anchor="middle">Algésiras</text>
+        <text class="when" x="470" y="191" text-anchor="middle">prévu le 7 oct.</text>
+
+        <text class="name" x="730" y="165" text-anchor="end">Alger</text>
+        <text class="when" x="730" y="191" text-anchor="end">prévu le 14 oct.</text>
+      </svg>
+
+      <p class="note note--amber">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3.6L21.5 20H2.5z"/><path d="M12 10v4"/><path d="M12 17.1h.01"/></svg>
+        <span><b>Ce n'est pas du direct.</b> Le dernier signal du navire date du 5 septembre à 23:18, il y a environ 86 heures. La position dessinée ci-dessus est estimée à partir de sa dernière vitesse connue, 16,6 nœuds. Les dates d'escale viennent de la compagnie maritime et peuvent changer.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================= photos ======================= -->
+  <section class="card" aria-labelledby="photoH">
+    <div class="card__head">
+      <span class="chip chip--violet" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2.5"/><circle cx="8.5" cy="10.5" r="1.7"/><path d="M4 16.5l4.5-4 3.5 3 3-2.5 5 3.5"/></svg>
+      </span>
+      <h2 id="photoH">Votre voiture en photo</h2>
+      <span class="pill pill--grey">2 photos</span>
+    </div>
+    <div class="card__body">
+      <div class="shots">
+        <figure class="shot">
+          <svg viewBox="0 0 400 250" role="img" aria-label="Exemple de photo : la voiture vue de l'arrière dans le conteneur.">
+            <rect width="400" height="250" fill="#F1F4FA"/>
+            <g stroke="#CFD6E4" stroke-width="3" fill="none">
+              <path d="M40 18v214M76 28v194M112 40v170M288 40v170M324 28v194M360 18v214"/>
+            </g>
+            <rect x="122" y="116" width="156" height="76" rx="10" fill="#B9C2D6"/>
+            <rect x="134" y="92" width="132" height="32" rx="12" fill="#9BA7C2"/>
+            <rect x="152" y="180" width="96" height="13" rx="6" fill="#7E8AA8"/>
+            <circle cx="148" cy="196" r="14" fill="#7E8AA8"/>
+            <circle cx="252" cy="196" r="14" fill="#7E8AA8"/>
+          </svg>
+          <figcaption>Photo d'exemple · appuyez pour agrandir</figcaption>
+        </figure>
+        <figure class="shot">
+          <svg viewBox="0 0 400 250" role="img" aria-label="Exemple de photo : le flanc de la voiture arrimée dans le conteneur.">
+            <rect width="400" height="250" fill="#F1F4FA"/>
+            <g stroke="#CFD6E4" stroke-width="3" fill="none">
+              <path d="M30 14v222M298 14v222M338 24v202M378 14v222"/>
+            </g>
+            <rect x="60" y="106" width="212" height="68" rx="14" fill="#B9C2D6"/>
+            <path d="M95 106l30-33h112l31 33z" fill="#9BA7C2"/>
+            <circle cx="114" cy="178" r="16" fill="#7E8AA8"/>
+            <circle cx="226" cy="178" r="16" fill="#7E8AA8"/>
+          </svg>
+          <figcaption>Photo d'exemple · appuyez pour agrandir</figcaption>
+        </figure>
+      </div>
+      <p class="note">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg>
+        <span>Ces deux images sont des <b>dessins d'exemple</b> pour la maquette. Sur le vrai site, ce sont vos photos prises au chargement.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================= étapes ======================= -->
+  <section class="card" id="etapes" aria-labelledby="s1H">
+    <div class="card__head">
+      <span class="chip chip--green" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg>
+      </span>
+      <h2 id="s1H">Préparation en Chine</h2>
+      <span class="pill pill--green"><i></i>5 / 5 fait</span>
+    </div>
+    <div class="card__body">
+      <ol class="steps">
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Commande confirmée</h3><p class="step__meta">8 juin 2026</p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Fournisseur payé</h3><p class="step__meta">Le constructeur a reçu le règlement.</p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Votre voiture a été attribuée</h3><p class="step__meta">Numéro de châssis : <span class="mono">LVTDB21B0SH214934</span></p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Prête au chargement</h3><p class="step__meta">28 août 2026</p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Mise en conteneur</h3><p class="step__meta">27 août 2026 · Shanghai · conteneur <span class="mono">CAIU5865101</span></p></div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="s2H">
+    <div class="card__head">
+      <span class="chip chip--blue" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18.5c1.6 0 1.6 1.4 3.2 1.4s1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4 1.6-1.4 3.2-1.4 1.6 1.4 3.2 1.4"/><path d="M4.6 15.4L6 10.6h12l1.4 4.8"/><path d="M9 10.6V7h6v3.6"/></svg>
+      </span>
+      <h2 id="s2H">Transport maritime</h2>
+      <span class="pill pill--blue"><i></i>3 / 4 fait</span>
+    </div>
+    <div class="card__body">
+      <ol class="steps">
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Chargée sur le navire</h3><p class="step__meta">4 septembre 2026 · Shanghai</p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Documents de transport émis</h3><p class="step__meta">Vous les trouverez plus bas, dans « Vos documents ».</p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--done" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6.5L9 17.5l-5-5"/></svg></span>
+          <div><h3>Départ de Chine</h3><p class="step__meta">5 septembre 2026 · navire <span class="mono">MAERSK CANYON</span></p></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--wait" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8.4V12l2.4 1.6"/></svg></span>
+          <div>
+            <h3>Arrivée au port d'Alger</h3>
+            <p class="step__meta">Prévue le 14 octobre 2026.</p>
+            <span class="pill pill--grey">En attente</span>
+          </div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="card" aria-labelledby="s3H">
+    <div class="card__head">
+      <span class="chip chip--amber" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 17.5V9.2l8.5-5 8.5 5v8.3"/><path d="M3.5 17.5h17"/><path d="M9 17.5v-5h6v5"/></svg>
+      </span>
+      <h2 id="s3H">Dédouanement et livraison</h2>
+      <span class="pill pill--red"><i></i>1 action</span>
+    </div>
+    <div class="card__body">
+      <ol class="steps">
+        <li class="step">
+          <span class="mark mark--wait" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8.4V12l2.4 1.6"/></svg></span>
+          <div>
+            <h3>Début du dédouanement</h3>
+            <p class="step__meta">Commence à l'arrivée du bateau.</p>
+            <span class="pill pill--grey">En attente</span>
+          </div>
+        </li>
+        <li class="step">
+          <span class="mark mark--act" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.5v7"/><path d="M12 17.4h.01"/></svg></span>
+          <div>
+            <h3>Dossier chez l'agent en douane</h3>
+            <p class="step__meta">Il lui manque <b>votre adresse de livraison</b> pour continuer.</p>
+            <span class="pill pill--red"><i></i>Nous attendons quelque chose de vous</span>
+          </div>
+        </li>
+        <li class="step">
+          <span class="mark mark--wait" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8.4V12l2.4 1.6"/></svg></span>
+          <div><h3>Voiture dédouanée</h3><span class="pill pill--grey">En attente</span></div>
+        </li>
+        <li class="step">
+          <span class="mark mark--wait" aria-hidden="true"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8.4V12l2.4 1.6"/></svg></span>
+          <div><h3>Voiture livrée chez vous</h3><span class="pill pill--grey">En attente</span></div>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ======================= dates ======================= -->
+  <section class="card" id="dates" aria-labelledby="datesH">
+    <div class="card__head">
+      <span class="chip chip--blue" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18"/><path d="M8 3v4M16 3v4"/></svg>
+      </span>
+      <h2 id="datesH">Les dates du transport</h2>
+    </div>
+    <div class="card__body">
+      <div class="facts">
+        <div class="fact"><span class="k">Port d'arrivée</span><span class="v">Alger</span></div>
+        <div class="fact"><span class="k">Départ confirmé</span><span class="v">5 sept. 2026</span></div>
+        <div class="fact"><span class="k">Arrivée estimée</span><span class="v">14 oct. 2026</span></div>
+      </div>
+
+      <h3 style="font-size:1.1rem;margin-top:1.5rem">Le trajet, étape par étape</h3>
+      <ol class="log">
+        <li class="is-todo"><span class="when">14 oct.</span><span class="pip" aria-hidden="true"></span>
+          <div><h3>Arrivée à Alger <em>· prévu</em></h3><p>Port d'Alger, Algérie</p></div></li>
+        <li class="is-todo"><span class="when">11 oct.</span><span class="pip" aria-hidden="true"></span>
+          <div><h3>Départ d'Espagne <em>· prévu</em></h3><p>Algésiras, sur le navire <span class="mono">MEDKON PEP</span></p></div></li>
+        <li class="is-todo"><span class="when">7 oct.</span><span class="pip" aria-hidden="true"></span>
+          <div><h3>Escale en Espagne <em>· prévu</em></h3><p>Algésiras, changement de navire</p></div></li>
+        <li class="is-done"><span class="when">5 sept.</span><span class="pip" aria-hidden="true"></span>
+          <div><h3>Départ de Chine</h3><p>Shanghai, sur le navire <span class="mono">MAERSK CANYON</span></p></div></li>
+        <li class="is-done"><span class="when">4 sept.</span><span class="pip" aria-hidden="true"></span>
+          <div><h3>Chargement sur le navire</h3><p>Shanghai, Chine</p></div></li>
+      </ol>
+
+      <p class="note" style="margin-top:1.2rem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg>
+        <span>Votre voiture change de navire à Algésiras, en Espagne : c'est normal sur cette ligne. Les dates marquées <em>prévu</em> viennent de la compagnie maritime et peuvent bouger de quelques jours.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================= paiements ======================= -->
+  <section class="card" id="paiements" aria-labelledby="payH">
+    <div class="card__head">
+      <span class="chip chip--amber" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="2.5"/><path d="M2.8 10h18.4"/><path d="M6.5 14.5h4"/></svg>
+      </span>
+      <h2 id="payH">Vos paiements</h2>
+      <span class="pill pill--green"><i></i>À jour</span>
+    </div>
+    <div class="card__body">
+      <div class="facts">
+        <div class="fact fact--money"><span class="k">Prix total</span><span class="v">0 DZD</span></div>
+        <div class="fact fact--money fact--paid"><span class="k">Déjà payé</span><span class="v">0 DZD</span></div>
+        <div class="fact fact--money fact--rest"><span class="k">Reste à payer</span><span class="v">0 DZD</span></div>
+      </div>
+      <p class="note" style="margin-top:1rem">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9.2"/><path d="M12 11v5.5"/><path d="M12 7.6h.01"/></svg>
+        <span>Aucun montant n'est encore inscrit à votre dossier. Dès qu'une facture est émise, elle apparaît ici et dans vos documents.</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ======================= documents ======================= -->
+  <section class="card" id="documents" aria-labelledby="docH">
+    <div class="card__head">
+      <span class="chip chip--violet" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/></svg>
+      </span>
+      <h2 id="docH">Vos documents</h2>
+      <span class="pill pill--grey">2 fichiers</span>
+    </div>
+    <div class="card__body">
+      <div class="rows">
+        <article class="row">
+          <span class="chip chip--red" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h4"/></svg>
+          </span>
+          <div>
+            <p class="row__name">Copie certifiée du connaissement</p>
+            <p class="row__meta">PDF · <span class="mono">275831897_VerifyCopy.pdf</span></p>
+          </div>
+          <a class="btn btn--indigo" href="#documents">Ouvrir</a>
+        </article>
+
+        <article class="row">
+          <span class="chip chip--green" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5"/><path d="M8.6 15.6c1.5-2.5 2.5-3.5 3.2-2.6.7.9-1.6 3.4-.6 3.9.8.4 2-1.3 3.4-1.3"/></svg>
+          </span>
+          <div>
+            <p class="row__name">Votre contrat</p>
+            <p class="row__meta">PDF · signé avec BLM Automotive</p>
+          </div>
+          <a class="btn btn--indigo" href="#documents">Ouvrir</a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================= question ======================= -->
+  <section class="card" id="question" aria-labelledby="askH">
+    <div class="card__head">
+      <span class="chip chip--red" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8.4 8.4 0 01-12 7.4L3 21l1.7-6A8.4 8.4 0 1121 12z"/><path d="M9.9 9.6a2.3 2.3 0 013.9 1.5c0 1.5-2 1.7-2 2.9"/><path d="M11.9 16.4h.01"/></svg>
+      </span>
+      <h2 id="askH">Une question ?</h2>
+    </div>
+    <div class="card__body ask">
+      <label for="msg">Écrivez-nous, nous répondons dans la journée.</label>
+      <textarea id="msg" placeholder="Par exemple : quand dois-je venir chercher la voiture ?"></textarea>
+      <div class="ask__row">
+        <button type="button" class="btn btn--red btn--big">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.5 2.5L11 13"/><path d="M21.5 2.5l-7 19-4-8-8-4z"/></svg>
+          Envoyer le message
+        </button>
+        <span class="ask__or">ou</span>
+        <a class="btn btn--line btn--big" href="tel:+213000000000">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1 1 .4 1.9.7 2.8a2 2 0 01-.5 2.1L8.1 9.9a16 16 0 006 6l1.3-1.2a2 2 0 012.1-.5c.9.3 1.8.6 2.8.7a2 2 0 011.7 2z"/></svg>
+          Appelez-nous
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <details class="more">
+    <summary>
+      <span class="chip chip--indigo" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4.2-4.2"/></svg>
+      </span>
+      Vous cherchez une autre voiture ?
+    </summary>
+    <div class="inner">
+      <p>Dites-nous le modèle qui vous intéresse. Nous vous donnons le prix rendu à Alger, tout compris, avant que vous ne vous engagiez à quoi que ce soit.</p>
+      <a class="btn btn--indigo" href="#question" style="justify-self:start">Demander un prix</a>
+    </div>
+  </details>
+
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p>Dossier <span class="mono">BLM-2026-0002</span> · X70L Luxury · M. Belaloui Nadir.</p>
+    <p>Ce lien vous est personnel. Personne d'autre ne peut ouvrir cette page, et rien de ce que vous faites ici ne modifie votre dossier par erreur.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  var root = document.documentElement;
+
+  document.querySelectorAll('.switch').forEach(function (group) {
+    var buttons = group.querySelectorAll('button');
+    buttons.forEach(function (b) {
+      b.addEventListener('click', function () {
+        buttons.forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
+        if (b.dataset.scale) {
+          root.style.setProperty('--ui-scale', b.dataset.scale);
+          try { localStorage.setItem('blm-scale', b.dataset.scale); } catch (e) {}
+        }
+      });
+    });
+  });
+
+  try {
+    var saved = localStorage.getItem('blm-scale');
+    if (saved) {
+      document.querySelectorAll('.sizer button').forEach(function (b) {
+        var on = b.dataset.scale === saved;
+        b.setAttribute('aria-pressed', String(on));
+        if (on) root.style.setProperty('--ui-scale', saved);
+      });
+    }
+  } catch (e) {}
+})();
+</script>
+
+</body>
+</html>
