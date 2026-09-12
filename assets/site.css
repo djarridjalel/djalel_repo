@@ -566,6 +566,29 @@ a{color:inherit;}
 }
 
 /* system entries — each a consequence, not a fact */
+/* A case study covering two systems splits into parts. The divider has to
+   read as heavier than the 1px rules between narrative sections without
+   introducing a box or a panel, so it is the same device one weight up: a
+   2px rule, the mono label above the name, and a single line of framing. */
+.part{
+  border-top:2px solid var(--ink);
+  padding-top:clamp(16px,2.2vw,28px);
+  margin:clamp(40px,5.5vw,84px) 0 clamp(20px,2.6vw,34px);
+}
+.part:first-child{margin-top:0;}
+.part h2{
+  margin:.28em 0 .3em;
+  font-weight:700; letter-spacing:-.02em; line-height:1.04;
+  font-size:clamp(1.7rem,3.4vw,2.6rem);
+}
+.part-note{
+  margin:0; max-width:56ch;
+  font-weight:300; line-height:1.6;
+  font-size:clamp(.96rem,1.2vw,1.06rem);
+  color:rgba(10,10,11,.62);
+}
+.dossier .part .eyebrow{color:rgba(10,10,11,.5);}
+
 .sys{display:grid; gap:0; margin:0 0 clamp(28px,4vw,48px);}
 .sys-row{
   display:grid; grid-template-columns:minmax(120px,10rem) minmax(0,1fr);
