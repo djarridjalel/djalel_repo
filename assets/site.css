@@ -240,39 +240,45 @@ a{color:inherit;}
   content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
   background:linear-gradient(to top, rgba(10,10,11,.86) 0%, rgba(10,10,11,.34) 46%, rgba(10,10,11,.12) 100%);
 }
-/* One case study presents its opener instead of overlaying it.
+/* One case study opens light rather than dark. Same template as the other
+   two — type over the photograph, bottom aligned — because three case
+   studies running two layouts reads as unfinished rather than as a system.
+   Only the scrim changes sides, and the type has to change with it: a white
+   gradient under white text leaves nothing.
 
-   The range shot is a finished composition — nineteen packs arced on a deep
-   green field with its own line motif — and it was made to stand on its own.
-   Laying type across it meant bleaching half of it to buy legibility, which
-   wrecked the photograph and still left the text sitting on half-dissolved
-   cartons. There is no scrim setting that fixes that; the picture simply is
-   not a background.
-
-   So this poster stacks instead of layering: the photograph at its own
-   aspect ratio, full width and uncropped at every viewport, and the type
-   beneath it on the dossier's own ground. No scrim, nothing veiled, nothing
-   cropped, and the type on bone at full strength. */
-.poster-light{
-  display:block;
-  min-height:0;
-  padding:0;
-  background:var(--bone);
+   The photograph is chosen for it rather than fought with. Its lower left is
+   the green floor beneath the range, 97% clear of packs, so the scrim can be
+   weighted into that corner and leave the work itself almost unveiled. The
+   full nineteen-pack range is not this image's job — it is the wide plate in
+   Part one, where nothing crops it. */
+.poster-light{background:var(--bone);}
+.poster-light .poster-photo{opacity:1;}
+.poster-light::after{
+  /* Left-weighted, not corner-anchored. Every line of type sits in the left
+     third but spans most of the height, so a radial pinned to the bottom
+     corner reaches the headline and leaves the eyebrow on bare green — it
+     measured 2.63 against a 4.5 floor. A horizontal axis covers the whole
+     column and still clears the right side, where the range is. */
+  background:linear-gradient(to right,
+    rgba(255,255,255,.95) 0%,
+    rgba(255,255,255,.92) 24%,
+    rgba(255,255,255,.55) 40%,
+    rgba(255,255,255,.14) 56%,
+    rgba(255,255,255,0) 70%);
+}.poster-light .poster-eyebrow{color:rgba(10,10,11,.74);}
+.poster-light .poster-tension{color:rgba(10,10,11,.80);}
+.poster-light .poster-concept{color:var(--ink);}
+/* Narrow: the type goes full width over a slice of the photograph, so a
+   corner-anchored scrim protects the wrong place. Bottom-up and heavier. */
+@media (max-width:860px){
+  .poster-light::after{
+    background:linear-gradient(to top,
+      rgba(255,255,255,.96) 0%,
+      rgba(255,255,255,.90) 48%,
+      rgba(255,255,255,.62) 76%,
+      rgba(255,255,255,.20) 100%);
+  }
 }
-.poster-light .poster-photo{
-  position:static;
-  width:100%; height:auto;
-  object-fit:contain;
-  opacity:1;
-}
-.poster-light::after{content:none;}
-.poster-light .poster-body{
-  max-width:none;
-  padding:clamp(30px,4.2vw,60px) var(--edge) clamp(40px,5.4vw,78px);
-}
-.poster-light .poster-eyebrow{color:rgba(10,10,11,.58);}
-.poster-light .poster-tension{color:rgba(10,10,11,.76); max-width:58ch;}
-.poster-light .poster-concept{color:var(--ink); max-width:24ch;}
 
 /* the client's own mark, oversized and cropped — the hero's device,
    applied to someone else's identity */
