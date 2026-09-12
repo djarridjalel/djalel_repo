@@ -252,7 +252,31 @@ a{color:inherit;}
 .poster-light{background:var(--bone);}
 .poster-light .poster-photo{opacity:1;}
 .poster-light::after{
-  background:linear-gradient(to top, rgba(255,255,255,.90) 0%, rgba(255,255,255,.58) 46%, rgba(255,255,255,.26) 100%);
+  /* Diagonal, not bottom-up. The range sits across the lower half of the
+     photograph, which is exactly where a bottom-weighted scrim is heaviest —
+     it would wash out the products to protect type that only occupies the
+     left third. Running the axis to the top right puts the white where the
+     type is and lets the packs come through almost unveiled. */
+  background:linear-gradient(to top right,
+    rgba(255,255,255,.95) 0%,
+    rgba(255,255,255,.86) 18%,
+    rgba(255,255,255,.42) 44%,
+    rgba(255,255,255,.10) 68%,
+    rgba(255,255,255,0) 100%);
+}
+/* The diagonal only makes sense while the type is in a left column and the
+   products have the right half to themselves. Narrow enough and the type
+   goes full width over a 32% slice of the photograph, where a diagonal
+   protects the wrong corner — so the scrim goes back to bottom-up and
+   heavier, and the range becomes a tint rather than a subject. */
+@media (max-width:860px){
+  .poster-light::after{
+    background:linear-gradient(to top,
+      rgba(255,255,255,.96) 0%,
+      rgba(255,255,255,.91) 46%,
+      rgba(255,255,255,.66) 74%,
+      rgba(255,255,255,.24) 100%);
+  }
 }
 .poster-light .poster-eyebrow{color:rgba(10,10,11,.74);}   /* .62 measured 4.60 on the scrim — too near the 4.5 floor for 10px mono */
 .poster-light .poster-tension{color:rgba(10,10,11,.78);}
