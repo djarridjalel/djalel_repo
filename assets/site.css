@@ -240,47 +240,39 @@ a{color:inherit;}
   content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
   background:linear-gradient(to top, rgba(10,10,11,.86) 0%, rgba(10,10,11,.34) 46%, rgba(10,10,11,.12) 100%);
 }
-/* One case study opens light instead of dark. The scrim and the type are
-   one decision, not two: turning the gradient white without turning the
-   type over leaves white text on white. Scoped to a modifier rather than
-   changed globally, because the other two case studies still open on ink
-   and the poster is shared by all three.
+/* One case study presents its opener instead of overlaying it.
 
-   The photograph also stops being veiled down to .62 — a white scrim over
-   an already-dimmed picture greys it out, so the scrim alone does the
-   separating and the image keeps its colour. */
-.poster-light{background:var(--bone);}
-.poster-light .poster-photo{opacity:1;}
-.poster-light::after{
-  /* Diagonal, not bottom-up. The range sits across the lower half of the
-     photograph, which is exactly where a bottom-weighted scrim is heaviest —
-     it would wash out the products to protect type that only occupies the
-     left third. Running the axis to the top right puts the white where the
-     type is and lets the packs come through almost unveiled. */
-  background:linear-gradient(to top right,
-    rgba(255,255,255,.95) 0%,
-    rgba(255,255,255,.86) 18%,
-    rgba(255,255,255,.42) 44%,
-    rgba(255,255,255,.10) 68%,
-    rgba(255,255,255,0) 100%);
+   The range shot is a finished composition — nineteen packs arced on a deep
+   green field with its own line motif — and it was made to stand on its own.
+   Laying type across it meant bleaching half of it to buy legibility, which
+   wrecked the photograph and still left the text sitting on half-dissolved
+   cartons. There is no scrim setting that fixes that; the picture simply is
+   not a background.
+
+   So this poster stacks instead of layering: the photograph at its own
+   aspect ratio, full width and uncropped at every viewport, and the type
+   beneath it on the dossier's own ground. No scrim, nothing veiled, nothing
+   cropped, and the type on bone at full strength. */
+.poster-light{
+  display:block;
+  min-height:0;
+  padding:0;
+  background:var(--bone);
 }
-/* The diagonal only makes sense while the type is in a left column and the
-   products have the right half to themselves. Narrow enough and the type
-   goes full width over a 32% slice of the photograph, where a diagonal
-   protects the wrong corner — so the scrim goes back to bottom-up and
-   heavier, and the range becomes a tint rather than a subject. */
-@media (max-width:860px){
-  .poster-light::after{
-    background:linear-gradient(to top,
-      rgba(255,255,255,.96) 0%,
-      rgba(255,255,255,.91) 46%,
-      rgba(255,255,255,.66) 74%,
-      rgba(255,255,255,.24) 100%);
-  }
+.poster-light .poster-photo{
+  position:static;
+  width:100%; height:auto;
+  object-fit:contain;
+  opacity:1;
 }
-.poster-light .poster-eyebrow{color:rgba(10,10,11,.74);}   /* .62 measured 4.60 on the scrim — too near the 4.5 floor for 10px mono */
-.poster-light .poster-tension{color:rgba(10,10,11,.78);}
-.poster-light .poster-concept{color:var(--ink);}
+.poster-light::after{content:none;}
+.poster-light .poster-body{
+  max-width:none;
+  padding:clamp(30px,4.2vw,60px) var(--edge) clamp(40px,5.4vw,78px);
+}
+.poster-light .poster-eyebrow{color:rgba(10,10,11,.58);}
+.poster-light .poster-tension{color:rgba(10,10,11,.76); max-width:58ch;}
+.poster-light .poster-concept{color:var(--ink); max-width:24ch;}
 
 /* the client's own mark, oversized and cropped — the hero's device,
    applied to someone else's identity */
