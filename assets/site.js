@@ -1,4 +1,4 @@
-/* Djarri Design Portfolio — shared behaviour.
+/* Djarri Design Studio — shared behaviour.
    index.html carries the hero's own script inline and does not load this
    file's accent code twice; the nav is the only part it shares. */
 (function(){
@@ -102,7 +102,8 @@
     document.documentElement.classList.add('has-dot');
 
     var HOT = 'a[href],button,input,select,textarea,summary,label,' +
-              '[role="button"],[tabindex]:not([tabindex="-1"])';
+              '[role="button"],[tabindex]:not([tabindex="-1"]),' +
+              '.reel-card:not(.on)';   // the sheets are picked by clicking now
     var x = 0, y = 0, raf = null, seeded = false;
 
     function draw(){
@@ -174,40 +175,26 @@
     }
     function go(d){ to(at + d); }
 
-    /* Pointing at a sheet selects it — but only a real pointer. A touch
-       screen reports a hover on tap, and taking it here as well as in the
-       tap below would count one tap twice.
+    /* Picking a sheet is a click, on every input. The row is a deliberate
+       choice about what to look at, not something the pointer trips over on
+       its way past.
 
-       The guard is the whole trick. Selecting slides the row, which moves a
-       different sheet under a pointer that has not moved, which the browser
-       reports as another mouseenter, which selects again — the row runs away
-       on its own and settles wherever the churn happens to end. A
-       synthesized enter of that kind carries the pointer's current position,
-       and the pointer is exactly where it was when the last one was
-       accepted; a real one cannot be. So the position is what is tested, not
-       the event. */
+       Selecting on hover needed a guard against its own feedback: the row
+       slid, which moved a different sheet under a pointer that had not
+       moved, which the browser reported as another mouseenter, which
+       selected again. A click carries no such loop, so the guard is gone
+       with it. */
+    /* Selection no longer cares what kind of pointer this is — a click is a
+       click. The lens still does: it is a hover effect, so it is built only
+       where there is a real pointer to drive it. */
     var fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    var held = null;
+    var dragged = false;               // set by the stage below; a drag is not a pick
     cards.forEach(function(c, i){
-      if(!fine){ c.addEventListener('click', function(){ to(i); }); return; }
-      c.addEventListener('mouseenter', function(e){
-        // exactly equal, not merely close: a synthesized enter carries the
-        // pointer's current position unchanged, so it matches to the pixel,
-        // while a real move of even one pixel does not. A tolerance here
-        // throws away slow, deliberate movement — the kind used to pick out
-        // one sheet from the next — and the reel stops answering it.
-        if(held && e.clientX === held.x && e.clientY === held.y) return;
-        held = {x:e.clientX, y:e.clientY};
+      c.addEventListener('click', function(){
+        if(dragged) return;            // the flick already chose; don't choose twice
         to(i);
       });
     });
-    /* The row is evenly pitched, so a step lands the next sheet on exactly
-       the position the last one occupied. That is what makes the guard above
-       necessary — and also what makes it wrong at the door: leave the reel,
-       read something, come back to the same sheet, and the enter arrives at
-       a position the guard still holds as the last one it accepted. Leaving
-       is the end of that gesture, so it forgets. */
-    if(fine) reel.addEventListener('mouseleave', function(){ held = null; });
 
     reel.addEventListener('click', function(e){
       var arm = e.target.closest('[data-arm]');
@@ -224,12 +211,16 @@
        flick means the same thing on a phone and on a wide screen. */
     var stage = reel.querySelector('.reel-stage'), down = null;
     if(stage){
-      stage.addEventListener('pointerdown', function(e){ if(!e.button) down = e.clientX; });
+      stage.addEventListener('pointerdown', function(e){ if(!e.button){ down = e.clientX; dragged = false; } });
       stage.addEventListener('pointerup', function(e){
         if(down === null) return;
         var dx = e.clientX - down;
         down = null;
-        if(Math.abs(dx) > stage.clientWidth * 0.04) go(dx < 0 ? 1 : -1);
+        /* A flick steps the row; the click that follows it must not then
+           select whatever sheet the finger happened to lift over. Anything
+           shorter than the threshold is a click that wandered a little, and
+           is still a pick. */
+        if(Math.abs(dx) > stage.clientWidth * 0.04){ dragged = true; go(dx < 0 ? 1 : -1); }
       });
       stage.addEventListener('pointercancel', function(){ down = null; });
     }
@@ -364,6 +355,12 @@
 
         function tick(now){
           raf = null;
+          /* There may be no canvas yet. Selecting slides the row, which drags
+             sheets out from under a pointer that never moved over them, and
+             each of those gets a mouseleave without ever having had a
+             mousemove — so the lens it is being asked to put out was never
+             built. Cheap to say so here rather than at all three callers. */
+          if(!cv) return;
           var dt = last ? Math.min(64, now - last) : 16; last = now;
           /* The lens is a consequence of movement, not of presence. Holding
              the pointer still over a sheet lets it drain away; moving again

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   DJARRI DESIGN PORTFOLIO — shared stylesheet
+   DJARRI DESIGN STUDIO — shared stylesheet
    Loaded by every page. index.html additionally carries the hero's own
    stylesheet inline, after this one, so the hero always wins its cascade.
 
@@ -101,6 +101,15 @@ a{color:inherit;}
 .band-bone{background:var(--bone); color:var(--ink);}
 .band-ink{background:var(--ink); color:var(--paper);}
 .wrap{max-width:1320px; margin:0 auto;}
+
+/* Where two bands share a ground, the change of ground is not there to
+   separate them and they run together into one undivided mass. A hairline
+   at the top of the second one does the job the colour used to. It sits on
+   the wrap so it starts and stops at the same gutter as everything else —
+   a full-bleed line would be a new device in a design that has none. */
+.band-ink + .band-ink > .wrap{ border-top:1px solid var(--rule-dk); padding-top:var(--slab); }
+.band-bone + .band-bone > .wrap{ border-top:1px solid var(--rule); padding-top:var(--slab); }
+.band-ink + .band-ink, .band-bone + .band-bone{ padding-top:0; }
 .measure{max-width:62ch;}
 
 .eyebrow{
