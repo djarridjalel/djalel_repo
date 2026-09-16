@@ -447,25 +447,28 @@ a{color:inherit;}
           mask-image:none;
 }
 .reel-stage{
-  /* The stage is narrower than the column it sits in, hugging the outer
-     edge, so the deck has somewhere to fan that is still inside the gallery.
-     Fanned across the full column the back sheets ran over the brief — they
-     cleared the front sheet by 77px and landed on the case-study link.
-     The deck sits to the LEFT of its column and fans right, so the sheets
-     behind the front one are exposed on its right-hand side — the side the
-     eye lands on after the brief, and the side there is room on. The last
-     card lands 34px past the column: inside the page gutter on the rows
-     where the gallery is on the outside, and 38px clear of the brief on the
-     rows where it is on the inside. */
+  /* The stage is narrower than the column it sits in and hugs the OUTER
+     edge of the frame — the right on the rows where the gallery is on the
+     right, the left where it is on the left. The chosen sheet sits there,
+     as far out as the page goes, and the rest of the deck fans inward,
+     toward the brief. That is the direction the eye is already travelling,
+     and it is the side there is room on: fanned outward the back sheets
+     ran off the page.
+
+     Fanned across the full column they ran the other way instead, over the
+     brief — 77px clear of the front sheet and onto the case-study link. */
   position:relative;
   /* 59% of a 48vw column is the same sheet as 70% of a 40vw one — measured,
      393px against 389px at 1440. The column grew; the sheet did not. What
-     grew is the run to its right, which is where the band of each back
-     sheet is. */
+     grew is the run beside it, which is where the band of each back sheet
+     is. */
   width:59%;
-  margin-right:auto;
+  margin-left:auto;
   aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
 }
+/* The gallery swaps sides case by case, so the edge the deck hugs swaps
+   with it. */
+.showcase:nth-of-type(even) .reel-stage{margin-left:0; margin-right:auto;}
 .reel-track{
   list-style:none; margin:0; padding:0;
   position:absolute; inset:0;
@@ -487,30 +490,42 @@ a{color:inherit;}
      cover what is left. Measured, the two furthest sheets exposed under
      700px² of face each. Nothing to aim at.
 
-     So position is fixed: sheet i always sits at step i, fanned right and
-     down, and picking one brings it forward rather than rearranging the row.
-     Every sheet keeps a band of its own face exposed at all times, and the
-     row never moves under the pointer. The step is set so that band is
-     79px wide at 1440 rather than the 52px it was — half again as much
-     sheet to read and to aim at, measured at 17-20% of each card's face
-     against 11-14% before. */
-  --lift:min(var(--ao, 0), 1);
+     So the deck is laid out by slot. The chosen sheet takes slot 0, hard
+     against the outer edge of the frame, and the others queue inward in the
+     order they are written — a permutation, so no two sheets can ever land
+     on the same slot the way they did when the offset was clamped. Picking
+     one brings it out to the front of the frame and shuffles the rest back
+     by one; every sheet keeps a band of its own face exposed at all times.
+
+     The step is set so that band is 79px wide at 1440 rather than the 52px
+     it was — half again as much sheet to read and to aim at, measured at
+     17-20% of each card's face against 11-14% before.
+
+     --p is the slot the script assigns. --i, the written order, is the
+     fallback: with no script the deck still fans instead of collapsing into
+     a single visible sheet. */
+  --slot:var(--p, var(--i, 0));
+  --lift:min(var(--slot), 1);
   transform:
     perspective(1500px)
-    translateX(calc(var(--i, 0) * 19.5% * var(--fan-scale, 1)))
+    /* Inward: --fan is -1 where the gallery sits on the right of the frame
+       and 1 where it sits on the left. */
+    translateX(calc(var(--slot) * 19.5% * var(--fan, 1) * var(--fan-scale, 1)))
     /* No vertical step: the sheets sit on one line and the fan is purely
        lateral. It also exposes more of each sheet than the staircase did —
        a full-height band rather than a corner. */
     translateY(0)
-    rotateY(calc(var(--lift) * -6deg))
+    /* The turn mirrors with the fan, so the edge that recedes is always the
+       one the deck is running away toward. */
+    rotateY(calc(var(--lift) * -6deg * var(--fan, 1)))
     scale(calc(1 - var(--lift) * 0.03));
   transform-origin:50% 50%;
-  z-index:calc(10 - var(--ao, 0));
+  z-index:calc(10 - var(--slot));
   transition:transform var(--pace) var(--ease);
 }
 .reel-sheet{
   position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;
-  filter:blur(min(calc(var(--ao, 0) * 3.4px), 11px));
+  filter:blur(min(calc(var(--slot, 0) * 3.4px), 11px));
   transition:filter var(--pace-fx) ease-out;
 }
 /* The glass the sheet is set behind. Two layers, because they answer to
@@ -543,7 +558,7 @@ a{color:inherit;}
 .reel-sheet::after{
   z-index:3;
   background:#fff;
-  opacity:calc(min(var(--ao, 0), 3) * 0.26);
+  opacity:calc(min(var(--slot, 0), 3) * 0.26);
   transition:opacity var(--pace-fx) ease-out;
 }
 .reel-card img{
@@ -667,6 +682,12 @@ a{color:inherit;}
   .showcase{grid-template-columns:1fr;}
   .showcase:nth-of-type(even){grid-template-columns:1fr;}
   .showcase:nth-of-type(even) .showcase-text{order:0;}
+  /* Stacked there is no outer edge to hug — the gallery is the whole column
+     on every row. So the deck stops alternating: the chosen sheet sits at
+     the left margin, where the reading starts, and the fan runs right on
+     all of them. */
+  .showcase, .showcase:nth-of-type(even){--fan:1;}
+  .reel-stage, .showcase:nth-of-type(even) .reel-stage{margin-left:0; margin-right:auto;}
 }
 .showcase-head{
   display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;

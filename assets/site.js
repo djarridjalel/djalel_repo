@@ -161,6 +161,16 @@
       cards.forEach(function(c, i){
         var o = i - at;                                  // order is never changed
         var co = Math.max(-2, Math.min(2, o));           // turn and scale stop here
+        /* Where in the fan this sheet sits. The chosen one takes the hero
+           slot, hard against the outer edge of the frame, and the others
+           queue inward behind it in the order they are written. It is a
+           permutation of 0..n-1, so no two sheets ever land on the same
+           slot — which is what went wrong the last time position was
+           derived from the selection: a distance clamped at both ends put
+           the sheet two before the current one exactly on the one two
+           after it, and two of the five became unpointable. */
+        var p = i === at ? 0 : (i < at ? i + 1 : i);
+        c.style.setProperty('--p', p);
         c.style.setProperty('--o', o);
         c.style.setProperty('--ao', Math.abs(o));
         c.style.setProperty('--co', co);
