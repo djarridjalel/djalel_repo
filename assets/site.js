@@ -265,7 +265,7 @@
         var moved = 0;            // when the pointer last actually moved
         var leaving = false;      // the pointer left the sheet, rather than paused on it
         var GRACE = 90;           // how long stillness is tolerated before it fades
-        var BEND = 0.147;         // how far out the middle of the disc reads
+        var BEND = 0.088;         // how far out the middle of the disc reads
         var SPREAD = 0.0525;      // how much further red goes than blue
         var lutB = null, lutD = null;
 

@@ -309,6 +309,22 @@ a{color:inherit;}
 }
 .poster-concept b{font-weight:700;}
 
+/* The client strip holds two shapes of mark. A wordmark set on one line
+   fills its slot at the height the strip gives everything; a stacked mark —
+   a symbol above a name — is square-ish, so the same height makes it read
+   twice the size of its neighbours. The upright ones come down to 0.7 and
+   the wordmarks are left alone.
+
+   Only the height is touched. Scaling max-width with it compounds: these
+   marks are near-square, so a 70% width cap binds before the reduced height
+   does and the pair lands at 0.7 x 0.7 = 0.49, which measured exactly.
+
+   Specificity, not order: .logo img is declared in the page's own inline
+   stylesheet, which loads after this file, so a matching selector here would
+   lose. Three classes and an element beats one class and an element wherever
+   it sits. */
+.clients .logo.tall img{max-height:39.2%;}   /* 56% x 0.7 */
+
 /* --- the shelf -------------------------------------------------
    The dark half's one spectacle. Every poster the studio has put on a
    shelf, drifting past on two rows running opposite ways, angled just
@@ -359,31 +375,33 @@ a{color:inherit;}
 .shelf-card{
   position:relative;
   flex:0 0 auto;
-  width:clamp(104px,10.5vw,168px);
-  aspect-ratio:1 / 1.4142;                 /* A4, like every sheet on the site */
+  width:clamp(150px,15vw,260px);
+  aspect-ratio:4 / 3;                      /* the packshots are landscape */
   margin-right:clamp(12px,1.6vw,24px);     /* margin not gap: a gap makes the
                                               duplicated half wider than 50%
                                               and the loop drifts each cycle */
   border-radius:9px;
   overflow:hidden;
   background:#15161A;
-  transform:perspective(1000px) rotateY(-15deg);
-  transition:transform .5s cubic-bezier(.2,.9,.3,1);
 }
-.shelf-row.back .shelf-card{transform:perspective(1000px) rotateY(15deg);}
 .shelf-card img{width:100%; height:100%; object-fit:cover;}
-/* The hold-back is a veil, not a filter. There are ninety cards in this
-   band and grayscale()/brightness() on every one of them is ninety raster
+/* The hold-back is a veil, not a filter. There are sixty-two cards in this
+   band and grayscale()/brightness() on every one of them is sixty-two raster
    passes a frame; an opaque overlay fading its opacity is a compositor job
-   and costs effectively nothing. */
+   and costs effectively nothing.
+
+   The packshots are shot on white, so on ink they would otherwise read as a
+   row of lightboxes. The veil is heavier than it was for that reason, and
+   hovering lifts it entirely — the card brightens rather than grows, since
+   a card that changes size on a moving row drags the eye off whatever else
+   it was reading. */
 .shelf-card::after{
   content:"";
   position:absolute; inset:0;
-  background:rgba(10,10,11,.52);
+  background:rgba(10,10,11,.58);
   transition:opacity .45s ease;
 }
 .shelf-card:hover::after{opacity:0;}
-.shelf-card:hover{transform:perspective(1000px) rotateY(0deg) scale(1.06);}
 @keyframes shelf-drift{
   from{transform:translateX(-50%);}
   to  {transform:translateX(0);}
@@ -434,11 +452,15 @@ a{color:inherit;}
      Fanned across the full column the back sheets ran over the brief — they
      cleared the front sheet by 77px and landed on the case-study link. */
   position:relative;
-  width:82%;
-  margin-left:auto;
+  /* The deck sits to the LEFT of its column and fans right, so the sheets
+     behind the front one are exposed on its right-hand side — the side the
+     eye lands on after the brief, and the side there is room on. Narrow
+     enough that the whole fan stays inside the gallery column either way. */
+  position:relative;
+  width:70%;
+  margin-right:auto;
   aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
 }
-.showcase:nth-of-type(even) .reel-stage{margin-left:0; margin-right:auto;}
 .reel-track{
   list-style:none; margin:0; padding:0;
   position:absolute; inset:0;
@@ -452,29 +474,26 @@ a{color:inherit;}
    nobody can see is missing, and buys back the gesture. */
 .reel-card{
   position:absolute; inset:0;
-  /* A deck, not a row: everything that is not being read stacks off to one
-     side and back, so the front sheet is unobstructed and the rest read as
-     depth.
+  /* A fan held in place, not a deck reshuffled on every pick.
 
-     Depth runs on the unclamped distance. On the clamped one the third and
-     fourth sheets share a depth and land on each other, and so do the sheets
-     two either side of the current one — superimposed to the pixel, which
-     leaves only whichever comes last in the DOM clickable.
+     Ordering the stack by distance from the current sheet looks tidy and is
+     nearly unusable: the sheet two before the current one lands on the one
+     two after it, and the nearer sheets — which sit higher in the stack —
+     cover what is left. Measured, the two furthest sheets exposed under
+     700px² of face each. Nothing to aim at.
 
-     The signed distance is added on top, small, to split the pair that sits
-     at equal distance on either side. It also stops the deck looking
-     machine-stacked. */
-  --d:min(var(--ao, 0), 4);
+     So position is fixed: sheet i always sits at step i, fanned right and
+     down, and picking one brings it forward rather than rearranging the row.
+     Every sheet keeps a band of its own top-right corner exposed at all
+     times, and the row never moves under the pointer. */
+  --lift:min(var(--ao, 0), 1);
   transform:
     perspective(1500px)
-    /* The split is vertical only. Put any of it on X and the sheet at -n ends
-       up less far out than the one at +n, which at equal depth and equal
-       z-index means the later one in the DOM covers it outright. */
-    translateX(calc(var(--d) * 6.5% * var(--fan, -1) * var(--fan-scale, 1)))
-    translateY(calc(var(--d) * -4% + var(--o, 0) * 3.4% * var(--fan-scale, 1)))
-    rotateY(calc(var(--d) * var(--fan, -1) * 5deg * var(--fan-scale, 1)))
-    scale(calc(1 - var(--d) * 0.045));
-  transform-origin:50% 62%;
+    translateX(calc(var(--i, 0) * 13% * var(--fan-scale, 1)))
+    translateY(calc(var(--i, 0) * 7% * var(--fan-scale, 1)))
+    rotateY(calc(var(--lift) * -6deg))
+    scale(calc(1 - var(--lift) * 0.03));
+  transform-origin:50% 50%;
   z-index:calc(10 - var(--ao, 0));
   transition:transform var(--pace) var(--ease);
 }
@@ -671,8 +690,12 @@ a{color:inherit;}
      has neither. Cards landed at x=522 in a 390px window and the page
      scrolled sideways. The deck transform above needs no override — only
      the fan has to come in, because a stacked column has no room to spare. */
-  .reel-card{--fan-scale:.55;}
-  .reel-stage{width:88%;}
+  /* Stacked, the gallery is the full column and the fan has the whole width
+     to run off the end of. Both the sheet and the step come in so the last
+     card lands inside the gutter: 70% of 342px leaves 103px for a fan that
+     needs 62px. */
+  .reel-card{--fan-scale:.5;}
+  .reel-stage{width:70%;}
   .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
   .reel-arm{position:static; translate:none;}
   .showcase + .showcase{margin-top:clamp(72px, 11vh, 120px);}
