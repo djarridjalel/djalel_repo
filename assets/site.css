@@ -309,6 +309,90 @@ a{color:inherit;}
 }
 .poster-concept b{font-weight:700;}
 
+/* --- the shelf -------------------------------------------------
+   The dark half's one spectacle. Every poster the studio has put on a
+   shelf, drifting past on two rows running opposite ways, angled just
+   enough to read as depth rather than as a slideshow.
+
+   Built from the same idea as the client marquee — a track duplicated
+   once and translated -50% — because that loop is seamless by
+   construction and needs no script to stay honest.
+
+   Each card carries its own perspective() rather than the rows carrying
+   preserve-3d. A shared 3D context hit-tests only the frontmost element,
+   which is what made four of five reel cards unhoverable; this keeps every
+   card independently pointable and costs nothing.
+
+   The posters are held back — desaturated and dimmed — so the band reads
+   as one moving texture, and come up to full under the pointer. On ink
+   that reads as the work emerging from the dark rather than a gallery
+   wall pasted onto it. */
+.shelf{
+  position:relative;
+  background:var(--ink);
+  padding-block:var(--slab);
+  overflow:hidden;
+}
+.shelf-head{padding-inline:var(--edge); margin-bottom:clamp(26px,3.6vw,50px);}
+.shelf-line{
+  margin:.35em 0 0; max-width:34ch;
+  font-weight:300; letter-spacing:-.02em; line-height:1.12;
+  font-size:clamp(1.45rem,3vw,2.5rem);
+  color:var(--paper);
+}
+.shelf-line b{font-weight:700;}
+.shelf-rows{
+  display:grid;
+  gap:clamp(12px,1.6vw,24px);
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
+          mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
+}
+.shelf-row{
+  display:flex;
+  width:max-content;
+  animation:shelf-drift 70s linear infinite;
+  will-change:transform;
+}
+/* the second row runs the other way and slower, so the two never lock into
+   a single readable block sliding past */
+.shelf-row.back{animation-duration:92s; animation-direction:reverse;}
+.shelf-card{
+  position:relative;
+  flex:0 0 auto;
+  width:clamp(104px,10.5vw,168px);
+  aspect-ratio:1 / 1.4142;                 /* A4, like every sheet on the site */
+  margin-right:clamp(12px,1.6vw,24px);     /* margin not gap: a gap makes the
+                                              duplicated half wider than 50%
+                                              and the loop drifts each cycle */
+  border-radius:9px;
+  overflow:hidden;
+  background:#15161A;
+  transform:perspective(1000px) rotateY(-15deg);
+  transition:transform .5s cubic-bezier(.2,.9,.3,1);
+}
+.shelf-row.back .shelf-card{transform:perspective(1000px) rotateY(15deg);}
+.shelf-card img{width:100%; height:100%; object-fit:cover;}
+/* The hold-back is a veil, not a filter. There are ninety cards in this
+   band and grayscale()/brightness() on every one of them is ninety raster
+   passes a frame; an opaque overlay fading its opacity is a compositor job
+   and costs effectively nothing. */
+.shelf-card::after{
+  content:"";
+  position:absolute; inset:0;
+  background:rgba(10,10,11,.52);
+  transition:opacity .45s ease;
+}
+.shelf-card:hover::after{opacity:0;}
+.shelf-card:hover{transform:perspective(1000px) rotateY(0deg) scale(1.06);}
+@keyframes shelf-drift{
+  from{transform:translateX(-50%);}
+  to  {transform:translateX(0);}
+}
+@media (prefers-reduced-motion:reduce){
+  .shelf-row{animation:none;}
+  .shelf-rows{overflow-x:auto; mask-image:none; -webkit-mask-image:none;}
+}
+
 /* --- the reel --------------------------------------------------
    The gallery on the homepage: five sheets of work per brand, dealt out in a
    shallow fan with the current one square to the viewer.
@@ -331,44 +415,30 @@ a{color:inherit;}
    has to travel; at one constant rate every sheet in the fan moves as one
    object. */
 .reel{
-  --cardw:clamp(180px, 19vw, 300px);
-  --cardh:calc(var(--cardw) * 1.4142);      /* A4, upright */
-  --lift:calc(var(--cardw) * 0.11);         /* how much lower the current one sits */
-  /* Snap, not travel. A sheet leaves at speed, covers most of the distance
-     in the first third, overshoots its mark by a hair and settles — which is
-     what reads as responsive. This is the opposite of the constant rate the
-     reel ran at before: constant speed is honest about the distance and
-     completely lifeless, because nothing in the physical world starts and
-     stops at the same pace it crosses at.
-
-     Light and focus run shorter still and without the overshoot. A sheet
-     that is sharp before it has finished arriving feels quicker than one
-     that resolves on landing, and overshooting a blur has nothing to
-     overshoot into. */
+  /* The card is the column now, so there is no fixed card width and no
+     breakout: the fan used to run the full frame and be clipped, which is
+     wrong for a gallery that has to sit beside its own brief. */
   --pace:.42s;
   --ease:cubic-bezier(.2,1.22,.4,1);
   --pace-fx:.28s;
   position:relative;
-  /* The fan is wider than the text column it sits under. It breaks out to
-     the full width and is clipped there, which is where the reference puts
-     its outer sheets — near the frame, not tucked inside a margin. */
-  width:auto;
-  margin-inline:calc(var(--edge) * -1);
-  overflow:hidden;
-  /* A hard clip guillotines whatever sheet happens to be crossing the edge,
-     and a narrow blurred slice of a photograph with a straight cut down one
-     side does not read as a picture continuing off-screen — it reads as a
-     bar someone left there. The strip dissolves into the ground instead, so
-     there is never an edge for a sliver to stand on. */
-  -webkit-mask-image:linear-gradient(to right,
-    transparent 0, #000 5%, #000 95%, transparent 100%);
-  mask-image:linear-gradient(to right,
-    transparent 0, #000 5%, #000 95%, transparent 100%);
+  width:100%;
+  margin-inline:0;
+  overflow:visible;
+  -webkit-mask-image:none;
+          mask-image:none;
 }
 .reel-stage{
+  /* The stage is narrower than the column it sits in, hugging the outer
+     edge, so the deck has somewhere to fan that is still inside the gallery.
+     Fanned across the full column the back sheets ran over the brief — they
+     cleared the front sheet by 77px and landed on the case-study link. */
   position:relative;
-  height:calc(var(--cardh) + var(--lift) * 2 + 3.4rem);
+  width:82%;
+  margin-left:auto;
+  aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
 }
+.showcase:nth-of-type(even) .reel-stage{margin-left:0; margin-right:auto;}
 .reel-track{
   list-style:none; margin:0; padding:0;
   position:absolute; inset:0;
@@ -381,21 +451,36 @@ a{color:inherit;}
    Flattening each card into its own perspective costs a vanishing point
    nobody can see is missing, and buys back the gesture. */
 .reel-card{
-  position:absolute; left:50%; top:var(--lift);
-  width:var(--cardw); margin-left:calc(var(--cardw) / -2);
+  position:absolute; inset:0;
+  /* A deck, not a row: everything that is not being read stacks off to one
+     side and back, so the front sheet is unobstructed and the rest read as
+     depth.
+
+     Depth runs on the unclamped distance. On the clamped one the third and
+     fourth sheets share a depth and land on each other, and so do the sheets
+     two either side of the current one — superimposed to the pixel, which
+     leaves only whichever comes last in the DOM clickable.
+
+     The signed distance is added on top, small, to split the pair that sits
+     at equal distance on either side. It also stops the deck looking
+     machine-stacked. */
+  --d:min(var(--ao, 0), 4);
   transform:
-    perspective(1900px)
-    translateX(calc(var(--o, 0) * var(--cardw) * 1.0))
-    translateY(calc(var(--cao, 0) * var(--cardw) * -0.055))
-    rotateY(calc(var(--co, 0) * -13deg))
-    scale(calc(1 - var(--cao, 0) * 0.07));
+    perspective(1500px)
+    /* The split is vertical only. Put any of it on X and the sheet at -n ends
+       up less far out than the one at +n, which at equal depth and equal
+       z-index means the later one in the DOM covers it outright. */
+    translateX(calc(var(--d) * 6.5% * var(--fan, -1) * var(--fan-scale, 1)))
+    translateY(calc(var(--d) * -4% + var(--o, 0) * 3.4% * var(--fan-scale, 1)))
+    rotateY(calc(var(--d) * var(--fan, -1) * 5deg * var(--fan-scale, 1)))
+    scale(calc(1 - var(--d) * 0.045));
+  transform-origin:50% 62%;
   z-index:calc(10 - var(--ao, 0));
-  opacity:calc(1 - min(var(--ao, 0), 4) * 0.2);
-  transition:transform var(--pace) var(--ease), opacity var(--pace-fx) ease-out;
+  transition:transform var(--pace) var(--ease);
 }
 .reel-sheet{
   position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;
-  filter:blur(min(calc(var(--ao, 0) * 2.6px), 9px));
+  filter:blur(min(calc(var(--ao, 0) * 3.4px), 11px));
   transition:filter var(--pace-fx) ease-out;
 }
 /* The glass the sheet is set behind. Two layers, because they answer to
@@ -420,17 +505,15 @@ a{color:inherit;}
     inset 0 0 0 1px rgba(255,255,255,.16),
     inset 0 0 22px rgba(255,255,255,.1);
 }
-/* the sheen: a band of white raked across the pane, strongest on the sheets
-   furthest from the one being read and gone entirely on that one */
+/* The wash. Behind sheets are taken toward white rather than merely dimmed,
+   so the deck reads as paper receding into light instead of into shadow —
+   which is what keeps a bone ground from turning muddy behind the front
+   sheet. Flat, not a gradient: a raking sheen reads as glass catching light,
+   and glass on four stacked sheets reads as clutter. */
 .reel-sheet::after{
   z-index:3;
-  background:linear-gradient(128deg,
-    rgba(255,255,255,.5) 0%,
-    rgba(255,255,255,.16) 26%,
-    rgba(255,255,255,.02) 48%,
-    rgba(255,255,255,.2) 74%,
-    rgba(255,255,255,.44) 100%);
-  opacity:calc(min(var(--ao, 0), 3) * 0.19);
+  background:#fff;
+  opacity:calc(min(var(--ao, 0), 3) * 0.26);
   transition:opacity var(--pace-fx) ease-out;
 }
 .reel-card img{
@@ -450,10 +533,15 @@ a{color:inherit;}
    read as a mistake. Under the sheet the fan stays as bare as the reference
    is, and nothing is set on top of work that already speaks. */
 .reel-cap{
-  margin:16px 4px 0; text-align:center;
-  opacity:calc(1 - var(--ao, 0) * 0.3);
+  /* One name at a time. In a row every caption belonged to a sheet you could
+     see; in a deck the ones behind are a blurred edge, and a caption under
+     them names nothing. */
+  position:absolute; left:0; right:0; top:100%;
+  margin:16px 4px 0; text-align:left;
+  opacity:0; pointer-events:none;
   transition:opacity var(--pace-fx) ease-out;
 }
+.reel-card.on .reel-cap{opacity:1;}
 .reel-cap b{
   display:block; font-weight:500; letter-spacing:-.005em;
   font-size:clamp(.78rem, .92vw, .95rem); line-height:1.25;
@@ -518,10 +606,38 @@ a{color:inherit;}
    Three brands down one column. The air between them is the only thing
    separating them — no rules, no cards, nothing drawn — so it has to be
    unmistakably more than the air inside one. */
-.showcase + .showcase{margin-top:clamp(104px, 15vh, 208px);}
+.showcase + .showcase{margin-top:clamp(96px, 13vh, 150px);}
+/* The brief on one side, the gallery on the other, and the sides swap case
+   by case so the eye is handed across the page rather than marched down it.
+   The gallery takes 40% of the frame: large enough that a poster is a
+   poster, narrow enough that the brief is never a caption. */
+.showcase{
+  /* Which way the deck fans. The gallery sits against one edge of the frame,
+     so a deck that fans outward throws its back sheets off the page — they
+     measured 122px past the front sheet and none of it was on screen. It
+     fans inward instead, across the brief, which is also the direction the
+     eye is already travelling. */
+  --fan:-1;
+  display:grid;
+  /* 40% of the frame, not 40% of the text column: the wrap is already inset
+     by the page gutter, so a percentage here lands near 35%. Measured in vw
+     it is the 40% the brief asks for, capped so the sheet does not run away
+     on a very wide screen and leave the brief in a gutter. */
+  grid-template-columns:minmax(0,1fr) minmax(0,min(40vw,580px));
+  gap:clamp(30px,5vw,80px);
+  align-items:center;
+}
+.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(40vw,580px)) minmax(0,1fr); --fan:1;}
+.showcase:nth-of-type(even) .showcase-text{order:2;}
+.showcase-text{display:flex; flex-direction:column; gap:clamp(18px,2.4vw,34px);}
+@media (max-width:860px){
+  .showcase{grid-template-columns:1fr;}
+  .showcase:nth-of-type(even){grid-template-columns:1fr;}
+  .showcase:nth-of-type(even) .showcase-text{order:0;}
+}
 .showcase-head{
   display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
-  padding-bottom:16px; margin-bottom:clamp(40px, 6vh, 72px);
+  padding-bottom:16px; margin-bottom:0;
   border-bottom:1px solid var(--rule);
 }
 .showcase-n{
@@ -538,7 +654,7 @@ a{color:inherit;}
 }
 .showcase-foot{
   display:flex; align-items:flex-start; gap:clamp(24px,5vw,72px);
-  flex-wrap:wrap; margin-top:clamp(40px, 6vh, 72px);
+  flex-wrap:wrap; margin-top:0;
 }
 .showcase-line{
   flex:1 1 32ch; margin:0; max-width:60ch;
@@ -547,21 +663,16 @@ a{color:inherit;}
 }
 
 @media (max-width:1100px){
-  .reel{--cardw:clamp(150px, 20vw, 220px);}
   .showcase-sector{margin-left:0; flex-basis:100%;}
 }
 @media (max-width:720px){
-  /* the outer sheets are meant to run off the sides; without this they run
-     off the document instead and the whole page scrolls sideways */
-  .reel{--cardw:min(54vw, 250px);}
-  .reel-card{
-    transform:
-      perspective(1900px)
-      translateX(calc(var(--o, 0) * var(--cardw) * 0.98))
-      translateY(calc(var(--cao, 0) * var(--cardw) * -0.05))
-      rotateY(calc(var(--co, 0) * -11deg))
-      scale(calc(1 - var(--cao, 0) * 0.08));
-  }
+  /* Left over from the row: the fan used to be laid out with the signed
+     offset and a --cardw, and both were still being applied to a deck that
+     has neither. Cards landed at x=522 in a 390px window and the page
+     scrolled sideways. The deck transform above needs no override — only
+     the fan has to come in, because a stacked column has no room to spare. */
+  .reel-card{--fan-scale:.55;}
+  .reel-stage{width:88%;}
   .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
   .reel-arm{position:static; translate:none;}
   .showcase + .showcase{margin-top:clamp(72px, 11vh, 120px);}
