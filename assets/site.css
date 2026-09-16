@@ -594,6 +594,12 @@ a{color:inherit;}
 }
 .spec dd{margin:4px 0 12px; font-size:.72rem; color:#15161A;}
 .spec dl div:first-child dt{border-top:none; padding-top:0;}
+/* The rail is only a rail while it has a column of its own. Once the grid
+   stacks it sits above the content, and sticky then pins it to the top of
+   the viewport with the whole case study scrolling underneath — the spec
+   sheet printed over the work. Must come after the sticky declaration
+   above: same specificity, so source order is what decides. */
+@media (max-width:860px){ .spec{position:static;} }
 
 .swatches{display:flex; gap:6px; margin-top:18px;}
 .swatches span{
