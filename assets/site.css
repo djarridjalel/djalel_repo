@@ -450,14 +450,19 @@ a{color:inherit;}
   /* The stage is narrower than the column it sits in, hugging the outer
      edge, so the deck has somewhere to fan that is still inside the gallery.
      Fanned across the full column the back sheets ran over the brief — they
-     cleared the front sheet by 77px and landed on the case-study link. */
-  position:relative;
-  /* The deck sits to the LEFT of its column and fans right, so the sheets
+     cleared the front sheet by 77px and landed on the case-study link.
+     The deck sits to the LEFT of its column and fans right, so the sheets
      behind the front one are exposed on its right-hand side — the side the
-     eye lands on after the brief, and the side there is room on. Narrow
-     enough that the whole fan stays inside the gallery column either way. */
+     eye lands on after the brief, and the side there is room on. The last
+     card lands 34px past the column: inside the page gutter on the rows
+     where the gallery is on the outside, and 38px clear of the brief on the
+     rows where it is on the inside. */
   position:relative;
-  width:70%;
+  /* 59% of a 48vw column is the same sheet as 70% of a 40vw one — measured,
+     393px against 389px at 1440. The column grew; the sheet did not. What
+     grew is the run to its right, which is where the band of each back
+     sheet is. */
+  width:59%;
   margin-right:auto;
   aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
 }
@@ -484,13 +489,19 @@ a{color:inherit;}
 
      So position is fixed: sheet i always sits at step i, fanned right and
      down, and picking one brings it forward rather than rearranging the row.
-     Every sheet keeps a band of its own top-right corner exposed at all
-     times, and the row never moves under the pointer. */
+     Every sheet keeps a band of its own face exposed at all times, and the
+     row never moves under the pointer. The step is set so that band is
+     79px wide at 1440 rather than the 52px it was — half again as much
+     sheet to read and to aim at, measured at 17-20% of each card's face
+     against 11-14% before. */
   --lift:min(var(--ao, 0), 1);
   transform:
     perspective(1500px)
-    translateX(calc(var(--i, 0) * 13% * var(--fan-scale, 1)))
-    translateY(calc(var(--i, 0) * 7% * var(--fan-scale, 1)))
+    translateX(calc(var(--i, 0) * 19.5% * var(--fan-scale, 1)))
+    /* No vertical step: the sheets sit on one line and the fan is purely
+       lateral. It also exposes more of each sheet than the staircase did —
+       a full-height band rather than a corner. */
+    translateY(0)
     rotateY(calc(var(--lift) * -6deg))
     scale(calc(1 - var(--lift) * 0.03));
   transform-origin:50% 50%;
@@ -638,15 +649,18 @@ a{color:inherit;}
      eye is already travelling. */
   --fan:-1;
   display:grid;
-  /* 40% of the frame, not 40% of the text column: the wrap is already inset
-     by the page gutter, so a percentage here lands near 35%. Measured in vw
-     it is the 40% the brief asks for, capped so the sheet does not run away
-     on a very wide screen and leave the brief in a gutter. */
-  grid-template-columns:minmax(0,1fr) minmax(0,min(40vw,580px));
+  /* The column is wider than the sheet it holds. The sheet is the 40% of the
+     frame the brief asks for — measured in vw, not in percent, because the
+     wrap is already inset by the page gutter and a percentage here lands
+     near 35% — and the rest of the column is the run the fan needs. Widen
+     the band behind the front sheet and that run has to grow with it, or
+     the last card is pushed onto the brief. Capped so the sheet does not
+     run away on a very wide screen and leave the brief in a gutter. */
+  grid-template-columns:minmax(0,1fr) minmax(0,min(48vw,700px));
   gap:clamp(30px,5vw,80px);
   align-items:center;
 }
-.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(40vw,580px)) minmax(0,1fr); --fan:1;}
+.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(48vw,700px)) minmax(0,1fr); --fan:1;}
 .showcase:nth-of-type(even) .showcase-text{order:2;}
 .showcase-text{display:flex; flex-direction:column; gap:clamp(18px,2.4vw,34px);}
 @media (max-width:860px){
@@ -691,9 +705,10 @@ a{color:inherit;}
      scrolled sideways. The deck transform above needs no override — only
      the fan has to come in, because a stacked column has no room to spare. */
   /* Stacked, the gallery is the full column and the fan has the whole width
-     to run off the end of. Both the sheet and the step come in so the last
-     card lands inside the gutter: 70% of 342px leaves 103px for a fan that
-     needs 62px. */
+     to run off the end of. The step comes in by half so the last card lands
+     inside the gutter: at 390px, 70% of 342px leaves 103px for a fan that
+     needs 92px. Measured from 320 to 719 the slack never drops below 10px,
+     which is why the sheet cannot also grow here. */
   .reel-card{--fan-scale:.5;}
   .reel-stage{width:70%;}
   .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
