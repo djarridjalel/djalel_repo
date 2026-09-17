@@ -366,27 +366,29 @@ a{color:inherit;}
 .shelf-row{
   display:flex;
   width:max-content;
-  animation:shelf-drift 140s linear infinite;   /* half speed */
-  /* Both rows are reversed from where they started: the front one now runs
-     the way the back one used to and the other way about. The keyframes are
-     unchanged — only which row plays them backwards. */
+  /* One row, not two. Two rows of equal medium tiles running opposite ways
+     is the shape of a streaming service's front page, and it read as one:
+     browsing, not evidence. A single row at nearly twice the size and a
+     third of the pace is a different object — things going past on a belt,
+     which is what they are. */
+  animation:shelf-drift 330s linear infinite;
   animation-direction:reverse;
   will-change:transform;
 }
-/* the second row runs the other way and slower, so the two never lock into
-   a single readable block sliding past */
-.shelf-row.back{animation-duration:184s; animation-direction:normal;}   /* half speed */
 .shelf-card{
   position:relative;
   flex:0 0 auto;
-  width:clamp(150px,15vw,260px);
+  width:clamp(240px,24vw,400px);
   aspect-ratio:4 / 3;                      /* the packshots are landscape */
-  margin-right:clamp(12px,1.6vw,24px);     /* margin not gap: a gap makes the
+  margin-right:clamp(16px,2vw,32px);       /* margin not gap: a gap makes the
                                               duplicated half wider than 50%
                                               and the loop drifts each cycle */
-  border-radius:9px;
+  /* Less tile. The radius comes down and the card carries no ground of its
+     own, so what is on the band is a photograph rather than a thumbnail in
+     a rounded box. */
+  border-radius:3px;
   overflow:hidden;
-  background:#15161A;   /* the card's own ground, a step up from the band's */
+  background:transparent;
 }
 .shelf-card img{width:100%; height:100%; object-fit:cover;}
 /* The hold-back is a veil, not a filter. There are sixty-two cards in this
@@ -402,7 +404,7 @@ a{color:inherit;}
 .shelf-card::after{
   content:"";
   position:absolute; inset:0;
-  background:rgba(10,10,11,.58);
+  background:rgba(10,10,11,.42);
   transition:opacity .45s ease;
 }
 .shelf-card:hover::after{opacity:0;}
@@ -1027,6 +1029,134 @@ a{color:inherit;}
 .band-ink .cap{background:var(--ink);}
 .band-ink .cap p{color:rgba(255,255,255,.76);}
 .band-ink .cap .k{color:rgba(255,255,255,.46);}
+
+/* The four disciplines, under the statement they belong to. A rail, not a
+   grid of tiles: the tiles gave each one a paragraph, and the paragraphs
+   were the band's whole problem. Label above a single line, four across,
+   hairline between — close to a colophon, which is the right register for
+   something that is supporting a headline rather than competing with it. */
+.disciplines{
+  list-style:none; margin:clamp(30px,4.5vw,56px) 0 0; padding:0;
+  display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
+  gap:0; border-top:1px solid var(--rule-dk);
+}
+.disciplines li{
+  padding:clamp(18px,2.2vw,28px) clamp(16px,2vw,28px) 0 0;
+  border-right:1px solid var(--rule-dk);
+}
+.disciplines li:last-child{border-right:0;}
+.disciplines .k{
+  display:block; margin-bottom:10px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.18em;
+  text-transform:uppercase; color:rgba(255,255,255,.44);
+}
+.disciplines li > span:last-child{
+  display:block; font-weight:300; line-height:1.45;
+  font-size:clamp(.95rem,1.15vw,1.08rem); color:rgba(255,255,255,.82);
+  letter-spacing:-.01em;
+}
+@media (max-width:860px){
+  .disciplines{grid-template-columns:repeat(2, minmax(0,1fr));}
+  .disciplines li:nth-child(2n){border-right:0;}
+  .disciplines li:nth-child(n+3){border-top:1px solid var(--rule-dk); margin-top:-1px; padding-top:clamp(18px,2.2vw,28px);}
+}
+@media (max-width:520px){
+  .disciplines{grid-template-columns:1fr;}
+  .disciplines li{border-right:0; border-top:1px solid var(--rule-dk); margin-top:-1px;}
+  .disciplines li:first-child{border-top:0; margin-top:0;}
+}
+
+/* --------------------------------------------------------------------------
+   WHAT YOU CAN COMMISSION
+   What you can commission, as five rows of type with the work beside them.
+
+   It replaces a key/value list that nobody was going to read: five labels,
+   five sentences, ninety-seven words, all the same weight, on a page that
+   already had four bands of exactly that shape. The information was fine.
+   The shape was the problem — there was nothing to do with it but read it,
+   and a reader who is not yet sold does not read.
+
+   So the rows are large and the work answers them. Pointing at a row, or
+   tabbing to it, brings up the piece of work that row describes; the rest
+   of the rows drop back. Nothing is hidden from anyone who does not point —
+   every line is on the page at rest, and the panel simply starts on the
+   first row. That is the rule the whole device is built to: the image is a
+   reward for looking, never the only place the meaning lives.
+   -------------------------------------------------------------------------- */
+.comm{
+  display:grid;
+  grid-template-columns:minmax(0,1.15fr) minmax(0,min(38vw,520px));
+  gap:clamp(30px,5vw,72px);
+  align-items:start;
+  margin-top:clamp(26px,4vw,48px);
+}
+@media (max-width:900px){ .comm{grid-template-columns:1fr;} }
+
+.comm-rows{list-style:none; margin:0; padding:0; border-top:1px solid var(--rule-dk);}
+.comm-row{border-bottom:1px solid var(--rule-dk);}
+.comm-hit{
+  /* a button, because it does something; styled as a row, because it is one */
+  -webkit-appearance:none; appearance:none;
+  display:block; width:100%; text-align:left;
+  background:none; border:0; cursor:pointer;
+  padding:clamp(16px,2vw,26px) 0;
+  color:inherit; font:inherit;
+  /* The indent on hover is a transform, not padding. Padding re-wraps the
+     line under it, which changes the row's height, which moves every row
+     below it — a list that squirms away from the pointer as you go down it.
+     Measured: with padding, moving between rows landed on the wrong row
+     three times in five. A transform cannot reflow anything. */
+  transition:opacity .35s ease, transform .45s cubic-bezier(.2,.9,.3,1);
+}
+.comm-n{
+  display:block; margin-bottom:8px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  text-transform:uppercase; color:rgba(255,255,255,.4);
+  transition:color .35s ease;
+}
+.comm-t{
+  display:block;
+  font-weight:300; letter-spacing:-.025em; line-height:1.1;
+  font-size:clamp(1.35rem,2.9vw,2.15rem);
+  text-wrap:balance;
+}
+.comm-t b{font-weight:700;}
+.comm-s{
+  display:block; margin-top:10px; max-width:42ch;
+  font-weight:300; line-height:1.55; font-size:.95rem;
+  color:rgba(255,255,255,.62);
+}
+/* The rows that are not being pointed at step back rather than disappear:
+   opacity only, and only while the pointer is actually in the list, so the
+   band at rest is five rows of equal weight. */
+.comm-rows:hover .comm-row:not(:hover) .comm-hit,
+.comm-rows:focus-within .comm-row:not(:focus-within) .comm-hit{opacity:.42;}
+.comm-hit:hover, .comm-hit:focus-visible{transform:translateX(clamp(10px,1.4vw,22px));}
+.comm-hit:focus-visible{outline:none;}
+.comm-row:has(.comm-hit:focus-visible){border-left:2px solid var(--accent); }
+.comm-row.on .comm-n{color:var(--accent);}
+
+/* The panel. One frame, one image at a time; the outgoing one is cut rather
+   than crossfaded, because two product shots dissolving through each other
+   reads as a fault. */
+.comm-panel{
+  position:relative;
+  aspect-ratio:4 / 5;
+  overflow:hidden;
+  border-radius:2px;
+  background:#101013;
+}
+@media (max-width:900px){ .comm-panel{aspect-ratio:16 / 10;} }
+.comm-panel img{
+  position:absolute; inset:0;
+  width:100%; height:100%; object-fit:cover;
+  opacity:0; transition:opacity .3s ease-out, transform 1.2s cubic-bezier(.2,.8,.3,1);
+  transform:scale(1.04);
+}
+.comm-panel img.on{opacity:1; transform:scale(1);}
+@media (prefers-reduced-motion:reduce){
+  .comm-hit, .comm-panel img{transition:none;}
+}
 
 /* ==========================================================================
    KIND WORDS

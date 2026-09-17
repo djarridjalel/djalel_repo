@@ -458,6 +458,39 @@
     paint();
   });
 
+  /* ---- the index ---------------------------------------------------------
+     Five rows of type with the work beside them. Pointing at a row, or
+     tabbing to it, brings up the piece of work it describes.
+
+     Every row is a button rather than a div with a handler, which is what
+     makes it reachable by keyboard and announced as something that does
+     something; focus drives the panel exactly as the pointer does. The
+     panel is aria-hidden and every row carries its own words, so nothing
+     here is only available to someone who can point — the image is the
+     reward for looking, never the place the meaning lives.
+
+     Click is wired as well as hover for the touch case, where there is no
+     hover and a tap is the only way to ask. */
+  [].forEach.call(document.querySelectorAll('[data-comm-group]'), function(group){
+    var rows = [].slice.call(group.querySelectorAll('.comm-row'));
+    var hits = [].slice.call(group.querySelectorAll('.comm-hit'));
+    var imgs = [].slice.call(group.querySelectorAll('.comm-panel img'));
+    if(rows.length < 2 || rows.length !== imgs.length) return;
+
+    var at = 0;
+    function show(i){
+      if(i === at) return;
+      at = i;
+      rows.forEach(function(r, k){ r.classList.toggle('on', k === i); });
+      imgs.forEach(function(m, k){ m.classList.toggle('on', k === i); });
+    }
+    hits.forEach(function(h, i){
+      h.addEventListener('mouseenter', function(){ show(i); });
+      h.addEventListener('focus',      function(){ show(i); });
+      h.addEventListener('click',      function(){ show(i); });
+    });
+  });
+
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything
      carrying it is invisible until this runs — on a case study that includes
