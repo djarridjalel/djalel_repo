@@ -219,43 +219,11 @@
       b.type = 'button';
       b.className = 'reel-dot';
       b.setAttribute('aria-label', name ? name.textContent : 'Sheet ' + (i + 1));
-      b.addEventListener('click', function(){ to(i); hold(); });
+      b.addEventListener('click', function(){ to(i); });
       dotRow.appendChild(b);
       dots.push(b);
     });
     reel.appendChild(dotRow);
-
-    /* ---- the turn ------------------------------------------------------
-       The deck turns itself over every two seconds, so a visitor who never
-       touches it still sees all five sheets.
-
-       It stops whenever it would be rude or pointless: under the pointer or
-       keyboard focus, because that is someone reading one sheet on purpose;
-       off screen, because nothing is watching; on a hidden tab; and for
-       anyone who has asked for less motion. A manual pick restarts the
-       clock rather than leaving the next turn to land a fraction of a second
-       later. */
-    var TURN = 2000;
-    var beat = null, held = false, seen = false;
-    var still = window.matchMedia('(prefers-reduced-motion: reduce)');
-    function run(){
-      if(beat === null && seen && !held && !still.matches && !document.hidden){
-        beat = setInterval(function(){ at = (at + 1) % n; paint(); }, TURN);
-      }
-    }
-    function stop(){ if(beat !== null){ clearInterval(beat); beat = null; } }
-    function hold(){ stop(); run(); }
-    function grab(v){ held = v; v ? stop() : run(); }
-    reel.addEventListener('mouseenter', function(){ grab(true); });
-    reel.addEventListener('mouseleave', function(){ grab(false); });
-    reel.addEventListener('focusin',    function(){ grab(true); });
-    reel.addEventListener('focusout',   function(){ grab(false); });
-    document.addEventListener('visibilitychange', function(){ document.hidden ? stop() : run(); });
-    if('IntersectionObserver' in window){
-      new IntersectionObserver(function(es){
-        es.forEach(function(e){ seen = e.isIntersecting; seen ? run() : stop(); });
-      }, {threshold: 0.25}).observe(reel);
-    } else { seen = true; run(); }
 
     /* Selection no longer cares what kind of pointer this is — a click is a
        click. The lens still does: it is a hover effect, so it is built only
@@ -265,18 +233,18 @@
     cards.forEach(function(c, i){
       c.addEventListener('click', function(){
         if(dragged) return;            // the flick already chose; don't choose twice
-        to(i); hold();
+        to(i);
       });
     });
 
     reel.addEventListener('click', function(e){
       var arm = e.target.closest('[data-arm]');
-      if(arm){ go(+arm.getAttribute('data-arm')); hold(); }
+      if(arm) go(+arm.getAttribute('data-arm'));
     });
 
     reel.addEventListener('keydown', function(e){
-      if(e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); hold(); }
-      else if(e.key === 'ArrowRight'){ e.preventDefault(); go(1); hold(); }
+      if(e.key === 'ArrowLeft'){ e.preventDefault(); go(-1); }
+      else if(e.key === 'ArrowRight'){ e.preventDefault(); go(1); }
     });
 
     /* Drag, for a thumb as much as for a trackpad. The threshold is a
@@ -293,7 +261,7 @@
            select whatever sheet the finger happened to lift over. Anything
            shorter than the threshold is a click that wandered a little, and
            is still a pick. */
-        if(Math.abs(dx) > stage.clientWidth * 0.04){ dragged = true; go(dx < 0 ? 1 : -1); hold(); }
+        if(Math.abs(dx) > stage.clientWidth * 0.04){ dragged = true; go(dx < 0 ? 1 : -1); }
       });
       stage.addEventListener('pointercancel', function(){ down = null; });
     }
