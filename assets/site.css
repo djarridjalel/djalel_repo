@@ -1101,19 +1101,35 @@ a{color:inherit;}
    hairline between — close to a colophon, which is the right register for
    something that is supporting a headline rather than competing with it. */
 .disciplines{
+  /* The gap is the divider's room. It has to be a named value because the
+     line is drawn at its centre, and half of it is the clearance on each
+     side. */
+  --rail-gap:clamp(22px,2.6vw,40px);
   list-style:none; margin:clamp(30px,4.5vw,56px) 0 0; padding:0;
   display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
-  gap:0; border-top:1px solid var(--line);
+  column-gap:var(--rail-gap); row-gap:0;
+  border-top:1px solid var(--line);
 }
 .disciplines li{
-  /* The dividers stop where the longest cell's text stops, so with no bottom
-     padding the rail ended on a ragged baseline and read as a box someone
-     forgot to close. The padding is what gives the dividers something to run
-     past. */
-  padding:clamp(18px,2.2vw,28px) clamp(16px,2vw,28px) clamp(18px,2.2vw,28px) 0;
-  border-right:1px solid var(--line);
+  /* Padding on the block axis only. The dividers stop where the longest
+     cell's text stops, so with no bottom padding the rail ended on a ragged
+     baseline and read as a box someone forgot to close; the padding is what
+     gives them something to run past. */
+  position:relative;
+  padding:clamp(18px,2.2vw,28px) 0;
 }
-.disciplines li:last-child{border-right:0;}
+/* The divider used to be a border-right on the cell, which puts it hard
+   against the left edge of the cell after it — every entry but the first
+   began with its first letter touching a line. It is drawn in the middle of
+   the gap instead, so the same clearance falls on both sides of it, and the
+   cells keep identical text widths because none of them carries inline
+   padding any more. */
+.disciplines li:not(:first-child)::before{
+  content:"";
+  position:absolute; top:0; bottom:0;
+  left:calc(var(--rail-gap) / -2);
+  width:1px; background:var(--line);
+}
 .disciplines .k{
   display:block; margin-bottom:10px;
   font-family:var(--mono); font-size:.6rem; letter-spacing:.18em;
@@ -1133,13 +1149,18 @@ a{color:inherit;}
    two columns a cell is twice as wide and nothing wraps at all. */
 @media (max-width:1279px){
   .disciplines{grid-template-columns:repeat(2, minmax(0,1fr));}
-  .disciplines li:nth-child(2n){border-right:0;}
-  .disciplines li:nth-child(n+3){border-top:1px solid var(--line); margin-top:-1px; padding-top:clamp(18px,2.2vw,28px);}
+  /* at two columns only the second cell of each row has a line to its left */
+  .disciplines li:nth-child(odd)::before{content:none;}
+  .disciplines li:nth-child(n+3){border-top:1px solid var(--line);}
 }
 @media (max-width:520px){
   .disciplines{grid-template-columns:1fr;}
-  .disciplines li{border-right:0; border-top:1px solid var(--line); margin-top:-1px;}
-  .disciplines li:first-child{border-top:0; margin-top:0;}
+  /* Specificity, not order: the base rule is li:not(:first-child)::before,
+     which counts the :not() as a class and so beats a plain li::before
+     wherever it sits. Measured, the vertical dividers survived into the
+     single-column layout on every width from 380 to 520. Matched here. */
+  .disciplines li:not(:first-child)::before{content:none;}
+  .disciplines li + li{border-top:1px solid var(--line);}
 }
 
 /* --------------------------------------------------------------------------
