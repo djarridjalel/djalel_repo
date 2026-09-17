@@ -157,8 +157,13 @@
     var n = cards.length;
     if(n < 2) return;
 
-    // open on the middle sheet, so the row is balanced before it is touched
-    var at = Math.floor(n / 2);
+    /* Open on the first sheet. It used to open on the middle one, to balance
+       a row that ran both ways from the sheet being shown — but the deck no
+       longer works that way: whichever sheet is chosen moves to the hero slot
+       at the edge of the frame, so every choice looks the same from the
+       outside. What is left of the old default is only that the deck opened
+       on a sheet nobody picked. First is the one that can be arranged. */
+    var at = 0;
 
     function paint(){
       cards.forEach(function(c, i){
