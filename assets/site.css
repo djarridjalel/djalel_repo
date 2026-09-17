@@ -21,6 +21,7 @@
   --display:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --edge:clamp(24px, 6vw, 104px);
   --slab:clamp(56px, 9vh, 128px);   /* the vertical unit every act is set on */
+  --seam:clamp(34px, 5vh, 64px);   /* the air on each side of a section rule */
 
   /* Accent — one flat colour, never a ramp, and only ever under the pointer.
      #FFCE00 is 13.27:1 on ink and 1.32:1 on bone, so the light grounds use
@@ -138,9 +139,40 @@ a{color:inherit;}
    at the top of the second one does the job the colour used to. It sits on
    the wrap so it starts and stops at the same gutter as everything else —
    a full-bleed line would be a new device in a design that has none. */
-.band-ink + .band-ink > .wrap{ border-top:1px solid var(--rule-dk); padding-top:var(--slab); }
-.band-bone + .band-bone > .wrap{ border-top:1px solid var(--rule); padding-top:var(--slab); }
+/* A slab under the last line and a slab over the next one put 162px between
+   two paragraphs with a hairline marooned in the middle of it. That was the
+   right measure while the grounds alternated — the gap was a change of room,
+   and the rule only had to mark where one ended. On one continuous ground
+   there is no room change to justify it, and the rule is doing the whole
+   job, so it moves close to the section it introduces: the slab below stays,
+   the space above it comes down to about half. Measured at 1440x900, 162px
+   becomes 115px. */
+.band-ink + .band-ink > .wrap{ border-top:1px solid var(--rule-dk); padding-top:var(--seam); }
+.band-bone + .band-bone > .wrap{ border-top:1px solid var(--rule); padding-top:var(--seam); }
 .band-ink + .band-ink, .band-bone + .band-bone{ padding-top:0; }
+
+/* Half a seam is not a seam. Pulling the rule down toward the section it
+   introduces only moved the dead space above it — measured 109px over the
+   rule against 38px under it, which is the same hole in a different place.
+   The section above has to give up its slab too, so the air is a seam on
+   each side of the line rather than a slab on one.
+
+   :has, so a section only tightens when something follows it on the same
+   ground; the last one before the footer keeps its full slab. Where it is
+   not supported the declaration is dropped and the spacing falls back to
+   what it was, which is loose rather than broken. */
+.band-bone:has(+ .band-bone), .band-ink:has(+ .band-ink),
+.band:has(+ .shelf), .band:has(+ .clients),
+.shelf:has(+ .band), .clients:has(+ .band),
+.shelf:has(+ .clients), .clients:has(+ .shelf){ padding-bottom:var(--seam); }
+
+/* The shelf and the client strip are not .band, so they never took part in
+   the rule above and kept a full slab on both sides of every seam — the two
+   widest gaps on the page, 178px and 162px. They are full-bleed and carry
+   their own character, so they need no hairline; they do need the same
+   measure as everything else. */
+.band + .shelf, .band + .clients{ padding-top:var(--seam); }
+.shelf + .band, .clients + .band, .shelf + .clients, .clients + .shelf{ padding-top:var(--seam); }
 .measure{max-width:62ch;}
 
 .eyebrow{
@@ -1074,7 +1106,11 @@ a{color:inherit;}
   gap:0; border-top:1px solid var(--line);
 }
 .disciplines li{
-  padding:clamp(18px,2.2vw,28px) clamp(16px,2vw,28px) 0 0;
+  /* The dividers stop where the longest cell's text stops, so with no bottom
+     padding the rail ended on a ragged baseline and read as a box someone
+     forgot to close. The padding is what gives the dividers something to run
+     past. */
+  padding:clamp(18px,2.2vw,28px) clamp(16px,2vw,28px) clamp(18px,2.2vw,28px) 0;
   border-right:1px solid var(--line);
 }
 .disciplines li:last-child{border-right:0;}
