@@ -371,11 +371,15 @@ a{color:inherit;}
   display:flex;
   width:max-content;
   animation:shelf-drift 140s linear infinite;   /* half speed */
+  /* Both rows are reversed from where they started: the front one now runs
+     the way the back one used to and the other way about. The keyframes are
+     unchanged — only which row plays them backwards. */
+  animation-direction:reverse;
   will-change:transform;
 }
 /* the second row runs the other way and slower, so the two never lock into
    a single readable block sliding past */
-.shelf-row.back{animation-duration:184s; animation-direction:reverse;}   /* half speed */
+.shelf-row.back{animation-duration:184s; animation-direction:normal;}   /* half speed */
 .shelf-card{
   position:relative;
   flex:0 0 auto;
@@ -461,11 +465,10 @@ a{color:inherit;}
      the brief — 77px clear of the front sheet and onto the case-study
      link. */
   position:relative;
-  /* The share of the column the sheet takes is whatever the step leaves
-     over: at a 6% step the four bands behind it come to 0.24 of a sheet, so
-     the sheet is 1/1.24 of the column. Change the step and this has to
-     change with it or the fan stops filling its column. */
-  width:80.6%;
+  /* The sheet is the whole column now: with no step there is nothing beside
+     it to leave room for. Put a step back and this has to come down with it
+     — the sheet's share is always 1/(1 + 4 x step). */
+  width:100%;
   margin-right:auto;
   aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
 }
@@ -500,10 +503,13 @@ a{color:inherit;}
      one brings it out to the front of the frame and shuffles the rest back
      by one; every sheet keeps a band of its own face exposed at all times.
 
-     The step is 6%, a 28px band at 1440. It was 79px, sized to be an easy
-     thing to click; the dots under the deck do that job now, so the bands
-     are free to close right up into something that reads as one stack of
-     paper rather than four sheets laid out side by side.
+     The step is zero. The sheets sit exactly behind one another, so what
+     the page shows is one poster and the four behind it are out of sight.
+     The band started at 79px, sized to be an easy thing to click; once the
+     dots took that job over it had nothing left to do, and closing it all
+     the way is the end of that. Nothing here is a hover target any more —
+     only the top sheet can be pointed at — which is why the dots have to
+     stay.
 
      --p is the slot the script assigns. --i, the written order, is the
      fallback: with no script the deck still fans instead of collapsing into
@@ -514,7 +520,7 @@ a{color:inherit;}
     perspective(1500px)
     /* Inward: --fan is -1 where the gallery sits on the right of the frame
        and 1 where it sits on the left. */
-    translateX(calc(var(--slot) * 6% * var(--fan, 1) * var(--fan-scale, 1)))
+    translateX(calc(var(--slot) * 0% * var(--fan, 1) * var(--fan-scale, 1)))
     /* No vertical step: the sheets sit on one line and the fan is purely
        lateral. It also exposes more of each sheet than the staircase did —
        a full-height band rather than a corner. */
@@ -529,7 +535,12 @@ a{color:inherit;}
 }
 .reel-sheet{
   position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;
-  filter:blur(min(calc(var(--slot, 0) * 3.4px), 11px));
+  /* Blur and wash were what held the back sheets back when a band of each
+     was showing. Stacked, they are behind an opaque sheet and none of it
+     reaches the screen — but a filter still rasterises, and this is twelve
+     blur passes a frame across three galleries for nothing. Both are off
+     while the step is zero; restore them with it. */
+  filter:none;
   transition:filter var(--pace-fx) ease-out;
 }
 /* The glass the sheet is set behind. Two layers, because they answer to
@@ -562,7 +573,7 @@ a{color:inherit;}
 .reel-sheet::after{
   z-index:3;
   background:#fff;
-  opacity:calc(min(var(--slot, 0), 3) * 0.26);
+  opacity:0;
   transition:opacity var(--pace-fx) ease-out;
 }
 .reel-card img{
@@ -609,7 +620,7 @@ a{color:inherit;}
    it, which is the smallest honest target on a touch screen. */
 .reel-dots{
   display:flex; gap:4px;
-  width:80.6%;
+  width:100%;
   margin:76px auto 0 0;
   padding:0;
 }
@@ -719,14 +730,13 @@ a{color:inherit;}
   /* The column is the sheet plus the run the deck needs behind it, and the
      two move together: close the deck up and the column has to come in with
      it or the gallery sits in a pool of its own empty space. At 10% a step,
-     sheet + four bands is 1.24 sheets at a 6% step, so the fan fills its column
-     exactly at every width — which makes the column the one number that sets
-     how big the sheet is. At 41vw the sheet is 472px at 1440, against the
-     391px it was, and the tighter step hands the brief back the width the
-     bands are no longer using. Measured in vw rather than percent because
-     the wrap is already inset by the page gutter; capped so it does not run
-     away on a very wide screen. */
-  grid-template-columns:minmax(0,1fr) minmax(0,min(41vw,585px));
+     there is no step left, so the deck is exactly one sheet wide and the column
+     is exactly the sheet: 472px at 1440, the same sheet it was when four
+     bands stood beside it, with the 113px they used to take handed back to
+     the brief. Measured in vw rather than percent because the wrap is
+     already inset by the page gutter; capped so it does not run away on a
+     very wide screen. */
+  grid-template-columns:minmax(0,1fr) minmax(0,min(33vw,472px));
   /* How far past the wrap the gallery sits. The brief stays on the type
      grid; the gallery is a picture, and it is allowed to run out into the
      page gutter toward the edge of the screen — which is what stops the row
@@ -738,7 +748,7 @@ a{color:inherit;}
   gap:clamp(30px,5vw,80px);
   align-items:center;
 }
-.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(41vw,585px)) minmax(0,1fr); --fan:-1;}
+.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(33vw,472px)) minmax(0,1fr); --fan:-1;}
 .showcase:nth-of-type(even) .showcase-text{order:2;}
 /* Shifted, not widened: a negative margin would grow the reel inside its
    track and take the sheet with it, so the offset is a relative one. The
