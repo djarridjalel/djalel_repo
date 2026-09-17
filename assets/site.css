@@ -345,7 +345,11 @@ a{color:inherit;}
    wall pasted onto it. */
 .shelf{
   position:relative;
-  background:var(--ink);
+  /* Dark grey, not the near-black the rest of the ink bands are set on. A
+     packshot shot on white sitting on #0A0A0B is a hole cut in the page;
+     lifting the ground to a grey gives the cards something to sit on rather
+     than fall out of. */
+  background:#1E1F23;
   padding-block:var(--slab);
   overflow:hidden;
 }
@@ -366,12 +370,12 @@ a{color:inherit;}
 .shelf-row{
   display:flex;
   width:max-content;
-  animation:shelf-drift 70s linear infinite;
+  animation:shelf-drift 140s linear infinite;   /* half speed */
   will-change:transform;
 }
 /* the second row runs the other way and slower, so the two never lock into
    a single readable block sliding past */
-.shelf-row.back{animation-duration:92s; animation-direction:reverse;}
+.shelf-row.back{animation-duration:184s; animation-direction:reverse;}   /* half speed */
 .shelf-card{
   position:relative;
   flex:0 0 auto;
@@ -382,7 +386,7 @@ a{color:inherit;}
                                               and the loop drifts each cycle */
   border-radius:9px;
   overflow:hidden;
-  background:#15161A;
+  background:#26272C;   /* the card's own ground, a step up from the band's */
 }
 .shelf-card img{width:100%; height:100%; object-fit:cover;}
 /* The hold-back is a veil, not a filter. There are sixty-two cards in this
@@ -398,7 +402,7 @@ a{color:inherit;}
 .shelf-card::after{
   content:"";
   position:absolute; inset:0;
-  background:rgba(10,10,11,.58);
+  background:rgba(30,31,35,.58);
   transition:opacity .45s ease;
 }
 .shelf-card:hover::after{opacity:0;}
@@ -457,11 +461,10 @@ a{color:inherit;}
      the brief — 77px clear of the front sheet and onto the case-study
      link. */
   position:relative;
-  /* 59% of a 48vw column is the same sheet as 70% of a 40vw one — measured,
-     393px against 389px at 1440. The column grew; the sheet did not. What
-     grew is the run beside it, which is where the band of each back sheet
-     is. */
-  width:59%;
+  /* The sheet has stayed the same size through every change to the deck
+     around it: 389px at 1440 when it was 70% of a 40vw column, 393px at 59%
+     of 48vw, 391px here at 71.5% of 38vw. Only the run beside it moves. */
+  width:71.5%;
   margin-right:auto;
   aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
 }
@@ -496,9 +499,10 @@ a{color:inherit;}
      one brings it out to the front of the frame and shuffles the rest back
      by one; every sheet keeps a band of its own face exposed at all times.
 
-     The step is set so that band is 79px wide at 1440 rather than the 52px
-     it was — half again as much sheet to read and to aim at, measured at
-     17-20% of each card's face against 11-14% before.
+     The step is 10%, a 39px band at 1440. It was 79px, sized to be an easy
+     thing to click; the dots under the deck do that job now, so the bands
+     are free to close up into something that reads as one stack of paper
+     rather than four sheets laid out side by side.
 
      --p is the slot the script assigns. --i, the written order, is the
      fallback: with no script the deck still fans instead of collapsing into
@@ -509,7 +513,7 @@ a{color:inherit;}
     perspective(1500px)
     /* Inward: --fan is -1 where the gallery sits on the right of the frame
        and 1 where it sits on the left. */
-    translateX(calc(var(--slot) * 19.5% * var(--fan, 1) * var(--fan-scale, 1)))
+    translateX(calc(var(--slot) * 10% * var(--fan, 1) * var(--fan-scale, 1)))
     /* No vertical step: the sheets sit on one line and the fan is purely
        lateral. It also exposes more of each sheet than the staircase did —
        a full-height band rather than a corner. */
@@ -586,6 +590,49 @@ a{color:inherit;}
   transition:opacity var(--pace-fx) ease-out;
 }
 .reel-card.on .reel-cap{opacity:1;}
+/* --- the dots ---------------------------------------------------------
+   Under the deck, aligned with the sheet rather than with the column, so
+   the control sits beneath the thing it controls on both sides of the page.
+   The caption above them is absolutely positioned and takes no room in the
+   flow, so the top margin is what clears it.
+
+   A dot is a hairline ring that fills in when it is the one being shown.
+   Nothing grows, nothing colours: on a bone ground with five posters
+   already competing, a control that announces itself is one more thing to
+   look at. The hit area is 24px square with the mark drawn at 7px inside
+   it, which is the smallest honest target on a touch screen. */
+.reel-dots{
+  display:flex; gap:4px;
+  width:71.5%;
+  margin:76px auto 0 0;
+  padding:0;
+}
+.showcase:nth-of-type(even) .reel-dots{margin-right:0; margin-left:auto;}
+.reel-dot{
+  -webkit-appearance:none; appearance:none;
+  width:24px; height:24px; padding:0;
+  background:none; border:0; cursor:pointer;
+  display:grid; place-items:center;
+}
+.reel-dot::before{
+  content:"";
+  width:7px; height:7px; border-radius:50%;
+  border:1px solid rgba(10,10,11,.34);
+  background:transparent;
+  transition:background .25s ease, border-color .25s ease;
+}
+.reel-dot:hover::before{border-color:rgba(10,10,11,.6);}
+.reel-dot.on::before{background:var(--ink); border-color:var(--ink);}
+.reel-dot:focus-visible{outline:1px solid var(--ink); outline-offset:-4px; border-radius:50%;}
+/* The arrows were the touch-screen and keyboard control. The dots are both,
+   on every input, and say how many sheets there are while they do it — two
+   controls for one job is one too many, so the arrows stand down. The markup
+   stays where it is; only this hides it. */
+.reel-arms{display:none !important;}
+@media (max-width:860px){
+  /* Stacked, the deck stops alternating, and so do the dots. */
+  .reel-dots, .showcase:nth-of-type(even) .reel-dots{margin-left:0; margin-right:auto;}
+}
 .reel-cap b{
   display:block; font-weight:500; letter-spacing:-.005em;
   font-size:clamp(.78rem, .92vw, .95rem); line-height:1.25;
@@ -650,7 +697,7 @@ a{color:inherit;}
    Three brands down one column. The air between them is the only thing
    separating them — no rules, no cards, nothing drawn — so it has to be
    unmistakably more than the air inside one. */
-.showcase + .showcase{margin-top:clamp(96px, 13vh, 150px);}
+.showcase + .showcase{margin-top:clamp(150px, 20vh, 240px);}
 /* The brief on one side, the gallery on the other, and the sides swap case
    by case so the eye is handed across the page rather than marched down it.
    The gallery takes 40% of the frame: large enough that a poster is a
@@ -663,18 +710,19 @@ a{color:inherit;}
      measured; fanned any further out it would leave the page. */
   --fan:1;
   display:grid;
-  /* The column is wider than the sheet it holds. The sheet is the 40% of the
-     frame the brief asks for — measured in vw, not in percent, because the
-     wrap is already inset by the page gutter and a percentage here lands
-     near 35% — and the rest of the column is the run the fan needs. Widen
-     the band behind the front sheet and that run has to grow with it, or
-     the last card is pushed onto the brief. Capped so the sheet does not
-     run away on a very wide screen and leave the brief in a gutter. */
-  grid-template-columns:minmax(0,1fr) minmax(0,min(48vw,700px));
+  /* The column is the sheet plus the run the deck needs behind it, and the
+     two move together: close the deck up and the column has to come in with
+     it or the gallery sits in a pool of its own empty space. At 10% a step,
+     sheet + four bands is 1.4 sheets, and 71.5% of the column is the same
+     sheet it has always been — 391px at 1440 — so the fan fills its column
+     exactly at every width and the brief gets the rest back. Measured in vw
+     rather than percent because the wrap is already inset by the page
+     gutter; capped so the sheet does not run away on a very wide screen. */
+  grid-template-columns:minmax(0,1fr) minmax(0,min(38vw,550px));
   gap:clamp(30px,5vw,80px);
   align-items:center;
 }
-.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(48vw,700px)) minmax(0,1fr); --fan:-1;}
+.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(38vw,550px)) minmax(0,1fr); --fan:-1;}
 .showcase:nth-of-type(even) .showcase-text{order:2;}
 .showcase-text{display:flex; flex-direction:column; gap:clamp(18px,2.4vw,34px);}
 @media (max-width:860px){
@@ -733,7 +781,7 @@ a{color:inherit;}
   .reel-stage{width:70%;}
   .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
   .reel-arm{position:static; translate:none;}
-  .showcase + .showcase{margin-top:clamp(72px, 11vh, 120px);}
+  .showcase + .showcase{margin-top:clamp(104px, 16vh, 170px);}
 }
 
 @media (prefers-reduced-motion: reduce){
