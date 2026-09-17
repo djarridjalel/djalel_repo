@@ -34,8 +34,12 @@
   *{box-sizing:border-box;}
   html,body{margin:0; padding:0;}
   body{
-    background:var(--ink);
-    color:var(--paper);
+    /* The page ground, not the hero's — the hero sets its own on .hero
+       below and is untouched. This was ink, which showed through as a black
+       strip wherever a section did not paint: under the fixed bar, in the
+       gaps, and in the overscroll. */
+    background:var(--bone);
+    color:var(--ink);
     font-family:var(--display);
     -webkit-font-smoothing:antialiased;
     -moz-osx-font-smoothing:grayscale;
@@ -619,7 +623,7 @@
 
 </header>
 
-<section class="band band-ink" id="work">
+<section class="band band-bone" id="work">
   <div class="wrap">
     <p class="eyebrow" data-ed="index.t6">Verified record</p>
     <div class="proof">
@@ -841,7 +845,7 @@
 </section>
 
 
-<section class="band band-ink" id="expertise">
+<section class="band band-bone" id="expertise">
   <div class="wrap">
     <p class="eyebrow" data-ed="index.t21">What this is actually for</p>
     <!-- Was a headline, a lede and four tiles carrying a paragraph each:
@@ -864,7 +868,7 @@
      the studio on that basis looks like. It reuses .facts — the key/value
      list the homepage About band gave up when its credentials came out —
      rather than a second .caps grid directly under the first. -->
-<section class="band band-ink" id="commissions">
+<section class="band band-bone" id="commissions">
   <div class="wrap">
     <p class="eyebrow" data-ed="index.t81">What you can commission</p>
     <h2 class="h-sec gt gt-zone measure" data-ed="index.t82">Five ways the studio is usually <b>brought in.</b></h2>
@@ -917,7 +921,7 @@
   </div>
 </section>
 
-<section class="band band-ink" id="kind-words">
+<section class="band band-bone" id="kind-words">
   <div class="wrap">
     <p class="eyebrow" data-ed="index.t37">Kind words</p>
     <!-- The placeholder was 122 words explaining why it was empty, set in a
@@ -931,7 +935,7 @@
   </div>
 </section>
 
-<section class="band band-ink" id="about">
+<section class="band band-bone" id="about">
   <div class="wrap">
     <p class="eyebrow" data-ed="index.t42">About</p>
     <!-- No longer a two-column split: the credentials list that filled the
@@ -1026,7 +1030,7 @@
   </div>
 </section>
 
-<section class="band band-ink" id="contact">
+<section class="band band-bone" id="contact">
   <div class="wrap">
     <p class="eyebrow" data-ed="index.t46">Start a project</p>
     <!-- An invitation, not a closing argument. The old headline gave advice
