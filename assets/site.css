@@ -1124,7 +1124,14 @@ a{color:inherit;}
   font-size:clamp(.95rem,1.15vw,1.08rem); color:var(--fg-2);
   letter-spacing:-.01em;
 }
-@media (max-width:860px){
+/* Four columns only where four columns can hold one line each. Matching the
+   four entries to within 7px closed almost all of the raggedness, but a band
+   around 1231px was left where the shortest fitted and the other three did
+   not — and one cell an inch shorter than its neighbours is exactly what the
+   dividers make obvious. Measured, the four go to one line together at
+   1268px, so the rail breaks to two columns below 1280 rather than 860; at
+   two columns a cell is twice as wide and nothing wraps at all. */
+@media (max-width:1279px){
   .disciplines{grid-template-columns:repeat(2, minmax(0,1fr));}
   .disciplines li:nth-child(2n){border-right:0;}
   .disciplines li:nth-child(n+3){border-top:1px solid var(--line); margin-top:-1px; padding-top:clamp(18px,2.2vw,28px);}
