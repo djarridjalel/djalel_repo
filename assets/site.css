@@ -1122,6 +1122,16 @@ a{color:inherit;}
 }
 .close-line b{font-weight:700;}
 .close-actions{display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,40px); align-items:center;}
+/* The one action on the page that is the point of the page. It is the same
+   link as every other — same mono, same rule under it, same arrow — just
+   set a size up, because a lone control at the standard size reads as a
+   footnote rather than as the thing being asked for. */
+.close-mail{
+  font-size:clamp(.78rem, 1.15vw, .95rem);
+  letter-spacing:.12em;
+  padding-bottom:8px;
+  border-bottom-width:2px;
+}
 
 /* ==========================================================================
    FOOTER
