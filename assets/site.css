@@ -345,11 +345,7 @@ a{color:inherit;}
    wall pasted onto it. */
 .shelf{
   position:relative;
-  /* Dark grey, not the near-black the rest of the ink bands are set on. A
-     packshot shot on white sitting on #0A0A0B is a hole cut in the page;
-     lifting the ground to a grey gives the cards something to sit on rather
-     than fall out of. */
-  background:#1E1F23;
+  background:var(--ink);
   padding-block:var(--slab);
   overflow:hidden;
 }
@@ -390,7 +386,7 @@ a{color:inherit;}
                                               and the loop drifts each cycle */
   border-radius:9px;
   overflow:hidden;
-  background:#26272C;   /* the card's own ground, a step up from the band's */
+  background:#15161A;   /* the card's own ground, a step up from the band's */
 }
 .shelf-card img{width:100%; height:100%; object-fit:cover;}
 /* The hold-back is a veil, not a filter. There are sixty-two cards in this
@@ -406,7 +402,7 @@ a{color:inherit;}
 .shelf-card::after{
   content:"";
   position:absolute; inset:0;
-  background:rgba(30,31,35,.58);
+  background:rgba(10,10,11,.58);
   transition:opacity .45s ease;
 }
 .shelf-card:hover::after{opacity:0;}
