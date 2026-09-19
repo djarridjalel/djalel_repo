@@ -1245,7 +1245,13 @@ a{color:inherit;}
    reads as a fault. */
 .comm-panel{
   position:relative;
-  aspect-ratio:4 / 5;
+  /* A4, the same constant the case-study reels are built on - because what
+     goes in here is artwork that was drawn on a sheet. At 4:5 the frame was
+     a shape of its own and object-fit ate whatever did not agree with it:
+     the dimension arrows off the sides of a dieline, the edge of a
+     catalogue spread. Every one of the five is now fitted to 210:297 at
+     source, so the frame crops nothing. */
+  aspect-ratio:210 / 297;
   overflow:hidden;
   border-radius:2px;
   background:rgba(10,10,11,.06);
@@ -1265,7 +1271,21 @@ a{color:inherit;}
 /* Stacked there is no gutter to run into, and a 4:5 frame the full width of
    a phone is taller than the screen. Wider and squarer, but still bigger
    than the 16:10 slot it replaces. */
-@media (max-width:900px){ .comm-panel{aspect-ratio:5 / 4; margin-right:0;} }
+/* Stacked the frame stays A4 - a phone is the last place to start cropping
+   the work - but the full column width would make it 82% of a tablet's
+   screen, so the sheet is capped against the viewport height and centred.
+   At 390px the column is narrower than the cap and nothing binds. */
+@media (max-width:900px){
+  .comm-panel{
+    margin-right:0;
+    /* A width, not auto margins. Auto margins take a grid item out of
+       stretch and make it shrink to fit - and every image in here is
+       absolutely positioned, so there is no content to fit and the frame
+       collapsed to nothing. */
+    width:min(100%, 58vh);
+    justify-self:center;
+  }
+}
 .comm-panel img{
   position:absolute; inset:0;
   width:100%; height:100%; object-fit:cover;
