@@ -1,0 +1,1742 @@
+/* ==========================================================================
+   DJARRI DESIGN STUDIO — shared stylesheet
+   Loaded by every page. index.html additionally carries the hero's own
+   stylesheet inline, after this one, so the hero always wins its cascade.
+
+   The site is a sequence of grounds, not a stack of cards: ink for voice,
+   bone for evidence. Ink is where the studio speaks — the hero, the work
+   index, the testimonial. Bone is where the work is examined — the spec
+   sheets, the expertise, the about. Alternating them is the structure, so
+   sections need no boxes, borders or shadows to separate them.
+   ========================================================================== */
+
+:root{
+  --ink:#0A0A0B;
+  --paper:#FFFFFF;
+  --bone:#F2F1EE;      /* dossier ground — warm off-white, biased toward the
+                          accent's hue so the neutral reads as chosen */
+  --rule:rgba(10,10,11,.14);
+  --rule-dk:rgba(255,255,255,.14);
+  --mono:'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --display:'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --edge:clamp(24px, 6vw, 104px);
+  --slab:clamp(56px, 9vh, 128px);   /* the vertical unit every act is set on */
+  --seam:clamp(34px, 5vh, 64px);   /* the air on each side of a section rule */
+
+  /* Accent — one flat colour, never a ramp, and only ever under the pointer.
+     #FFCE00 is 13.27:1 on ink and 1.32:1 on bone, so the light grounds use
+     --a-dark (#6E5400, 6.34:1) instead: same hue, legible on paper. */
+  --accent:#FFCE00;
+  --a-dark:#6E5400;
+
+  /* Ground tokens. A component asks for "second-level text on whatever
+     ground I am on" rather than for a particular white or black, so a
+     section that changes ground takes its contents with it. Before these,
+     fifty hard-coded rgba(255,255,255,...) values were scattered through the
+     components, and turning the site light meant finding all fifty. */
+  --fg:var(--ink);
+  --fg-2:rgba(10,10,11,.74);
+  /* Solved, not guessed: on bone the minimum alpha for 4.5:1 is .566, so
+     everything under it failed. These sit at 5.4:1 and 4.7:1 — a visible
+     hierarchy where both levels are still legible at 9px. */
+  --fg-3:rgba(10,10,11,.62);
+  --fg-4:rgba(10,10,11,.58);
+  --line:var(--rule);
+}
+/* the two grounds that are still dark: the homepage hero and the case-study
+   posters. Anything set inside one of them flips by inheritance. */
+.band-ink, .on-dark{
+  --fg:var(--paper);
+  --fg-2:rgba(255,255,255,.78);
+  --fg-3:rgba(255,255,255,.52);
+  --fg-4:rgba(255,255,255,.42);
+  --line:var(--rule-dk);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion:reduce){ html{scroll-behavior:auto;} }
+html,body{margin:0; padding:0;}
+body{
+  /* The page's own ground. It used to be ink, which was invisible while
+     every section painted over it — but the nav offset, the gaps between
+     sections and the overscroll area are the body, and they all came out
+     black. The hero paints its own dark ground on top of this. */
+  background:var(--bone);
+  color:var(--ink);
+  font-family:var(--display);
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+img{display:block;}
+/* `hidden` has to actually hide. The attribute only carries the user agent's
+   own display:none, which any component rule setting a display beats — and
+   the homepage's own stylesheet loads after this one, so order will not
+   settle it either. This is the one place !important is the correct tool:
+   the attribute is a statement about whether the element exists at all, not
+   a style to be negotiated with. */
+[hidden]{display:none !important;}
+a{color:inherit;}
+:focus-visible{outline:2px solid var(--accent); outline-offset:3px;}
+
+/* ==========================================================================
+   NAVIGATION
+   On the homepage the bar does not exist until the hero has been scrolled
+   past — the hero carries its own wordmark and credentials rail, and a bar
+   laid over it would only repeat them on top of the composition. On every
+   other page there is no hero to protect, so it is present from the start.
+   ========================================================================== */
+.nav{
+  position:fixed; inset:0 0 auto 0; z-index:60;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:24px;
+  padding:14px var(--edge);
+  /* The bar is light because everything it can ever sit over is light: on
+     the homepage it does not exist until the hero has been scrolled past,
+     and every other page leads with the bar on bone. */
+  background:rgba(242,241,238,.86);
+  color:var(--ink);
+  backdrop-filter:saturate(140%) blur(14px);
+  -webkit-backdrop-filter:saturate(140%) blur(14px);
+  border-bottom:1px solid var(--rule);
+  transition:transform .4s cubic-bezier(.2,.7,.3,1), opacity .3s ease;
+}
+.nav-hidden{transform:translateY(-102%); opacity:0; pointer-events:none;}
+.nav-mark{
+  font-size:.95rem; letter-spacing:.06em; text-decoration:none; white-space:nowrap;
+}
+.nav-mark .n{font-weight:700;}
+.nav-mark .s{font-weight:300; color:var(--fg-3); margin-left:.5em;}
+.nav-links{display:flex; align-items:center; gap:clamp(16px,2.4vw,34px);}
+.nav-links a{
+  font-family:var(--mono);
+  font-size:.68rem; letter-spacing:.16em; text-transform:uppercase;
+  color:rgba(10,10,11,.66); text-decoration:none;
+  padding:6px 0; border-bottom:1px solid transparent;
+  transition:color .25s ease, border-color .25s ease;
+}
+.nav-links a:hover, .nav-links a[aria-current="page"]{
+  color:var(--ink); border-bottom-color:var(--a-dark);
+}
+@media (max-width:560px){
+  .nav-mark .s{display:none;}
+  .nav-links{gap:16px;}
+  .nav-links a{font-size:.62rem; letter-spacing:.12em;}
+}
+/* pages that lead with the bar rather than a hero need the space back */
+.has-nav-offset{padding-top:58px;}
+
+/* ==========================================================================
+   SHARED SECTION FURNITURE
+   ========================================================================== */
+.band{padding:var(--slab) var(--edge);}
+.band-bone{background:var(--bone); color:var(--ink);}
+.band-ink{background:var(--ink); color:var(--paper);}
+.wrap{max-width:1320px; margin:0 auto;}
+
+/* Where two bands share a ground, the change of ground is not there to
+   separate them and they run together into one undivided mass. A hairline
+   at the top of the second one does the job the colour used to. It sits on
+   the wrap so it starts and stops at the same gutter as everything else —
+   a full-bleed line would be a new device in a design that has none. */
+/* A slab under the last line and a slab over the next one put 162px between
+   two paragraphs with a hairline marooned in the middle of it. That was the
+   right measure while the grounds alternated — the gap was a change of room,
+   and the rule only had to mark where one ended. On one continuous ground
+   there is no room change to justify it, and the rule is doing the whole
+   job, so it moves close to the section it introduces: the slab below stays,
+   the space above it comes down to about half. Measured at 1440x900, 162px
+   becomes 115px. */
+.band-ink + .band-ink > .wrap{ border-top:1px solid var(--rule-dk); padding-top:var(--seam); }
+.band-bone + .band-bone > .wrap{ border-top:1px solid var(--rule); padding-top:var(--seam); }
+.band-ink + .band-ink, .band-bone + .band-bone{ padding-top:0; }
+
+/* Half a seam is not a seam. Pulling the rule down toward the section it
+   introduces only moved the dead space above it — measured 109px over the
+   rule against 38px under it, which is the same hole in a different place.
+   The section above has to give up its slab too, so the air is a seam on
+   each side of the line rather than a slab on one.
+
+   :has, so a section only tightens when something follows it on the same
+   ground; the last one before the footer keeps its full slab. Where it is
+   not supported the declaration is dropped and the spacing falls back to
+   what it was, which is loose rather than broken. */
+.band-bone:has(+ .band-bone), .band-ink:has(+ .band-ink),
+.band:has(+ .shelf), .band:has(+ .clients),
+.shelf:has(+ .band), .clients:has(+ .band),
+.shelf:has(+ .clients), .clients:has(+ .shelf){ padding-bottom:var(--seam); }
+
+/* The shelf and the client strip are not .band, so they never took part in
+   the rule above and kept a full slab on both sides of every seam — the two
+   widest gaps on the page, 178px and 162px. They are full-bleed and carry
+   their own character, so they need no hairline; they do need the same
+   measure as everything else. */
+.band + .shelf, .band + .clients{ padding-top:var(--seam); }
+.shelf + .band, .clients + .band, .shelf + .clients, .clients + .shelf{ padding-top:var(--seam); }
+.measure{max-width:62ch;}
+
+.eyebrow{
+  font-family:var(--mono);
+  font-size:.66rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--fg-3);
+  margin:0 0 20px;
+}
+
+.h-sec{
+  margin:0 0 clamp(28px,4vw,54px);
+  font-weight:300;
+  font-size:clamp(1.5rem, 3.2vw, 2.6rem);
+  line-height:1.14; letter-spacing:-.025em;
+  text-wrap:balance;
+}
+.h-sec b{font-weight:700;}
+
+.lede{
+  font-weight:300;
+  font-size:clamp(1rem, 1.45vw, 1.2rem);
+  line-height:1.62;
+  color:var(--fg-2);
+  margin:0 0 22px;
+}
+
+/* a text link that behaves like the accent does everywhere else */
+.tlink{
+  font-family:var(--mono);
+  font-size:.7rem; letter-spacing:.16em; text-transform:uppercase;
+  text-decoration:none;
+  display:inline-flex; align-items:center; gap:.7em;
+  border-bottom:1px solid currentColor; padding-bottom:5px;
+  transition:color .25s ease;
+}
+.tlink .arw{transition:transform .3s cubic-bezier(.2,.7,.3,1);}
+.tlink:hover .arw{transform:translateX(5px);}
+.tlink:hover{color:var(--accent);}
+.band-bone .tlink:hover{color:var(--a-dark);}
+@media (prefers-reduced-motion:reduce){ .tlink .arw{transition:none;} }
+
+/* ============================================================
+   ACT TWO — SELECTED WORK
+   The hero is the studio's voice: black, atmospheric, moving.
+   From here the work speaks, and the work is regulated pharma —
+   so the register turns clinical. Each case study is a dark
+   POSTER (the photograph, the client's own mark inverted against
+   it — the hero's difference blend recurring) followed by a light
+   DOSSIER on bone: a spec sheet, gridded, where every system
+   decision is written as a consequence of the concept.
+   ============================================================ */
+/* Only what act two adds. --bone, --rule and --slab are already declared at
+   the top of this sheet; re-declaring them here silently overrode the
+   originals with different values, which is how a hairline meant for a dark
+   ground ends up light grey three sections later. */
+:root{
+  --slate:#14161A;   /* poster ground — near-black pulled cool, so it reads
+                        as a different room from the hero's neutral ink */
+  --mute:#5C5C64;   /* 4.47:1 on bone was under the floor; this is 6.0:1 */
+}
+
+/* --- the manifest ------------------------------------------- */
+.index{
+  background:var(--bone);
+  color:var(--ink);
+  padding:var(--slab) var(--edge);
+  border-top:1px solid var(--rule);
+}
+.index-head{
+  display:flex; align-items:baseline; justify-content:space-between;
+  gap:24px; flex-wrap:wrap;
+  padding-bottom:28px; border-bottom:1px solid var(--line);
+}
+.index-head h2{
+  margin:0; font-weight:300; letter-spacing:-.02em;
+  font-size:clamp(1.5rem, 3.2vw, 2.6rem);
+}
+.index-head h2 b{font-weight:700;}
+.kicker{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--fg-3);
+}
+.index-list{list-style:none; margin:0; padding:0;}
+.index-row{
+  display:grid;
+  grid-template-columns:4.5rem minmax(0,1.1fr) minmax(0,1.4fr) auto;
+  gap:clamp(12px,2.4vw,40px);
+  align-items:baseline;
+  padding:26px 0;
+  border-bottom:1px solid var(--line);
+  text-decoration:none; color:inherit;
+}
+/* the row's own hover state is now carried entirely by the accent —
+   no background wash, no padding shift */
+.index-row:focus-visible{outline:2px solid var(--a-dark); outline-offset:-2px;}
+.idx-n{font-family:var(--mono); font-size:.68rem; color:var(--fg-4); letter-spacing:.1em;}
+.idx-client{font-size:clamp(1rem,1.7vw,1.35rem); font-weight:600; letter-spacing:-.01em;}
+.idx-sector{font-family:var(--mono); font-size:.62rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--fg-3); display:block; margin-top:6px;}
+.idx-concept{color:var(--fg-2); font-weight:300; line-height:1.5;
+  font-size:clamp(.85rem,1.15vw,1rem);}
+.idx-go{font-family:var(--mono); font-size:.9rem; color:var(--fg-4);}
+.index-row:hover .idx-go{color:var(--a-dark);}
+@media (max-width:820px){
+  .index-row{grid-template-columns:3rem 1fr auto; row-gap:10px;}
+  .idx-concept{grid-column:2 / -1;}
+}
+
+/* --- poster --------------------------------------------------- */
+.case{scroll-margin-top:0;}
+.poster{
+  position:relative;
+  min-height:min(86svh, 760px);
+  display:grid; align-items:end;
+  padding:var(--slab) var(--edge);
+  background:var(--slate);
+  overflow:hidden;
+  isolation:isolate;          /* the mark blends against the poster only */
+}
+.poster-photo{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  opacity:.62;
+}
+.poster::after{                /* keeps the concept line off the photograph */
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background:linear-gradient(to top, rgba(10,10,11,.86) 0%, rgba(10,10,11,.34) 46%, rgba(10,10,11,.12) 100%);
+}
+/* One case study opens light rather than dark. Same template as the other
+   two — type over the photograph, bottom aligned — because three case
+   studies running two layouts reads as unfinished rather than as a system.
+   Only the scrim changes sides, and the type has to change with it: a white
+   gradient under white text leaves nothing.
+
+   The photograph is chosen for it rather than fought with. Its lower left is
+   the green floor beneath the range, 97% clear of packs, so the scrim can be
+   weighted into that corner and leave the work itself almost unveiled. The
+   full nineteen-pack range is not this image's job — it is the wide plate in
+   Part one, where nothing crops it. */
+.poster-light{background:var(--bone);}
+.poster-light .poster-photo{opacity:1;}
+.poster-light::after{
+  /* Left-weighted, not corner-anchored. Every line of type sits in the left
+     third but spans most of the height, so a radial pinned to the bottom
+     corner reaches the headline and leaves the eyebrow on bare green — it
+     measured 2.63 against a 4.5 floor. A horizontal axis covers the whole
+     column and still clears the right side, where the range is. */
+  background:linear-gradient(to right,
+    rgba(255,255,255,.95) 0%,
+    rgba(255,255,255,.92) 24%,
+    rgba(255,255,255,.55) 40%,
+    rgba(255,255,255,.14) 56%,
+    rgba(255,255,255,0) 70%);
+}.poster-light .poster-eyebrow{color:rgba(10,10,11,.74);}
+.poster-light .poster-tension{color:rgba(10,10,11,.80);}
+.poster-light .poster-concept{color:var(--ink);}
+/* Narrow: the type goes full width over a slice of the photograph, so a
+   corner-anchored scrim protects the wrong place. Bottom-up and heavier. */
+@media (max-width:860px){
+  .poster-light::after{
+    background:linear-gradient(to top,
+      rgba(255,255,255,.96) 0%,
+      rgba(255,255,255,.90) 48%,
+      rgba(255,255,255,.62) 76%,
+      rgba(255,255,255,.20) 100%);
+  }
+}
+
+/* the client's own mark, oversized and cropped — the hero's device,
+   applied to someone else's identity */
+.poster-mark{
+  position:absolute;
+  right:-6%; top:50%; translate:0 -50%;
+  width:min(46%, 620px);
+  mix-blend-mode:difference;
+  z-index:2;
+  pointer-events:none;
+}
+.poster-mark img{width:100%; height:auto;}
+.poster-body{position:relative; z-index:3; max-width:min(100%, 44ch);}
+.poster-eyebrow{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
+  text-transform:uppercase; color:rgba(255,255,255,.62);
+  display:flex; gap:14px; flex-wrap:wrap; margin-bottom:22px;
+}
+.poster-tension{
+  font-weight:300; color:rgba(255,255,255,.8);
+  font-size:clamp(.95rem, 1.35vw, 1.15rem); line-height:1.55;
+  margin:0 0 18px; max-width:44ch;
+}
+.poster-concept{
+  margin:0; font-weight:300; letter-spacing:-.025em;
+  font-size:clamp(1.5rem, 3.1vw, 2.7rem); line-height:1.12;
+  text-wrap:balance;
+}
+.poster-concept b{font-weight:700;}
+
+/* The client strip holds two shapes of mark. A wordmark set on one line
+   fills its slot at the height the strip gives everything; a stacked mark —
+   a symbol above a name — is square-ish, so the same height makes it read
+   twice the size of its neighbours. The upright ones come down to 0.7 and
+   the wordmarks are left alone.
+
+   Only the height is touched. Scaling max-width with it compounds: these
+   marks are near-square, so a 70% width cap binds before the reduced height
+   does and the pair lands at 0.7 x 0.7 = 0.49, which measured exactly.
+
+   Specificity, not order: .logo img is declared in the page's own inline
+   stylesheet, which loads after this file, so a matching selector here would
+   lose. Three classes and an element beats one class and an element wherever
+   it sits. */
+.clients .logo.tall img{max-height:39.2%;}   /* 56% x 0.7 */
+
+/* --- the shelf -------------------------------------------------
+   The dark half's one spectacle. Every poster the studio has put on a
+   shelf, drifting past on two rows running opposite ways, angled just
+   enough to read as depth rather than as a slideshow.
+
+   Built from the same idea as the client marquee — a track duplicated
+   once and translated -50% — because that loop is seamless by
+   construction and needs no script to stay honest.
+
+   Each card carries its own perspective() rather than the rows carrying
+   preserve-3d. A shared 3D context hit-tests only the frontmost element,
+   which is what made four of five reel cards unhoverable; this keeps every
+   card independently pointable and costs nothing.
+
+   The posters are held back — desaturated and dimmed — so the band reads
+   as one moving texture, and come up to full under the pointer. On ink
+   that reads as the work emerging from the dark rather than a gallery
+   wall pasted onto it. */
+.shelf{
+  position:relative;
+  background:var(--bone);
+  padding-block:var(--slab);
+  overflow:hidden;
+}
+.shelf-head{padding-inline:var(--edge); margin-bottom:clamp(26px,3.6vw,50px);}
+.shelf-line{
+  margin:.35em 0 0; max-width:34ch;
+  font-weight:300; letter-spacing:-.02em; line-height:1.12;
+  font-size:clamp(1.45rem,3vw,2.5rem);
+  color:var(--ink);
+}
+.shelf-line b{font-weight:700;}
+.shelf-rows{
+  display:grid;
+  gap:clamp(12px,1.6vw,24px);
+  -webkit-mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
+          mask-image:linear-gradient(to right,transparent,#000 7%,#000 93%,transparent);
+}
+.shelf-row{
+  display:flex;
+  width:max-content;
+  /* One row, not two. Two rows of equal medium tiles running opposite ways
+     is the shape of a streaming service's front page, and it read as one:
+     browsing, not evidence. A single row at nearly twice the size and a
+     third of the pace is a different object — things going past on a belt,
+     which is what they are. */
+  animation:shelf-drift 330s linear infinite;
+  animation-direction:reverse;
+  will-change:transform;
+}
+.shelf-card{
+  position:relative;
+  flex:0 0 auto;
+  width:clamp(240px,24vw,400px);
+  aspect-ratio:4 / 3;                      /* the packshots are landscape */
+  margin-right:clamp(16px,2vw,32px);       /* margin not gap: a gap makes the
+                                              duplicated half wider than 50%
+                                              and the loop drifts each cycle */
+  /* Less tile. The radius comes down and the card carries no ground of its
+     own, so what is on the band is a photograph rather than a thumbnail in
+     a rounded box. */
+  border-radius:3px;
+  overflow:hidden;
+  background:transparent;
+}
+.shelf-card img{width:100%; height:100%; object-fit:cover;}
+
+/* The band holds itself back and the pointer brings one pack forward. The
+   hold-back is greyscale; hovering restores the colour.
+
+   Only where there is a pointer. On a touch screen :hover never fires, so a
+   greyscale default would leave every pack on the band grey for good - the
+   whole point of a wall of packaging is the colour, and a phone would never
+   see any of it. There, the cards are simply in colour.
+
+   The cost is real but bounded: the filter is static on 60 cards, so each
+   one rasterises once and the compositor then just translates the cached
+   layer along the row. Only the card under the pointer re-rasterises, and
+   only while its transition runs. Measured on the drifting band, frame time
+   was unchanged.
+
+   The veil stays underneath at half its old weight. Greyscale alone left
+   the packshots - which are all shot on white - reading as a row of
+   lightboxes; the veil settles them onto the ground, and hover lifts both
+   at once, so the pack gains its colour and its light together. */
+.shelf-card::after{
+  content:"";
+  position:absolute; inset:0;
+  background:var(--bone);
+  opacity:.17;
+  transition:opacity .45s ease;
+}
+.shelf-card:hover::after{opacity:0;}
+@media (hover:hover) and (pointer:fine){
+  .shelf-card img{
+    filter:grayscale(1);
+    transition:filter .45s ease;
+  }
+  .shelf-card:hover img{filter:grayscale(0);}
+}
+@media (prefers-reduced-motion:reduce){
+  .shelf-card img, .shelf-card::after{transition:none;}
+}
+@keyframes shelf-drift{
+  from{transform:translateX(-50%);}
+  to  {transform:translateX(0);}
+}
+@media (prefers-reduced-motion:reduce){
+  .shelf-row{animation:none;}
+  .shelf-rows{overflow-x:auto; mask-image:none; -webkit-mask-image:none;}
+}
+
+/* --- the reel --------------------------------------------------
+   The gallery on the homepage: five sheets of work per brand, dealt out in a
+   shallow fan with the current one square to the viewer.
+
+   Built to the reference, which is minimal to the point of having no
+   furniture at all: no frame, no panel, no dots, no arrows. Just five
+   photographs, generously rounded, standing apart rather than overlapping,
+   each carrying its own name across the foot of the image.
+
+   Every card is an A4 sheet, because every piece of work in it is one.
+
+   Five wraps exactly: the offset a card is drawn at is its distance from the
+   current one taken the short way round, which always lands in -2..2, so
+   every position of the reel looks like every other and there is no ragged
+   end to design around. Script sets only that number; every decision about
+   how far a card travels, turns and lifts is here.
+
+   The move is linear. An eased one covers most of its ground early and then
+   crawls, which reads as five different speeds depending on how far a sheet
+   has to travel; at one constant rate every sheet in the fan moves as one
+   object. */
+.reel{
+  /* The card is the column now, so there is no fixed card width and no
+     breakout: the fan used to run the full frame and be clipped, which is
+     wrong for a gallery that has to sit beside its own brief. */
+  --pace:.42s;
+  --ease:cubic-bezier(.2,1.22,.4,1);
+  --pace-fx:.28s;
+  position:relative;
+  width:100%;
+  margin-inline:0;
+  overflow:visible;
+  -webkit-mask-image:none;
+          mask-image:none;
+}
+.reel-stage{
+  /* The stage is narrower than the column it sits in and hugs the INNER
+     edge of the gallery, the side the brief is on — the left on the rows
+     where the gallery sits on the right of the frame, the right where it
+     sits on the left. The chosen sheet sits there, next to what it is being
+     described by, and the deck trails outward behind it to the page edge.
+
+     Fanned across the full column the back sheets ran the other way, over
+     the brief — 77px clear of the front sheet and onto the case-study
+     link. */
+  position:relative;
+  /* The sheet is the whole column now: with no step there is nothing beside
+     it to leave room for. Put a step back and this has to come down with it
+     — the sheet's share is always 1/(1 + 4 x step). */
+  width:100%;
+  margin-right:auto;
+  aspect-ratio:210 / 297;          /* the deck is one A4 sheet deep */
+}
+/* The gallery swaps sides case by case, so the edge the deck hugs swaps
+   with it. */
+.showcase:nth-of-type(even) .reel-stage{margin-right:0; margin-left:auto;}
+.reel-track{
+  list-style:none; margin:0; padding:0;
+  position:absolute; inset:0;
+}
+/* Each card carries its own perspective rather than sharing one declared on
+   the track. A single 3D space would be the more correct way to build this —
+   one vanishing point for the whole fan — but inside `transform-style:
+   preserve-3d` the browser only hit-tests the frontmost card: the four
+   behind it become unpointable, and pointing is the whole interaction.
+   Flattening each card into its own perspective costs a vanishing point
+   nobody can see is missing, and buys back the gesture. */
+.reel-card{
+  position:absolute; inset:0;
+  /* A fan held in place, not a deck reshuffled on every pick.
+
+     Ordering the stack by distance from the current sheet looks tidy and is
+     nearly unusable: the sheet two before the current one lands on the one
+     two after it, and the nearer sheets — which sit higher in the stack —
+     cover what is left. Measured, the two furthest sheets exposed under
+     700px² of face each. Nothing to aim at.
+
+     So the deck is laid out by slot. The chosen sheet takes slot 0, hard
+     against the outer edge of the frame, and the others queue inward in the
+     order they are written — a permutation, so no two sheets can ever land
+     on the same slot the way they did when the offset was clamped. Picking
+     one brings it out to the front of the frame and shuffles the rest back
+     by one; every sheet keeps a band of its own face exposed at all times.
+
+     The step is zero. The sheets sit exactly behind one another, so what
+     the page shows is one poster and the four behind it are out of sight.
+     The band started at 79px, sized to be an easy thing to click; once the
+     dots took that job over it had nothing left to do, and closing it all
+     the way is the end of that. Nothing here is a hover target any more —
+     only the top sheet can be pointed at — which is why the dots have to
+     stay.
+
+     --p is the slot the script assigns. --i, the written order, is the
+     fallback: with no script the deck still fans instead of collapsing into
+     a single visible sheet. */
+  --slot:var(--p, var(--i, 0));
+  --lift:min(var(--slot), 1);
+  transform:
+    perspective(1500px)
+    /* Inward: --fan is -1 where the gallery sits on the right of the frame
+       and 1 where it sits on the left. */
+    translateX(calc(var(--slot) * 0% * var(--fan, 1) * var(--fan-scale, 1)))
+    /* No vertical step: the sheets sit on one line and the fan is purely
+       lateral. It also exposes more of each sheet than the staircase did —
+       a full-height band rather than a corner. */
+    translateY(0)
+    /* The turn mirrors with the fan, so the edge that recedes is always the
+       one the deck is running away toward. */
+    rotateY(calc(var(--lift) * -6deg * var(--fan, 1)))
+    scale(calc(1 - var(--lift) * 0.03));
+  transform-origin:50% 50%;
+  z-index:calc(10 - var(--slot));
+  transition:transform var(--pace) var(--ease);
+}
+.reel-sheet{
+  position:relative; border-radius:clamp(12px, 6%, 26px); overflow:hidden;
+  /* Blur and wash were what held the back sheets back when a band of each
+     was showing. Stacked, they are behind an opaque sheet and none of it
+     reaches the screen — but a filter still rasterises, and this is twelve
+     blur passes a frame across three galleries for nothing. Both are off
+     while the step is zero; restore them with it. */
+  filter:none;
+  transition:filter var(--pace-fx) ease-out;
+}
+/* The glass the sheet is set behind. Two layers, because they answer to
+   different things: the rim is a property of the pane and is always there,
+   while the sheen is what tells you a sheet is not the one being read, and
+   so has to come and go with distance. One element cannot do both — fading
+   it would take the rim with it. */
+.reel-sheet::before,
+.reel-sheet::after{
+  content:""; position:absolute; inset:0; pointer-events:none;
+  border-radius:inherit;
+}
+/* the rim: light caught along the top and the left edge, the way it catches
+   on a bevel, with a hairline all the way round to close the contour */
+.reel-sheet::before{
+  z-index:2;
+  box-shadow:
+    inset 0 1.5px 1px -0.5px rgba(255,255,255,.62),
+    inset 1.5px 0 1px -0.5px rgba(255,255,255,.34),
+    inset 0 -1.5px 1px -0.5px rgba(255,255,255,.2),
+    inset -1.5px 0 1px -0.5px rgba(255,255,255,.24),
+    inset 0 0 0 1px rgba(255,255,255,.16),
+    inset 0 0 22px rgba(255,255,255,.1);
+}
+/* The wash. Behind sheets are taken toward white rather than merely dimmed,
+   so the deck reads as paper receding into light instead of into shadow —
+   which is what keeps a bone ground from turning muddy behind the front
+   sheet. Flat, not a gradient: a raking sheen reads as glass catching light,
+   and glass on four stacked sheets reads as clutter. */
+.reel-sheet::after{
+  z-index:3;
+  background:#fff;
+  opacity:0;
+  transition:opacity var(--pace-fx) ease-out;
+}
+.reel-card img{
+  display:block; width:100%; height:auto;
+  aspect-ratio:210 / 297; object-fit:cover;
+}
+.reel-card:not(.on) img{opacity:.92;}
+.reel-card img{transition:opacity var(--pace-fx) ease-out;}
+
+/* The name sits under the sheet, not across it.
+
+   The reference sets its captions inside the image, and on the photographs
+   it is built from — an ear, a hand, a shoulder — there is always somewhere
+   quiet to put one. These are printed posters: every one of them already
+   carries its own name burnt into the artwork, most of them low and centred,
+   which is exactly where that caption lands. Laid over, the two collide and
+   read as a mistake. Under the sheet the fan stays as bare as the reference
+   is, and nothing is set on top of work that already speaks. */
+.reel-cap{
+  /* One name at a time. In a row every caption belonged to a sheet you could
+     see; in a deck the ones behind are a blurred edge, and a caption under
+     them names nothing. */
+  position:absolute; left:0; right:0; top:100%;
+  margin:16px 4px 0; text-align:left;
+  opacity:0; pointer-events:none;
+  /* The caption sits under its own sheet, and the sheets move, so a caption
+     that fades out while the next fades in is two names in two places for
+     the length of the fade. Close packed they overlap and read as one
+     garbled line. The outgoing one leaves at once; only the arriving one
+     is given a fade. */
+  transition:none;
+}
+.reel-card.on .reel-cap{opacity:1; transition:opacity var(--pace-fx) ease-out;}
+/* --- the dots ---------------------------------------------------------
+   Under the deck, aligned with the sheet rather than with the column, so
+   the control sits beneath the thing it controls on both sides of the page.
+   The caption above them is absolutely positioned and takes no room in the
+   flow, so the top margin is what clears it.
+
+   A dot is a hairline ring that fills in when it is the one being shown.
+   Nothing grows, nothing colours: on a bone ground with five posters
+   already competing, a control that announces itself is one more thing to
+   look at. The hit area is 24px square with the mark drawn at 7px inside
+   it, which is the smallest honest target on a touch screen. */
+.reel-dots{
+  display:flex; gap:4px;
+  width:100%;
+  margin:76px auto 0 0;
+  padding:0;
+}
+.showcase:nth-of-type(even) .reel-dots{margin-right:0; margin-left:auto;}
+.reel-dot{
+  -webkit-appearance:none; appearance:none;
+  width:24px; height:24px; padding:0;
+  background:none; border:0; cursor:pointer;
+  display:grid; place-items:center;
+}
+.reel-dot::before{
+  content:"";
+  width:7px; height:7px; border-radius:50%;
+  border:1px solid rgba(10,10,11,.34);
+  background:transparent;
+  transition:background .25s ease, border-color .25s ease;
+}
+.reel-dot:hover::before{border-color:rgba(10,10,11,.6);}
+.reel-dot.on::before{background:var(--ink); border-color:var(--ink);}
+.reel-dot:focus-visible{outline:1px solid var(--ink); outline-offset:-4px; border-radius:50%;}
+/* The arrows were the touch-screen and keyboard control. The dots are both,
+   on every input, and say how many sheets there are while they do it — two
+   controls for one job is one too many, so the arrows stand down. The markup
+   stays where it is; only this hides it. */
+.reel-arms{display:none !important;}
+@media (max-width:860px){
+  /* Stacked, the deck stops alternating, and so do the dots. */
+  .reel-dots, .showcase:nth-of-type(even) .reel-dots{margin-left:0; margin-right:auto;}
+}
+.reel-cap b{
+  display:block; font-weight:500; letter-spacing:-.005em;
+  font-size:clamp(.78rem, .92vw, .95rem); line-height:1.25;
+  color:var(--ink);
+}
+.reel-cap span{
+  display:block; margin-top:4px;
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.16em;
+  text-transform:uppercase; line-height:1.4;
+  color:var(--fg-3);
+}
+
+/* --- the lens, on a sheet ---------------------------------------
+   A patch of the picture, re-drawn warped, laid exactly over the part it
+   replaces. No second copy, no aperture to mask, no edge.
+
+   Everything before this put a whole transformed copy of the image on top
+   and cut a hole for it. That can only ever produce a boundary: a uniform
+   scale displaces a pixel in proportion to its distance from the centre, so
+   the displacement is largest exactly where the two copies have to meet,
+   and no mask hides a jump that large. Softening the mask does not help
+   either — two layers at .45 and .55 do not replace one another, they
+   composite, and the picture doubles across the whole band.
+
+   The displacement has to fall to zero at the rim instead, which means it
+   has to vary per pixel, which no CSS transform can do. So the interior is
+   drawn a pixel at a time into a canvas the size of the aperture. At the
+   rim every pixel maps to itself and the canvas is indistinguishable from
+   what is under it; there is nothing to blend and nothing to hide.
+
+   The dispersion comes free with it: red, green and blue are bent by
+   slightly different amounts in the same pass, which is what dispersion
+   actually is, rather than three offset copies of a picture. */
+.reel-lens{
+  position:absolute; z-index:1;
+  pointer-events:none;
+  display:block;
+}
+
+/* the two arms — only for the devices that cannot point, and absent
+   everywhere else, as in the reference */
+.reel-arms{display:contents;}
+@media (hover: hover) and (pointer: fine){
+  .reel-arms{display:none;}
+}
+.reel-arm{
+  position:absolute; top:calc(var(--cardh) / 2 + var(--lift)); translate:0 -50%; z-index:12;
+  width:42px; height:42px; padding:0;
+  display:grid; place-items:center;
+  background:rgba(255,255,255,.7); color:var(--ink);
+  border:1px solid rgba(10,10,11,.16); border-radius:50%;
+  font:400 15px/1 var(--mono); cursor:pointer;
+  backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+  transition:border-color .2s ease, color .2s ease;
+}
+.reel-arm:hover{border-color:var(--a-dark); color:var(--a-dark);}
+.reel-arm:focus-visible{outline:2px solid var(--a-dark); outline-offset:3px;}
+.reel-prev{left:0;}
+.reel-next{right:0;}
+
+/* --- the showcase the reels sit in ------------------------------
+   Three brands down one column. The air between them is the only thing
+   separating them — no rules, no cards, nothing drawn — so it has to be
+   unmistakably more than the air inside one. */
+.showcase + .showcase{margin-top:clamp(150px, 20vh, 240px);}
+/* The brief on one side, the gallery on the other, and the sides swap case
+   by case so the eye is handed across the page rather than marched down it.
+   The gallery takes 40% of the frame: large enough that a poster is a
+   poster, narrow enough that the brief is never a caption. */
+.showcase{
+  /* Which way the deck fans. The chosen sheet sits against the brief, on the
+     inner edge of the gallery, and the deck trails away from it toward the
+     outside of the frame — so the row reads brief, then sheet, then the
+     deck falling off behind it. The tail lands flush with the page gutter,
+     measured; fanned any further out it would leave the page. */
+  --fan:1;
+  display:grid;
+  /* The column is the sheet plus the run the deck needs behind it, and the
+     two move together: close the deck up and the column has to come in with
+     it or the gallery sits in a pool of its own empty space. At 10% a step,
+     there is no step left, so the deck is exactly one sheet wide and the column
+     is exactly the sheet: 472px at 1440, the same sheet it was when four
+     bands stood beside it, with the 113px they used to take handed back to
+     the brief. Measured in vw rather than percent because the wrap is
+     already inset by the page gutter; capped so it does not run away on a
+     very wide screen. */
+  grid-template-columns:minmax(0,1fr) minmax(0,min(33vw,472px));
+  /* How far past the wrap the gallery sits. The brief stays on the type
+     grid; the gallery is a picture, and it is allowed to run out into the
+     page gutter toward the edge of the screen — which is what stops the row
+     reading as a column of text with photographs beside it. It leaves 32px
+     of air at the edge up to about 1424, where the wrap stops filling the
+     padded box and centres instead; past that the bleed caps and the wrap's
+     own margin keeps the gallery off the corner of a wide monitor. */
+  --bleed:clamp(0px, calc(var(--edge) - 32px), 64px);
+  gap:clamp(30px,5vw,80px);
+  align-items:center;
+}
+.showcase:nth-of-type(even){grid-template-columns:minmax(0,min(33vw,472px)) minmax(0,1fr); --fan:-1;}
+.showcase:nth-of-type(even) .showcase-text{order:2;}
+/* Shifted, not widened: a negative margin would grow the reel inside its
+   track and take the sheet with it, so the offset is a relative one. The
+   layout is untouched; only the paint moves. */
+.showcase .reel{right:calc(-1 * var(--bleed));}
+.showcase:nth-of-type(even) .reel{right:var(--bleed);}
+.showcase-text{display:flex; flex-direction:column; gap:clamp(18px,2.4vw,34px);}
+@media (max-width:860px){
+  .showcase{grid-template-columns:1fr;}
+  .showcase:nth-of-type(even){grid-template-columns:1fr;}
+  .showcase:nth-of-type(even) .showcase-text{order:0;}
+  /* Stacked there is no inner or outer edge — the gallery is the whole
+     column on every row. So the deck stops alternating: the chosen sheet
+     sits at the left margin, where the reading starts, and the deck trails
+     right on all of them. */
+  .showcase, .showcase:nth-of-type(even){--fan:1;}
+  /* Stacked, the gallery is already the full width; there is nothing to
+     bleed toward. */
+  .showcase .reel, .showcase:nth-of-type(even) .reel{right:0;}
+  .reel-stage, .showcase:nth-of-type(even) .reel-stage{margin-left:0; margin-right:auto;}
+}
+.showcase-head{
+  display:flex; align-items:baseline; gap:18px; flex-wrap:wrap;
+  padding-bottom:16px; margin-bottom:0;
+  border-bottom:1px solid var(--rule);
+}
+.showcase-n{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.2em;
+  color:var(--a-dark);
+}
+.showcase-client{
+  font-size:clamp(1.15rem, 2vw, 1.7rem); font-weight:600; letter-spacing:-.025em;
+}
+.showcase-sector{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--fg-3);
+  margin-left:auto;
+}
+.showcase-foot{
+  display:flex; align-items:flex-start; gap:clamp(24px,5vw,72px);
+  flex-wrap:wrap; margin-top:0;
+}
+.showcase-line{
+  flex:1 1 32ch; margin:0; max-width:60ch;
+  font-weight:300; line-height:1.6; color:rgba(10,10,11,.72);
+  font-size:clamp(.94rem, 1.1vw, 1.06rem);
+}
+
+@media (max-width:1100px){
+  .showcase-sector{margin-left:0; flex-basis:100%;}
+}
+@media (max-width:720px){
+  /* Left over from the row: the fan used to be laid out with the signed
+     offset and a --cardw, and both were still being applied to a deck that
+     has neither. Cards landed at x=522 in a 390px window and the page
+     scrolled sideways. The deck transform above needs no override — only
+     the fan has to come in, because a stacked column has no room to spare. */
+  /* Stacked, the gallery is the full column and the fan has the whole width
+     to run off the end of. The step comes in by half so the last card lands
+     inside the gutter: at 390px, 70% of 342px leaves 103px for a fan that
+     needs 92px. Measured from 320 to 719 the slack never drops below 10px,
+     which is why the sheet cannot also grow here. */
+  .reel-card{--fan-scale:.5;}
+  .reel-stage{width:70%;}
+  .reel-arms{display:flex; gap:14px; justify-content:center; margin-top:22px;}
+  .reel-arm{position:static; translate:none;}
+  .showcase + .showcase{margin-top:clamp(104px, 16vh, 170px);}
+}
+
+@media (prefers-reduced-motion: reduce){
+  .reel{--pace:1ms; --pace-fx:1ms;}
+}
+
+/* --- dossier -------------------------------------------------- */
+.dossier{
+  background:var(--bone); color:#15161A;
+  padding:var(--slab) var(--edge);
+}
+.dossier-grid{
+  display:grid;
+  grid-template-columns:minmax(180px, 15rem) minmax(0, 1fr);
+  gap:clamp(28px, 5vw, 88px);
+  align-items:start;
+}
+@media (max-width:860px){.dossier-grid{grid-template-columns:1fr;}}
+
+/* metadata rail — the spec-sheet motif, in the technical face */
+.spec{font-family:var(--mono); font-size:.68rem; line-height:1.5;
+  position:sticky; top:28px;}
+.spec dl{margin:0; display:grid; grid-template-columns:1fr; gap:0;}
+.spec dt{
+  font-size:.56rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--mute); padding-top:12px; border-top:1px solid var(--rule);
+}
+.spec dd{margin:4px 0 12px; font-size:.72rem; color:#15161A;}
+.spec dl div:first-child dt{border-top:none; padding-top:0;}
+/* The rail is only a rail while it has a column of its own. Once the grid
+   stacks it sits above the content, and sticky then pins it to the top of
+   the viewport with the whole case study scrolling underneath — the spec
+   sheet printed over the work. Must come after the sticky declaration
+   above: same specificity, so source order is what decides. */
+@media (max-width:860px){ .spec{position:static;} }
+
+.swatches{display:flex; gap:6px; margin-top:18px;}
+.swatches span{
+  width:100%; height:34px; border-radius:2px;
+  box-shadow:inset 0 0 0 1px rgba(0,0,0,.10);
+}
+.swatch-note{
+  font-family:var(--mono); font-size:.54rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--mute); margin-top:8px;
+}
+
+/* system entries — each a consequence, not a fact */
+/* A case study covering two systems splits into parts. The divider has to
+   read as heavier than the 1px rules between narrative sections without
+   introducing a box or a panel, so it is the same device one weight up: a
+   2px rule, the mono label above the name, and a single line of framing. */
+.part{
+  border-top:2px solid var(--ink);
+  padding-top:clamp(16px,2.2vw,28px);
+  margin:clamp(40px,5.5vw,84px) 0 clamp(20px,2.6vw,34px);
+}
+.part:first-child{margin-top:0;}
+.part h2{
+  margin:.28em 0 .3em;
+  font-weight:700; letter-spacing:-.02em; line-height:1.04;
+  font-size:clamp(1.7rem,3.4vw,2.6rem);
+}
+.part-note{
+  margin:0; max-width:56ch;
+  font-weight:300; line-height:1.6;
+  font-size:clamp(.96rem,1.2vw,1.06rem);
+  color:rgba(10,10,11,.62);
+}
+.dossier .part .eyebrow{color:var(--fg-3);}
+
+.sys{display:grid; gap:0; margin:0 0 clamp(28px,4vw,48px);}
+.sys-row{
+  display:grid; grid-template-columns:minmax(120px,10rem) minmax(0,1fr);
+  gap:clamp(14px,2.4vw,40px);
+  padding:20px 0; border-top:1px solid var(--rule);
+}
+.sys-row:last-child{border-bottom:1px solid var(--rule);}
+.sys-k{
+  font-family:var(--mono); font-size:.58rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--mute); padding-top:.28em;
+}
+.sys-v{margin:0; font-weight:300; line-height:1.62; font-size:clamp(.92rem,1.12vw,1.02rem);
+  max-width:62ch;}
+.sys-v b{font-weight:600;}
+
+.range{margin:0 0 clamp(28px,4vw,48px);}
+/* these shots sit low in frame; crop to the products rather than
+   publishing half a page of empty seamless */
+.range img{
+  width:100%; height:auto; border-radius:2px;
+  aspect-ratio:21/9; object-fit:cover; object-position:50% 74%;
+}
+.range figcaption{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--mute); margin-top:12px;
+}
+
+/* numbers — the evidence beat */
+.tally{
+  display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
+  border-top:1px solid var(--rule); margin-bottom:clamp(24px,3.5vw,40px);
+}
+.tally div{padding:20px 18px 0 0;}
+.tally .n{
+  font-size:clamp(1.5rem,3vw,2.4rem); font-weight:600; letter-spacing:-.03em;
+  line-height:1; font-variant-numeric:tabular-nums;
+}
+.tally .l{
+  font-family:var(--mono); font-size:.55rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--mute); margin-top:9px; line-height:1.5;
+}
+@media (max-width:640px){.tally{grid-template-columns:repeat(2,1fr); row-gap:4px;}}
+
+.outcome{
+  display:flex; gap:16px; align-items:flex-start;
+  border-top:1px solid #15161A; padding-top:20px;
+}
+.outcome .l{
+  font-family:var(--mono); font-size:.56rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--mute); flex:0 0 auto; padding-top:.4em;
+  min-width:6rem;
+}
+.outcome p{margin:0; font-size:clamp(1rem,1.5vw,1.25rem); font-weight:300;
+  line-height:1.45; max-width:46ch; letter-spacing:-.01em;}
+
+/* --- reveal ---------------------------------------------------
+   The one motion this act gets. Concept lines resolve as they
+   enter; nothing else animates, so the device stays a statement
+   rather than an effect. */
+.rv{opacity:0; transform:translateY(14px); transition:opacity .8s ease, transform .8s cubic-bezier(.2,.7,.3,1);}
+.rv.in{opacity:1; transform:none;}
+@media (prefers-reduced-motion:reduce){
+  .rv{opacity:1; transform:none; transition:none;}
+}
+
+
+/* ==========================================================================
+   PROOF
+   Four numbers, and only the four the designer verified. They are set in the
+   mono face because they are measurements, not display type — the same face
+   the spec sheets use, so a claim on the homepage and a fact in a dossier
+   look like the same kind of statement.
+   ========================================================================== */
+.proof{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:1px;
+  background:var(--line);
+  border-block:1px solid var(--line);
+}
+/* hairlines and air: the tiles take the band's own ground rather than
+   carrying one of their own, so the grid follows whatever ground it is on */
+.proof > div{background:inherit; padding:clamp(22px,3vw,38px) clamp(14px,2vw,28px);}
+.proof .n{
+  font-family:var(--mono); font-weight:500;
+  font-size:clamp(1.6rem,3.4vw,2.9rem);
+  letter-spacing:-.03em; line-height:1;
+  font-variant-numeric:tabular-nums;
+}
+.proof .l{
+  margin-top:12px;
+  font-family:var(--mono);
+  font-size:.64rem; letter-spacing:.16em; text-transform:uppercase;
+  color:var(--fg-3); line-height:1.5;
+}
+@media (max-width:760px){
+  .proof{grid-template-columns:repeat(2,1fr);}
+}
+/* the same hairline grid, on the other ground */
+.band-bone .proof{background:var(--rule); border-block-color:var(--rule);}
+.band-bone .proof > div{background:var(--bone);}
+.band-bone .proof .l{color:var(--fg-3);}
+
+/* ==========================================================================
+   SELECTED WORK — a reel per brand
+   Not cards laid out on a grid. Each entry is the brand's name, the sheets
+   themselves dealt out in perspective, and the line that sends you into the
+   case study — so the homepage reads as the contents page of the case
+   studies rather than as a separate gallery. The reel itself is built
+   further up, beside the rest of the shared furniture.
+   ========================================================================== */
+.showcases{
+  display:grid; gap:0;
+  /* the section's own air: the heading needs to finish before the first
+     brand starts, and the last brand needs to finish before the band does */
+  margin:clamp(56px, 8vh, 112px) 0 clamp(16px, 3vh, 40px);
+}
+
+/* ==========================================================================
+   EXPERTISE — what is actually being sold
+   Four capabilities on a hairline grid. No icons: an icon beside "variant
+   architecture" would be decoration standing in for the explanation.
+   ========================================================================== */
+.caps{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1px; background:var(--rule);
+  border:1px solid var(--rule);
+  margin-top:clamp(26px,4vw,48px);
+}
+.cap{background:var(--bone); padding:clamp(24px,3vw,40px);}
+.cap h3{
+  margin:0 0 12px;
+  font-size:clamp(1rem,1.35vw,1.15rem); font-weight:600; letter-spacing:-.01em;
+}
+.cap p{margin:0; font-weight:300; line-height:1.62; font-size:.98rem; color:rgba(10,10,11,.72);}
+.cap .k{
+  display:block; margin-bottom:14px;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--fg-3);
+}
+@media (max-width:760px){ .caps{grid-template-columns:1fr;} }
+/* the grid is hairlines and air, not cards — which means the tiles take the
+   band's own ground rather than carrying one of their own */
+.band-ink .caps{background:var(--rule-dk); border-color:var(--rule-dk);}
+.band-ink .cap{background:var(--ink);}
+.band-ink .cap p{color:rgba(255,255,255,.76);}
+.band-ink .cap .k{color:rgba(255,255,255,.46);}
+
+/* The four disciplines, under the statement they belong to. A rail, not a
+   grid of tiles: the tiles gave each one a paragraph, and the paragraphs
+   were the band's whole problem. Label above a single line, four across,
+   hairline between — close to a colophon, which is the right register for
+   something that is supporting a headline rather than competing with it. */
+.disciplines{
+  /* The gap is the divider's room. It has to be a named value because the
+     line is drawn at its centre, and half of it is the clearance on each
+     side. */
+  --rail-gap:clamp(22px,2.6vw,40px);
+  list-style:none; margin:clamp(30px,4.5vw,56px) 0 0; padding:0;
+  display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
+  column-gap:var(--rail-gap); row-gap:0;
+  border-top:1px solid var(--line);
+}
+.disciplines li{
+  /* Padding on the block axis only. The dividers stop where the longest
+     cell's text stops, so with no bottom padding the rail ended on a ragged
+     baseline and read as a box someone forgot to close; the padding is what
+     gives them something to run past. */
+  position:relative;
+  padding:clamp(18px,2.2vw,28px) 0;
+}
+/* The divider used to be a border-right on the cell, which puts it hard
+   against the left edge of the cell after it — every entry but the first
+   began with its first letter touching a line. It is drawn in the middle of
+   the gap instead, so the same clearance falls on both sides of it, and the
+   cells keep identical text widths because none of them carries inline
+   padding any more. */
+.disciplines li:not(:first-child)::before{
+  content:"";
+  position:absolute; top:0; bottom:0;
+  left:calc(var(--rail-gap) / -2);
+  width:1px; background:var(--line);
+}
+.disciplines .k{
+  display:block; margin-bottom:10px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--fg-3);
+}
+.disciplines li > span:last-child{
+  display:block; font-weight:300; line-height:1.45;
+  font-size:clamp(.95rem,1.15vw,1.08rem); color:var(--fg-2);
+  letter-spacing:-.01em;
+}
+/* Four columns only where four columns can hold one line each. Matching the
+   four entries to within 7px closed almost all of the raggedness, but a band
+   around 1231px was left where the shortest fitted and the other three did
+   not — and one cell an inch shorter than its neighbours is exactly what the
+   dividers make obvious. Measured, the four go to one line together at
+   1268px, so the rail breaks to two columns below 1280 rather than 860; at
+   two columns a cell is twice as wide and nothing wraps at all. */
+@media (max-width:1279px){
+  .disciplines{grid-template-columns:repeat(2, minmax(0,1fr));}
+  /* at two columns only the second cell of each row has a line to its left */
+  .disciplines li:nth-child(odd)::before{content:none;}
+  .disciplines li:nth-child(n+3){border-top:1px solid var(--line);}
+}
+@media (max-width:520px){
+  .disciplines{grid-template-columns:1fr;}
+  /* Specificity, not order: the base rule is li:not(:first-child)::before,
+     which counts the :not() as a class and so beats a plain li::before
+     wherever it sits. Measured, the vertical dividers survived into the
+     single-column layout on every width from 380 to 520. Matched here. */
+  .disciplines li:not(:first-child)::before{content:none;}
+  .disciplines li + li{border-top:1px solid var(--line);}
+}
+
+/* --------------------------------------------------------------------------
+   WHAT YOU CAN COMMISSION
+   What you can commission, as five rows of type with the work beside them.
+
+   It replaces a key/value list that nobody was going to read: five labels,
+   five sentences, ninety-seven words, all the same weight, on a page that
+   already had four bands of exactly that shape. The information was fine.
+   The shape was the problem — there was nothing to do with it but read it,
+   and a reader who is not yet sold does not read.
+
+   So the rows are large and the work answers them. Pointing at a row, or
+   tabbing to it, brings up the piece of work that row describes; the rest
+   of the rows drop back. Nothing is hidden from anyone who does not point —
+   every line is on the page at rest, and the panel simply starts on the
+   first row. That is the rule the whole device is built to: the image is a
+   reward for looking, never the only place the meaning lives.
+   -------------------------------------------------------------------------- */
+.comm{
+  display:grid;
+  /* The panel carries the band — the list is a caption for it, not the other
+     way round. So the picture column takes the larger share and, like the
+     case-study reels above it, runs out past the wrap into the page gutter.
+     586px of column plus the bleed lands it on 640px at 1440, which is
+     exactly 1280px of pixel at DPR 2 — the width of the narrowest source
+     file, so nothing here is ever upscaled. */
+  grid-template-columns:minmax(0,1fr) minmax(0,min(46vw,586px));
+  --bleed:clamp(0px, calc(var(--edge) - 32px), 64px);
+  gap:clamp(30px,4vw,64px);
+  /* Stretch, so the frame takes its height from the row of the grid - which
+     is the height of the list, because the list is the taller of the two.
+     The sheet then finishes on the list's last divider instead of hanging
+     below it. The ratio is fixed, so the height is what drives the width
+     here, not the column. */
+  align-items:stretch;
+  margin-top:clamp(26px,4vw,48px);
+}
+@media (max-width:900px){ .comm{grid-template-columns:1fr; --bleed:0px;} }
+
+.comm-rows{list-style:none; margin:0; padding:0; border-top:1px solid var(--line);}
+.comm-row{border-bottom:1px solid var(--line);}
+.comm-hit{
+  /* a button, because it does something; styled as a row, because it is one */
+  -webkit-appearance:none; appearance:none;
+  display:block; width:100%; text-align:left;
+  background:none; border:0; cursor:pointer;
+  padding:clamp(16px,2vw,26px) 0;
+  color:inherit; font:inherit;
+  /* The indent on hover is a transform, not padding. Padding re-wraps the
+     line under it, which changes the row's height, which moves every row
+     below it — a list that squirms away from the pointer as you go down it.
+     Measured: with padding, moving between rows landed on the wrong row
+     three times in five. A transform cannot reflow anything. */
+  transition:opacity .35s ease, transform .45s cubic-bezier(.2,.9,.3,1);
+}
+.comm-n{
+  display:block; margin-bottom:8px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--fg-3);
+  transition:color .35s ease;
+}
+.comm-t{
+  display:block;
+  font-weight:300; letter-spacing:-.025em; line-height:1.1;
+  font-size:clamp(1.35rem,2.9vw,2.15rem);
+  text-wrap:balance;
+}
+.comm-t b{font-weight:700;}
+.comm-s{
+  display:block; margin-top:10px; max-width:42ch;
+  font-weight:300; line-height:1.55; font-size:.95rem;
+  color:var(--fg-2);
+}
+/* The rows that are not being pointed at step back rather than disappear:
+   opacity only, and only while the pointer is actually in the list, so the
+   band at rest is five rows of equal weight. */
+.comm-rows:hover .comm-row:not(:hover) .comm-hit,
+.comm-rows:focus-within .comm-row:not(:focus-within) .comm-hit{opacity:.42;}
+.comm-hit:hover, .comm-hit:focus-visible{transform:translateX(clamp(10px,1.4vw,22px));}
+.comm-hit:focus-visible{outline:none;}
+.comm-row:has(.comm-hit:focus-visible){border-left:2px solid var(--a-dark); }
+.comm-row.on .comm-n{color:var(--a-dark);}
+
+/* The panel. One frame, one image at a time; the outgoing one is cut rather
+   than crossfaded, because two product shots dissolving through each other
+   reads as a fault. */
+.comm-panel{
+  position:relative;
+  /* A4, the same constant the case-study reels are built on - because what
+     goes in here is artwork that was drawn on a sheet. At 4:5 the frame was
+     a shape of its own and object-fit ate whatever did not agree with it:
+     the dimension arrows off the sides of a dieline, the edge of a
+     catalogue spread. Every one of the five is now fitted to 210:297 at
+     source, so the frame crops nothing. */
+  aspect-ratio:210 / 297;
+  overflow:hidden;
+  border-radius:2px;
+  background:rgba(10,10,11,.06);
+  /* The frame needs an edge of its own. Most of what goes in it is a
+     photograph with its own ground, but a board laid out on white comes in
+     at #F2F2F2 - four points off the page's own bone - and without a line
+     the panel simply stops existing along that edge: the artwork floats on
+     the page and the rules inside it read as stray marks. A hairline, the
+     same one the rails and the row dividers are drawn with. Inset, so it
+     sits inside the radius and adds nothing to the box. */
+  box-shadow:inset 0 0 0 1px var(--line);
+  /* Width from the ratio, not from the column. With the row stretched the
+     frame has a definite height, and an auto width against a fixed
+     aspect-ratio resolves from it - so the sheet is exactly as wide as an
+     A4 of that height, and no wider. It needs justify-self for that: a
+     stretched item would take the column's width instead and the ratio
+     would push the bottom back past the list. */
+  width:auto;
+  justify-self:end;
+  /* The ratio can ask for more width than the column has - at 1024 an A4 of
+     the list's height is 517px against a 430px column, and the sheet walked
+     17px over the text. This is the floor under that: the frame may use its
+     column and the bleed, never a pixel more. Where it binds, the sheet is
+     shorter than the list rather than on top of it. */
+  max-width:calc(100% + var(--bleed));
+  /* Negative margin rather than a wider column: this moves the picture
+     toward the screen edge without touching the column boundary the list
+     is set against. */
+  margin-right:calc(-1 * var(--bleed));
+}
+/* Stacked there is no gutter to run into, and a 4:5 frame the full width of
+   a phone is taller than the screen. Wider and squarer, but still bigger
+   than the 16:10 slot it replaces. */
+/* Between the stack and about 1080 there is not enough column for an A4 of
+   the list's height: at 1024 it wants 517px against 430px of column. Capping
+   the width there only squashed the frame off-ratio, because the stretched
+   height held. So in that band the frame goes back to taking its width from
+   the column and its height from the ratio - it ends short of the list
+   rather than crossing the text or deforming. The ratio is the thing that
+   cannot bend; the bottoms lining up is what the width can afford. */
+@media (min-width:901px) and (max-width:1080px){
+  .comm-panel{ align-self:start; width:100%; max-width:none; }
+}
+
+/* Stacked the frame stays A4 - a phone is the last place to start cropping
+   the work - but the full column width would make it 82% of a tablet's
+   screen, so the sheet is capped against the viewport height and centred.
+   At 390px the column is narrower than the cap and nothing binds. */
+@media (max-width:900px){
+  .comm-panel{
+    margin-right:0;
+    /* A width, not auto margins. Auto margins take a grid item out of
+       stretch and make it shrink to fit - and every image in here is
+       absolutely positioned, so there is no content to fit and the frame
+       collapsed to nothing. */
+    width:min(100%, 58vh);
+    justify-self:center;
+    /* Stacked there is no list beside it to take a height from. */
+    align-self:start;
+  }
+}
+.comm-panel img{
+  position:absolute; inset:0;
+  width:100%; height:100%; object-fit:cover;
+  opacity:0; transition:opacity .3s ease-out, transform 1.2s cubic-bezier(.2,.8,.3,1);
+  transform:scale(1.04);
+}
+.comm-panel img.on{opacity:1; transform:scale(1);}
+@media (prefers-reduced-motion:reduce){
+  .comm-hit, .comm-panel img{transition:none;}
+}
+
+/* ==========================================================================
+   KIND WORDS
+   One quote large, the supporting ones beneath. No cards, no stars, no
+   carousel — the brief rules those out and they would be wrong here anyway:
+   this is a page about restraint. Until real approved quotes exist the
+   section is held open by a marked placeholder rather than filled with
+   invented praise.
+   ========================================================================== */
+.quote-lead{
+  margin:0;
+  font-weight:300;
+  font-size:clamp(1.35rem,3.1vw,2.5rem);
+  line-height:1.28; letter-spacing:-.025em;
+  text-wrap:balance;
+  max-width:24ch;
+}
+.quote-lead b{font-weight:700;}
+.quote-attr{
+  margin-top:26px;
+  font-family:var(--mono); font-size:.66rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--fg-3); line-height:1.8;
+}
+.band-bone .quote-attr{color:var(--fg-3);}
+.quote-pair{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:clamp(24px,4vw,64px);
+  margin-top:var(--slab);
+  padding-top:clamp(28px,4vw,44px);
+  border-top:1px solid var(--rule-dk);
+}
+.band-bone .quote-pair{border-top-color:var(--rule);}
+.quote-sm p{
+  margin:0; font-weight:300; line-height:1.6;
+  font-size:clamp(.98rem,1.3vw,1.1rem);
+  color:var(--fg-2);
+}
+.band-bone .quote-sm p{color:rgba(10,10,11,.78);}
+@media (max-width:760px){ .quote-pair{grid-template-columns:1fr;} }
+
+/* An editorial slot that is deliberately empty, and says so. Marked in the
+   accent so it cannot be mistaken for finished copy at a glance. */
+.awaiting{
+  border:1px dashed rgba(255,206,0,.45);
+  padding:clamp(18px,2.4vw,26px);
+  border-radius:2px;
+}
+.awaiting .tag{
+  display:inline-block; margin-bottom:12px;
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.2em;
+  text-transform:uppercase; color:var(--accent);
+}
+.awaiting p{margin:0; font-weight:300; line-height:1.6; color:rgba(255,255,255,.62); font-size:.95rem;}
+/* The block is written for the ink ground. Anywhere it lands on bone it has
+   to be re-stated in full — the dossier is a bone surface without being a
+   .band-bone, and white-on-bone is exactly how a placeholder disappears. */
+.band-bone .awaiting, .dossier .awaiting{border-color:rgba(110,84,0,.5);}
+.band-bone .awaiting .tag, .dossier .awaiting .tag{color:var(--a-dark);}
+.band-bone .awaiting p, .dossier .awaiting p{color:rgba(10,10,11,.66);}
+
+/* ==========================================================================
+   ABOUT PREVIEW + CONTACT CLOSE
+   ========================================================================== */
+.split{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);
+  gap:clamp(32px,6vw,96px);
+  align-items:start;
+}
+@media (max-width:860px){ .split{grid-template-columns:1fr;} }
+
+.facts{list-style:none; margin:0; padding:0; border-top:1px solid var(--rule);}
+.band-ink .facts{border-top-color:var(--rule-dk);}
+.facts li{
+  display:grid; grid-template-columns:minmax(0,9rem) minmax(0,1fr);
+  gap:clamp(12px,2vw,28px);
+  padding:16px 0; border-bottom:1px solid var(--rule);
+  font-size:.98rem; font-weight:300; line-height:1.55;
+}
+.band-ink .facts li{border-bottom-color:var(--rule-dk);}
+.facts .k{
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--fg-3); padding-top:.25em;
+}
+.band-ink .facts .k{color:rgba(255,255,255,.5);}
+@media (max-width:560px){ .facts li{grid-template-columns:1fr; gap:6px;} }
+
+.close-line{
+  margin:0 0 clamp(28px,4vw,44px);
+  font-weight:300;
+  font-size:clamp(1.6rem,4.2vw,3.2rem);
+  line-height:1.12; letter-spacing:-.03em; text-wrap:balance;
+}
+.close-line b{font-weight:700;}
+.close-actions{display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,40px); align-items:center;}
+/* The one action on the page that is the point of the page. It is the same
+   link as every other — same mono, same rule under it, same arrow — just
+   set a size up, because a lone control at the standard size reads as a
+   footnote rather than as the thing being asked for. */
+.close-mail{
+  font-size:clamp(.78rem, 1.15vw, .95rem);
+  letter-spacing:.12em;
+  padding-bottom:8px;
+  border-bottom-width:2px;
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.foot{
+  background:var(--bone);
+  padding:clamp(32px,4vw,52px) var(--edge);
+  border-top:1px solid var(--rule);
+  display:flex; flex-wrap:wrap; gap:20px 40px;
+  align-items:baseline; justify-content:space-between;
+  font-family:var(--mono); font-size:.64rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--fg-3);
+}
+.foot a{color:inherit; text-decoration:none; border-bottom:1px solid rgba(10,10,11,.22);}
+.foot a:hover{color:var(--a-dark); border-bottom-color:var(--a-dark);}
+.foot-links{display:flex; flex-wrap:wrap; gap:20px 28px;}
+
+/* ==========================================================================
+   CASE-STUDY PAGE
+   The narrative order the brief sets: opener, context, challenge, role,
+   approach, visual system, applications, outcome, client voice, next.
+   The poster and dossier come from the homepage's original act two and are
+   reused verbatim, so a case study opens in the same voice the homepage did.
+   ========================================================================== */
+.case-opener{padding-top:58px;}          /* clears the fixed bar */
+
+/* Context / Challenge / Role / Approach — the argument before the pictures.
+   Set as a hairline-ruled sequence on bone: this is the reading part of the
+   page and it should look like a document, not like a feature grid. */
+.narrative{
+  display:grid;
+  grid-template-columns:minmax(0,10rem) minmax(0,1fr);
+  gap:clamp(14px,3vw,56px);
+  padding:clamp(26px,3.4vw,44px) 0;
+  border-top:1px solid var(--rule);
+}
+.narrative:last-of-type{border-bottom:1px solid var(--rule);}
+.narrative h3{
+  margin:0;
+  font-family:var(--mono); font-size:.68rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--fg-3); font-weight:500;
+  padding-top:.35em;
+}
+.narrative p{
+  margin:0 0 14px;
+  font-weight:300; line-height:1.68;
+  font-size:clamp(1rem,1.3vw,1.12rem);
+  color:rgba(10,10,11,.82);
+  max-width:64ch;
+}
+.narrative p:last-child{margin-bottom:0;}
+.narrative strong{font-weight:600; color:var(--ink);}
+@media (max-width:700px){
+  .narrative{grid-template-columns:1fr; gap:12px;}
+}
+
+/* Applications — the pictures, at three weights: full bleed, pair, single. */
+.plates{display:grid; gap:clamp(16px,2.2vw,30px); margin-top:var(--slab);}
+.plates figure{margin:0;}
+.plates img{width:100%; height:auto;}
+.plate-wide img{aspect-ratio:16/9; object-fit:cover;}
+.plate-pair{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(16px,2.2vw,30px);}
+.plate-pair img{aspect-ratio:4/3; object-fit:cover;}
+@media (max-width:700px){ .plate-pair{grid-template-columns:1fr;} }
+.plates figcaption{
+  margin-top:12px;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.14em;
+  text-transform:uppercase; color:var(--fg-3); line-height:1.6;
+}
+.band-ink .plates figcaption{color:rgba(255,255,255,.5);}
+
+/* Next project — never a dead end. */
+.next{
+  display:flex; flex-wrap:wrap; align-items:flex-end;
+  justify-content:space-between; gap:24px 40px;
+  padding:var(--slab) var(--edge);
+  border-top:1px solid var(--line);
+  text-decoration:none; color:inherit;
+}
+.next .k{
+  font-family:var(--mono); font-size:.64rem; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--fg-3);
+  display:block; margin-bottom:14px;
+}
+.next .t{
+  margin:0; font-weight:300; letter-spacing:-.025em; line-height:1.12;
+  font-size:clamp(1.5rem,3.6vw,2.8rem);
+}
+.next .t b{font-weight:700;}
+.next .arw{
+  font-family:var(--mono); font-size:.72rem; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--fg-2);
+  transition:color .25s ease, transform .3s cubic-bezier(.2,.7,.3,1);
+}
+.next:hover .arw{color:var(--a-dark); transform:translateX(6px);}
+@media (prefers-reduced-motion:reduce){ .next .arw{transition:none;} }
+
+/* ==========================================================================
+   ARCHIVE
+   A grid, because that is honestly what it is: the work that did not earn a
+   full case study but should not be invisible. Ordered by kind, not ranked.
+   ========================================================================== */
+.arch-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));
+  gap:clamp(20px,2.6vw,40px);
+}
+.arch-item{display:block; text-decoration:none; color:inherit;}
+.arch-media{overflow:hidden; background:rgba(10,10,11,.06); aspect-ratio:4/5;}
+.arch-media img{
+  width:100%; height:100%; object-fit:cover;
+  filter:grayscale(1) contrast(1.04);
+  transition:transform .8s cubic-bezier(.2,.7,.3,1), filter .5s ease;
+}
+.arch-item:hover .arch-media img{transform:scale(1.04); filter:grayscale(.5);}
+@media (prefers-reduced-motion:reduce){ .arch-media img{transition:none;} }
+.arch-item h3{
+  margin:16px 0 6px;
+  font-size:1.02rem; font-weight:600; letter-spacing:-.01em;
+}
+.arch-item .m{
+  margin:0;
+  font-family:var(--mono); font-size:.62rem; letter-spacing:.15em;
+  text-transform:uppercase; color:var(--fg-3); line-height:1.7;
+}
+.arch-item p.d{
+  margin:10px 0 0; font-weight:300; line-height:1.58; font-size:.94rem;
+  color:var(--fg-2);
+}
+
+/* ==========================================================================
+   THE ACCENT
+   One colour on a monochrome site, and it only ever appears under the
+   pointer. Every character is its own switch: a letter is either inside the
+   pool and fully the accent, or outside it and untouched. Nothing is ever
+   half a colour, so a glyph is never cut in two by a gradient edge.
+   ========================================================================== */
+/* Pool radius per zone. Roughly six to ten characters is what reads as the
+   cursor lighting its neighbours; wider and it is a colour change, not a
+   pool travelling along a line. */
+.idx-client{--gt-r:104px;}
+.idx-concept{--gt-r:96px;}
+.poster-concept{--gt-r:118px;}
+.showcase-client{--gt-r:104px;}
+.showcase-line{--gt-r:96px;}
+.quote-lead{--gt-r:130px;}
+.h-sec{--gt-r:118px;}
+.close-line{--gt-r:130px;}
+.nav-mark{--gt-r:80px;}
+
+@media (hover:hover) and (pointer:fine){
+  .gt .ch{transition:color .22s ease;}
+  .gt .ch.on{color:var(--accent);}
+  /* on the bone ground a 1.32:1 yellow is unreadable, so the light bands take
+     the same hue at the one stop that clears AA */
+  .band-bone .gt .ch.on, .dossier .gt .ch.on{color:var(--a-dark);}
+
+  .bronze{transition:color .38s ease;}
+  .outcome.gt-zone:hover .bronze{color:var(--a-dark);}
+  .sys-row .sys-k{transition:color .3s ease;}
+  .sys-row:hover .sys-k{color:var(--a-dark);}
+}
+@media (prefers-reduced-motion:reduce){ .gt .ch{transition:none;} }
+
+/* Two marks side by side — the parent and what grew out of it. Set on the
+   ink ground so both cuts read as artwork rather than as interface, and
+   because the lineage is a claim the page is making, not a specimen sheet. */
+.lineage{
+  display:grid; grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:1px; background:var(--rule);
+  border:1px solid var(--rule);
+  margin:var(--slab) 0 0;
+}
+.lineage > div{
+  background:var(--ink);
+  padding:clamp(30px,4vw,54px) clamp(20px,3vw,40px) clamp(20px,2.4vw,30px);
+  display:flex; flex-direction:column; align-items:center; gap:clamp(22px,3vw,38px);
+  justify-content:space-between;
+}
+.lineage img{width:min(100%, 220px); height:auto;}
+.lineage figcaption{
+  font-family:var(--mono); font-size:.6rem; letter-spacing:.15em;
+  text-transform:uppercase; color:rgba(255,255,255,.5);
+  text-align:center; line-height:1.6;
+}
+@media (max-width:600px){ .lineage{grid-template-columns:1fr;} }
+
+/* ==========================================================================
+   THE POINTER
+   The site already speaks through the cursor — the parallax, the ring, the
+   lens and the accent pool are all driven by it — so the arrow was the one
+   pointer-shaped thing on the page that was not part of the design.
+
+   Two elements, and the split is the whole point. The outer one only ever
+   translates; the inner one only ever changes size and colour. The first
+   version did both on one element, and because a moving element is promoted
+   to its own layer, the browser rasterised the ring once at 10px and then
+   stretched that bitmap to 24px — which is why the ring came out soft and
+   stair-stepped. Nothing is scaled here, so every state is drawn at its
+   true size.
+   ========================================================================== */
+html.has-dot, html.has-dot *{cursor:none !important;}
+
+.dot{
+  position:fixed; left:0; top:0;
+  width:0; height:0;
+  z-index:9999;
+  pointer-events:none;               /* it must never be a hit target itself */
+  opacity:0;
+  transition:opacity .22s ease;
+  will-change:transform;             /* the translate, and only the translate */
+}
+.dot.on{opacity:1;}
+
+/* The dot itself. 10px of accent with a halo, and a hairline dark rim — the
+   rim is what carries it onto a light ground: #FFCE00 is 13.27:1 on ink and
+   1.32:1 on bone, so without it the dot vanishes over a dossier. */
+.dot i{
+  position:absolute; left:0; top:0;
+  width:10px; height:10px;
+  margin:-5px 0 0 -5px;
+  border-radius:50%;
+  background:var(--accent);
+  box-shadow:
+    0 0 0 1px rgba(10,10,11,.30),
+    0 0 7px 2px rgba(255,206,0,.55),
+    0 0 20px 7px rgba(255,206,0,.26);
+  transition:width .17s ease, height .17s ease, margin .17s ease,
+             background-color .17s ease, box-shadow .17s ease;
+}
+
+/* Over anything clickable it opens into a ring. Hiding the native cursor
+   throws away the hand pointer, and that affordance has to come back in the
+   design's own terms rather than just go missing. */
+.dot.hot i{
+  width:26px; height:26px;
+  margin:-13px 0 0 -13px;
+  background:rgba(255,206,0,.07);
+  box-shadow:
+    0 0 0 1.5px var(--accent),
+    0 0 12px 3px rgba(255,206,0,.38),
+    0 0 30px 11px rgba(255,206,0,.14);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .dot, .dot i{transition:none;}
+}
+/* No cursor to replace on a touch device, and nothing to hide either. */
+@media not all and (hover:hover) and (pointer:fine){
+  html.has-dot, html.has-dot *{cursor:auto !important;}
+  .dot{display:none;}
+}
+
+/* ==========================================================================
+   THE MARK, IN THREE DIMENSIONS
+   Fixed to the viewport and centred on it, because the two places it has to
+   be — the top centre of the hero and the centre of the bar — are the same
+   horizontal line. Only the vertical is animated, so nothing has to be
+   re-measured against the document while scrolling.
+
+   The canvas is larger than the mark so the turn has somewhere to go; the
+   extra is transparent. No halo behind it — the object carries itself on its
+   own shading, and a glow at 30px only softened the edge it was meant to
+   flatter.
+   ========================================================================== */
+/* Desktop only: on a phone or tablet the bar is already tight and there is
+   no scroll-and-settle to watch it perform. The script bails before building
+   anything; this is the belt to that pair of braces. */
+@media (max-width:1024px), (pointer:coarse){
+  #mark3d{display:none !important;}
+}
+#mark3d{
+  position:fixed;
+  left:50%; top:0;
+  width:56px; height:56px;
+  margin:-28px 0 0;                  /* the box is centred on its own point */
+  transform:translate3d(-50%,0,0);
+  z-index:70;                        /* above the bar, which is 60 */
+  opacity:0;
+  transition:opacity .5s ease;
+}
+#mark3d.ready{opacity:1;}
+#mark3d:focus-visible{outline:2px solid var(--accent); outline-offset:6px; border-radius:50%;}
+#mark3d canvas{display:block;}
+
+@media (prefers-reduced-motion:reduce){
+  #mark3d{transition:none;}
+}
