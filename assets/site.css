@@ -1249,6 +1249,14 @@ a{color:inherit;}
   overflow:hidden;
   border-radius:2px;
   background:rgba(10,10,11,.06);
+  /* The frame needs an edge of its own. Most of what goes in it is a
+     photograph with its own ground, but a board laid out on white comes in
+     at #F2F2F2 - four points off the page's own bone - and without a line
+     the panel simply stops existing along that edge: the artwork floats on
+     the page and the rules inside it read as stray marks. A hairline, the
+     same one the rails and the row dividers are drawn with. Inset, so it
+     sits inside the radius and adds nothing to the box. */
+  box-shadow:inset 0 0 0 1px var(--line);
   /* Negative margin rather than a wider column: the item is stretched to its
      grid area, so this grows the picture toward the screen edge without
      moving the column boundary the list is set against. */
