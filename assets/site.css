@@ -1188,10 +1188,15 @@ a{color:inherit;}
      586px of column plus the bleed lands it on 640px at 1440, which is
      exactly 1280px of pixel at DPR 2 — the width of the narrowest source
      file, so nothing here is ever upscaled. */
-  grid-template-columns:minmax(0,1fr) minmax(0,min(42vw,586px));
+  grid-template-columns:minmax(0,1fr) minmax(0,min(46vw,586px));
   --bleed:clamp(0px, calc(var(--edge) - 32px), 64px);
   gap:clamp(30px,4vw,64px);
-  align-items:start;
+  /* Stretch, so the frame takes its height from the row of the grid - which
+     is the height of the list, because the list is the taller of the two.
+     The sheet then finishes on the list's last divider instead of hanging
+     below it. The ratio is fixed, so the height is what drives the width
+     here, not the column. */
+  align-items:stretch;
   margin-top:clamp(26px,4vw,48px);
 }
 @media (max-width:900px){ .comm{grid-template-columns:1fr; --bleed:0px;} }
@@ -1263,14 +1268,39 @@ a{color:inherit;}
      same one the rails and the row dividers are drawn with. Inset, so it
      sits inside the radius and adds nothing to the box. */
   box-shadow:inset 0 0 0 1px var(--line);
-  /* Negative margin rather than a wider column: the item is stretched to its
-     grid area, so this grows the picture toward the screen edge without
-     moving the column boundary the list is set against. */
+  /* Width from the ratio, not from the column. With the row stretched the
+     frame has a definite height, and an auto width against a fixed
+     aspect-ratio resolves from it - so the sheet is exactly as wide as an
+     A4 of that height, and no wider. It needs justify-self for that: a
+     stretched item would take the column's width instead and the ratio
+     would push the bottom back past the list. */
+  width:auto;
+  justify-self:end;
+  /* The ratio can ask for more width than the column has - at 1024 an A4 of
+     the list's height is 517px against a 430px column, and the sheet walked
+     17px over the text. This is the floor under that: the frame may use its
+     column and the bleed, never a pixel more. Where it binds, the sheet is
+     shorter than the list rather than on top of it. */
+  max-width:calc(100% + var(--bleed));
+  /* Negative margin rather than a wider column: this moves the picture
+     toward the screen edge without touching the column boundary the list
+     is set against. */
   margin-right:calc(-1 * var(--bleed));
 }
 /* Stacked there is no gutter to run into, and a 4:5 frame the full width of
    a phone is taller than the screen. Wider and squarer, but still bigger
    than the 16:10 slot it replaces. */
+/* Between the stack and about 1080 there is not enough column for an A4 of
+   the list's height: at 1024 it wants 517px against 430px of column. Capping
+   the width there only squashed the frame off-ratio, because the stretched
+   height held. So in that band the frame goes back to taking its width from
+   the column and its height from the ratio - it ends short of the list
+   rather than crossing the text or deforming. The ratio is the thing that
+   cannot bend; the bottoms lining up is what the width can afford. */
+@media (min-width:901px) and (max-width:1080px){
+  .comm-panel{ align-self:start; width:100%; max-width:none; }
+}
+
 /* Stacked the frame stays A4 - a phone is the last place to start cropping
    the work - but the full column width would make it 82% of a tablet's
    screen, so the sheet is capped against the viewport height and centred.
@@ -1284,6 +1314,8 @@ a{color:inherit;}
        collapsed to nothing. */
     width:min(100%, 58vh);
     justify-self:center;
+    /* Stacked there is no list beside it to take a height from. */
+    align-self:start;
   }
 }
 .comm-panel img{
