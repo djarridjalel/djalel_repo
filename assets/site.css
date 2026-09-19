@@ -1746,3 +1746,137 @@ html.has-dot, html.has-dot *{cursor:none !important;}
 @media (prefers-reduced-motion:reduce){
   #mark3d{transition:none;}
 }
+
+/* ==========================================================================
+   ARABIC / RTL
+   Additive only. Every rule below is scoped to [lang="ar"] or [dir="rtl"],
+   so the English site cannot be changed by anything in this section — which
+   is why it is a block of overrides rather than 15 scattered edits from
+   physical properties to logical ones.
+   ========================================================================== */
+
+/* Neither face the site is built on has a single Arabic glyph: Poppins has
+   none, and IBM Plex Mono has none either. Both tokens are re-pointed at
+   one family rather than patching 33 call sites. Plex Sans Arabic is the
+   pairing because the technical face already in use is its Latin sibling,
+   so the mono labels keep their relationship to the display type. */
+/* html[lang], not [lang]: the homepage's own stylesheet loads after this one
+   and redeclares --display on :root. Both selectors match the same element
+   at the same specificity, so source order decided it and Poppins won - a
+   face with no Arabic glyph in it. One attribute on the element name is
+   enough to settle that. */
+html[lang="ar"]{
+  --display:'IBM Plex Sans Arabic', 'Noto Naskh Arabic', system-ui, sans-serif;
+  --mono:'IBM Plex Sans Arabic', 'Noto Naskh Arabic', system-ui, sans-serif;
+}
+
+/* Arabic is a joined script. Any tracking at all pulls the glyphs apart at
+   their connections and the word stops being a word — this is not a matter
+   of taste the way it is in Latin. There are 51 letter-spacing declarations
+   in this file at every level of specificity, so this is the one case, like
+   [hidden] above, where the blunt instrument is the correct one. */
+[lang="ar"], [lang="ar"] *{letter-spacing:normal !important;}
+
+/* --- mirrored: the genuinely physical -------------------------------- */
+
+/* The arrow glyph itself is swapped in the markup; this is its travel. */
+[dir="rtl"] .tlink:hover .arw{transform:translateX(-5px);}
+[dir="rtl"] .next:hover .arw{transform:translateX(-6px);}
+
+[dir="rtl"] .poster-mark{right:auto; left:-6%;}
+
+/* Both marquees stay left-to-right inside an RTL page. Their loops are
+   built on translateX(-50%) of a max-content track, which is arithmetic
+   about physical pixels, not about reading order - and a row of client
+   marks has no reading order to respect. Flipping the container would
+   invert the maths and buy nothing. */
+[dir="rtl"] .track, [dir="rtl"] .shelf-row{direction:ltr;}
+
+/* The deck fans away from the brief, and in RTL the brief is on the other
+   side, so the fan turns with it. */
+[dir="rtl"] .showcase{--fan:-1;}
+[dir="rtl"] .showcase:nth-of-type(even){--fan:1;}
+[dir="rtl"] .showcase .reel{right:auto; left:calc(-1 * var(--bleed));}
+[dir="rtl"] .showcase:nth-of-type(even) .reel{right:auto; left:var(--bleed);}
+[dir="rtl"] .reel-stage{margin-right:0; margin-left:auto;}
+[dir="rtl"] .showcase:nth-of-type(even) .reel-stage{margin-left:0; margin-right:auto;}
+[dir="rtl"] .reel-cap{text-align:right;}
+[dir="rtl"] .reel-dots{margin-right:0; margin-left:auto;}
+[dir="rtl"] .showcase:nth-of-type(even) .reel-dots{margin-left:0; margin-right:auto;}
+[dir="rtl"] .showcase-sector{margin-left:0; margin-right:auto;}
+
+[dir="rtl"] .comm-hit{text-align:right;}
+[dir="rtl"] .comm-hit:hover, [dir="rtl"] .comm-hit:focus-visible{
+  transform:translateX(calc(-1 * clamp(10px,1.4vw,22px)));
+}
+[dir="rtl"] .comm-row:has(.comm-hit:focus-visible){
+  border-left:0; border-right:2px solid var(--a-dark);
+}
+[dir="rtl"] .comm-panel{margin-right:0; margin-left:calc(-1 * var(--bleed));}
+
+[dir="rtl"] .disciplines li:not(:first-child)::before{
+  left:auto; right:calc(var(--rail-gap) / -2);
+}
+@media (max-width:1279px){
+  [dir="rtl"] .disciplines li:nth-child(odd)::before{content:none;}
+}
+
+/* Stacked, the deck stops alternating in both directions. */
+@media (max-width:860px){
+  [dir="rtl"] .showcase, [dir="rtl"] .showcase:nth-of-type(even){--fan:-1;}
+  [dir="rtl"] .showcase .reel, [dir="rtl"] .showcase:nth-of-type(even) .reel{left:0;}
+  [dir="rtl"] .reel-stage,
+  [dir="rtl"] .showcase:nth-of-type(even) .reel-stage{margin-right:0; margin-left:auto;}
+  [dir="rtl"] .reel-dots,
+  [dir="rtl"] .showcase:nth-of-type(even) .reel-dots{margin-left:auto; margin-right:0;}
+}
+@media (max-width:900px){
+  [dir="rtl"] .comm-panel{margin-left:0;}
+}
+
+/* --- the language switch --------------------------------------------- */
+.nav-lang{
+  font-family:var(--mono);
+  font-size:.68rem;
+  color:rgba(10,10,11,.66);
+  text-decoration:none;
+  padding:6px 0;
+  border-bottom:1px solid transparent;
+  transition:color .25s ease, border-color .25s ease;
+}
+.nav-lang:hover{color:var(--ink); border-bottom-color:var(--a-dark);}
+
+/* The hero declares its own faces inline, in a stylesheet that loads after
+   this one, so these win on specificity rather than on order. Only the
+   elements that actually hold Arabic are re-pointed: the wordmark is the
+   studio's mark and stays in the Latin face it was drawn in. */
+[lang="ar"] .headline,
+[lang="ar"] .rail{font-family:var(--display);}
+/* Plex Sans Arabic carries much less weight at 300 than Poppins does; the
+   hero line needs the step up to read as a headline rather than a caption. */
+[lang="ar"] .headline{font-weight:600;}
+
+/* The hero paints its headline twice: a base copy and a blended clone in
+   the glass pane, and the two resolve to white together. With the lens
+   splitter off - it has to be, it takes Arabic apart letter by letter -
+   the pair stops resolving and the line comes out as a dark smear. So the
+   Arabic hero shows one copy of the type, lit plainly. The glass pane
+   itself is untouched; only its duplicate of the words goes. */
+[lang="ar"] .type-glass{display:none !important;}
+[lang="ar"] .headline{color:var(--paper); text-shadow:0 2px 28px rgba(0,0,0,.6);}
+
+/* Bidi. A figure like "100+" is a Latin run: dropped into an Arabic
+   paragraph the trailing sign is a neutral character and the algorithm
+   reorders it to "+100", which is simply the wrong number. Isolating the
+   runs that are counts, codes and dates keeps them as written without
+   forcing anything around them. */
+[dir="rtl"] .proof .n,
+[dir="rtl"] .tally .n,
+[dir="rtl"] .idx-n,
+[dir="rtl"] .comm-n,
+[dir="rtl"] .showcase-n{direction:ltr; unicode-bidi:isolate;}
+
+/* The wordmark is a Latin logotype, not a sentence - it keeps its own
+   direction, which also keeps the space between its two halves where the
+   type was drawn to have it. */
+[dir="rtl"] .nav-mark, [dir="rtl"] .wordmark{direction:ltr;}

@@ -9,3 +9,5 @@ api/data/tokens.json
 api/data/throttle.json
 api/data/publish.lock
 assets/versions/
+__pycache__/
+*.pyc
