@@ -143,6 +143,10 @@ def build(page, words):
     for en, ar in NAV_EN.items():
         html = re.sub(r'(<a [^>]*>)%s(</a>)' % en, r'\1%s\2' % ar, html)
     back = "../" * depth + "../" + page
+    # the English page already carries a link TO Arabic; on the Arabic page
+    # that link is pointing at the page you are standing on, so it goes and
+    # the way back takes its place
+    html = re.sub(r'\s*<a class="nav-lang"[^>]*>[^<]*</a>\n?', '\n', html)
     html = html.replace(
         '</div>\n</nav>',
         '  <a class="nav-lang" href="%s" lang="en" dir="ltr">EN</a>\n'
