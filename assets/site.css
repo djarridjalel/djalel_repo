@@ -411,7 +411,17 @@ a{color:inherit;}
   padding-block:var(--slab);
   overflow:hidden;
 }
-.shelf-head{padding-inline:var(--edge); margin-bottom:clamp(26px,3.6vw,50px);}
+/* The heading sits on the page's type grid, not on the page padding. Every
+   band sets its text inside .wrap - 1320px, centred - and the shelf has no
+   wrap because its rows are full bleed. Padded by --edge alone it agreed
+   with the bands up to about 1424px and then walked left as the wrap began
+   centring: 236px adrift at 2000px wide. This is the same inset .wrap
+   resolves to, so the heading starts where every other heading does and the
+   rows still run edge to edge. */
+.shelf-head{
+  padding-inline:max(var(--edge), calc((100% - 1320px) / 2));
+  margin-bottom:clamp(26px,3.6vw,50px);
+}
 .shelf-line{
   margin:.35em 0 0; max-width:34ch;
   font-weight:300; letter-spacing:-.02em; line-height:1.12;

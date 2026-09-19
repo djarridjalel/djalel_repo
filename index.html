@@ -271,6 +271,7 @@
      centred inside its slot rather than filling it.
      ============================================================ */
   .clients{
+    position:relative;
     height:20svh;
     min-height:96px;
     /* The page's own ground, not white. This was the one white band left on
@@ -283,6 +284,29 @@
     display:flex;
     align-items:center;
   }
+  /* A hairline top and bottom. On white the strip separated itself; on the
+     page's own ground it had no boundary at all, and the marks floated
+     between two bands of the same colour.
+
+     Inset to the same gutter as every other rule on the site rather than
+     run full bleed: the bands draw theirs on .wrap, which is the page
+     padding up to 1424px and a centred 1320px past it. This reproduces that
+     without a wrap element - max() picks whichever of the two is binding,
+     so the line starts and stops exactly where the headings above and below
+     it do.
+
+     Absolutely positioned, so they are not flex items of this container. */
+  .clients::before,
+  .clients::after{
+    content:"";
+    position:absolute;
+    left:max(var(--edge), calc((100% - 1320px) / 2));
+    right:max(var(--edge), calc((100% - 1320px) / 2));
+    height:1px;
+    background:var(--rule);
+  }
+  .clients::before{top:0;}
+  .clients::after{bottom:0;}
   .marquee{
     width:100%;
     overflow:hidden;
