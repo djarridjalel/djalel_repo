@@ -273,7 +273,12 @@
   .clients{
     height:20svh;
     min-height:96px;
-    background:var(--paper);
+    /* The page's own ground, not white. This was the one white band left on
+       a bone site, so the strip read as a panel laid over the page with a
+       seam top and bottom - and the marks, which are supplied on white,
+       showed their own edges against it. On bone the band stops being an
+       object and the marks sit on the page. */
+    background:var(--bone);
     overflow:hidden;
     display:flex;
     align-items:center;

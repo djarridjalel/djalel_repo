@@ -453,24 +453,43 @@ a{color:inherit;}
   background:transparent;
 }
 .shelf-card img{width:100%; height:100%; object-fit:cover;}
-/* The hold-back is a veil, not a filter. There are sixty-two cards in this
-   band and grayscale()/brightness() on every one of them is sixty-two raster
-   passes a frame; an opaque overlay fading its opacity is a compositor job
-   and costs effectively nothing.
 
-   The packshots are shot on white, so on ink they would otherwise read as a
-   row of lightboxes. The veil is heavier than it was for that reason, and
-   hovering lifts it entirely — the card brightens rather than grows, since
-   a card that changes size on a moving row drags the eye off whatever else
-   it was reading. */
+/* The band holds itself back and the pointer brings one pack forward. The
+   hold-back is greyscale; hovering restores the colour.
+
+   Only where there is a pointer. On a touch screen :hover never fires, so a
+   greyscale default would leave every pack on the band grey for good - the
+   whole point of a wall of packaging is the colour, and a phone would never
+   see any of it. There, the cards are simply in colour.
+
+   The cost is real but bounded: the filter is static on 60 cards, so each
+   one rasterises once and the compositor then just translates the cached
+   layer along the row. Only the card under the pointer re-rasterises, and
+   only while its transition runs. Measured on the drifting band, frame time
+   was unchanged.
+
+   The veil stays underneath at half its old weight. Greyscale alone left
+   the packshots - which are all shot on white - reading as a row of
+   lightboxes; the veil settles them onto the ground, and hover lifts both
+   at once, so the pack gains its colour and its light together. */
 .shelf-card::after{
   content:"";
   position:absolute; inset:0;
   background:var(--bone);
-  opacity:.34;
+  opacity:.17;
   transition:opacity .45s ease;
 }
 .shelf-card:hover::after{opacity:0;}
+@media (hover:hover) and (pointer:fine){
+  .shelf-card img{
+    filter:grayscale(1);
+    transition:filter .45s ease;
+  }
+  .shelf-card:hover img{filter:grayscale(0);}
+}
+@media (prefers-reduced-motion:reduce){
+  .shelf-card img, .shelf-card::after{transition:none;}
+}
 @keyframes shelf-drift{
   from{transform:translateX(-50%);}
   to  {transform:translateX(0);}
