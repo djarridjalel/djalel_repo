@@ -752,33 +752,6 @@ a{color:inherit;}
   color:var(--fg-3);
 }
 
-/* --- the lens, on a sheet ---------------------------------------
-   A patch of the picture, re-drawn warped, laid exactly over the part it
-   replaces. No second copy, no aperture to mask, no edge.
-
-   Everything before this put a whole transformed copy of the image on top
-   and cut a hole for it. That can only ever produce a boundary: a uniform
-   scale displaces a pixel in proportion to its distance from the centre, so
-   the displacement is largest exactly where the two copies have to meet,
-   and no mask hides a jump that large. Softening the mask does not help
-   either — two layers at .45 and .55 do not replace one another, they
-   composite, and the picture doubles across the whole band.
-
-   The displacement has to fall to zero at the rim instead, which means it
-   has to vary per pixel, which no CSS transform can do. So the interior is
-   drawn a pixel at a time into a canvas the size of the aperture. At the
-   rim every pixel maps to itself and the canvas is indistinguishable from
-   what is under it; there is nothing to blend and nothing to hide.
-
-   The dispersion comes free with it: red, green and blue are bent by
-   slightly different amounts in the same pass, which is what dispersion
-   actually is, rather than three offset copies of a picture. */
-.reel-lens{
-  position:absolute; z-index:1;
-  pointer-events:none;
-  display:block;
-}
-
 /* the two arms — only for the devices that cannot point, and absent
    everywhere else, as in the reference */
 .reel-arms{display:contents;}
