@@ -135,9 +135,15 @@ def build(page, words):
     html = html.replace("&#8594;", "&#8592;")
 
     # assets live at the repo root; an /ar/ page is one level further from them
+    # An /ar/ page sits one level deeper than its English original, so the
+    # hop back to assets/ is its own depth plus one - NOT the original's
+    # ../ count plus one, which double-counted and gave the work pages
+    # three hops where they need two. Served from a domain root the browser
+    # clamps the extra hop at / and it still resolves, which is why this
+    # survived a 12-page pass; it breaks on a filesystem and in any
+    # subdirectory deployment.
     html = re.sub(r'(?<=["\'(])(\.\./)*assets/',
-                  lambda m: "../" * (depth + 1 + (m.group(0).count("../"))) + "assets/",
-                  html)
+                  lambda m: "../" * (depth + 1) + "assets/", html)
 
     # nav labels, and the switch back to English
     for en, ar in NAV_EN.items():
