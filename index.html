@@ -202,7 +202,13 @@
     line-height:1;
     text-shadow:0 2px 24px rgba(0,0,0,.5);
   }
-  .wordmark .n{font-weight:700;}
+  /* The studio name carries the accent. It is the one word on the page
+     that is the studio rather than about it, and on the hero's dark
+     ground #FFCE00 is 13.27:1 - the brightest thing the palette has.
+     The pointer's light still travels along DESIGN STUDIO; on DJARRI it
+     now lands on a letter that is already this colour, which costs that
+     word its hover and is the point of asking for it. */
+  .wordmark .n{font-weight:700; color:var(--accent);}
   .wordmark .s{font-weight:300; color:rgba(255,255,255,.72); margin-left:.5em;}
   /* Pool radius per zone. These are much tighter than the gradient wanted:
      a ramp could afford to be wide because it faded, but a hard switch
