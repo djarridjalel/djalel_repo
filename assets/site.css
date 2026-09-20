@@ -104,9 +104,15 @@ a{color:inherit;}
 .nav-hidden{transform:translateY(-102%); opacity:0; pointer-events:none;}
 .nav-mark{
   font-size:.95rem; letter-spacing:.06em; text-decoration:none; white-space:nowrap;
+  /* The mark is Latin on every page, so it lays itself out left to right
+     even inside the RTL ones. Without this its two halves were spaced on
+     the inline-start side, which in RTL is the right — and the gap landed
+     outside the pair instead of between them: DJARRIDESIGN STUDIO. Where
+     the mark sits in the bar is the flex parent's business, not its own. */
+  direction:ltr; unicode-bidi:isolate;
 }
 .nav-mark .n{font-weight:700;}
-.nav-mark .s{font-weight:300; color:var(--fg-3); margin-left:.5em;}
+.nav-mark .s{font-weight:300; color:var(--fg-3); margin-inline-start:.5em;}
 .nav-links{display:flex; align-items:center; gap:clamp(16px,2.4vw,34px);}
 .nav-links a{
   font-family:var(--mono);

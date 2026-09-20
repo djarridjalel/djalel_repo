@@ -13,7 +13,7 @@ Re-run after editing site.css or site.js; it is idempotent.
 import hashlib, pathlib, re, sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-PAGES = ['index.html', 'about.html', 'archive.html', 'editor.html',
+PAGES = ['index.html', 'about.html', 'archive.html', 'contact.html', 'editor.html',
          'work/evolab.html', 'work/natural-solution.html', 'work/laformul.html']
 ASSETS = ['assets/site.css', 'assets/site.js', 'assets/content.js', 'assets/logo3d.js']
 

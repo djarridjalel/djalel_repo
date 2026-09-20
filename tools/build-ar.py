@@ -12,7 +12,7 @@ Run:  python3 tools/build-ar.py
 import io, json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PAGES = ["index.html", "about.html", "archive.html",
+PAGES = ["index.html", "about.html", "archive.html", "contact.html",
          "work/laformul.html", "work/evolab.html", "work/natural-solution.html"]
 
 NAV_EN = {"Work": "الأعمال", "Archive": "الأرشيف",
@@ -61,6 +61,14 @@ HEAD = {
   "<div class=\"l\">Products<br>on shelves</div>": "<div class=\"l\">منتجات<br>على الرفوف</div>",
   "<div class=\"l\">Brand<br>identities</div>": "<div class=\"l\">هويات<br>علامات</div>",
   "<div class=\"l\">Client<br>projects</div>": "<div class=\"l\">مشاريع<br>عملاء</div>",
+  "<title>Start a project — Djarri Design Studio</title>":
+    "<title>ابدأ مشروعًا — Djarri Design Studio</title>",
+  "Commission brand identity and packaging systems for pharmaceutical, parapharmaceutical and dermo-cosmetic ranges. What to send, and where.":
+    "كلّف الاستوديو بهوية علامة ونظام تغليف لتشكيلات الأدوية وشبه الصيدلانيات والتجميل الطبّي. ماذا ترسل، وإلى أين.",
+  "<meta property=\"og:title\" content=\"Start a project — Djarri Design Studio\">":
+    "<meta property=\"og:title\" content=\"ابدأ مشروعًا — Djarri Design Studio\">",
+  "Bring the range while it is still an idea.":
+    "اعرض التشكيلة وهي ما تزال فكرة.",
   # the credentials list on About carries no data-ed keys either
   "<span class=\"k\">Position</span><span>Creative Director · Packaging &amp; Brand Designer</span>":
     "<span class=\"k\">المنصب</span><span>مدير إبداعي · مصمّم تغليف وعلامات</span>",
