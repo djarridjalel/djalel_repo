@@ -1863,31 +1863,6 @@ html[lang="ar"]{
    hero line needs the step up to read as a headline rather than a caption. */
 [lang="ar"] .headline{font-weight:600;}
 
-/* The hero paints its headline twice: a base copy and a blended clone in
-   the glass pane, and the two resolve to white together. With the lens
-   splitter off - it has to be, it takes Arabic apart letter by letter -
-   the pair stops resolving and the line comes out as a dark smear. So the
-   Arabic hero shows one copy of the type, lit plainly. The glass pane
-   itself is untouched; only its duplicate of the words goes. */
-[lang="ar"] .type-glass{display:none !important;}
-[lang="ar"] .headline{color:var(--paper); text-shadow:0 2px 28px rgba(0,0,0,.6);}
-
-/* Bidi. A figure like "100+" is a Latin run: dropped into an Arabic
-   paragraph the trailing sign is a neutral character and the algorithm
-   reorders it to "+100", which is simply the wrong number. Isolating the
-   runs that are counts, codes and dates keeps them as written without
-   forcing anything around them. */
-[dir="rtl"] .proof .n,
-[dir="rtl"] .tally .n,
-[dir="rtl"] .idx-n,
-[dir="rtl"] .comm-n,
-[dir="rtl"] .showcase-n{direction:ltr; unicode-bidi:isolate;}
-
-/* The wordmark is a Latin logotype, not a sentence - it keeps its own
-   direction, which also keeps the space between its two halves where the
-   type was drawn to have it. */
-[dir="rtl"] .nav-mark, [dir="rtl"] .wordmark{direction:ltr;}
-
 /* --- Arabic label sizes ------------------------------------------------
    The small tier of this site is Latin small-caps: .6rem or so, uppercased
    and tracked out, which gives a short label presence at a size the letters

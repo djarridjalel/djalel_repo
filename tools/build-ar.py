@@ -114,12 +114,6 @@ def build(page, words):
     # in the shared script: a hover flourish is worth less than legible text.
     html = re.sub(r'\s+gt-zone\b', '', html)
     html = re.sub(r'\s+gt\b(?=[\s"])', '', html)
-    # The hero's lens has a splitter of its own - .lword/.lch rather than
-    # .ch - and it breaks Arabic the same way for the same reason. It keys
-    # off the `lens` class, so removing that from the headline is enough;
-    # the refraction is a Latin-display effect and no Arabic is worth
-    # spelling out letter by letter to keep it.
-    html = html.replace('class="headline lens"', 'class="headline"')
 
     # head copy, which carries no data-ed of its own
     for pat, rep in HEAD.items():

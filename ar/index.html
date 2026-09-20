@@ -649,7 +649,7 @@
       <span class="wide-only" data-ed="index.t3">أنظمة هوية للأدوية وشبه الصيدلانيات<br></span>
       هوية · تغليف · إدارة إبداعية
     </div>
-    <h1 class="headline"><span class="lens-base"><b>تشكيلات</b> ما تزال <b>تصمد</b> عند المنتج <b>الحادي والثلاثين</b></span></h1>
+    <h1 class="headline lens"><span class="lens-base"><b>تشكيلات</b> ما تزال <b>تصمد</b> عند المنتج <b>الحادي والثلاثين</b></span></h1>
     <div class="footrow">
       <div class="wordmark"><span class="n" data-ed="index.t4">DJARRI</span><span class="s" data-ed="index.t5">DESIGN&nbsp;STUDIO</span></div>
     </div>
@@ -1109,6 +1109,7 @@
     /* Split the line into characters BEFORE the clone is taken. Both copies
        have to lay out to the same pixel — the aperture assumes it — and an
        inline-block character does not sit exactly where a bare one does. */
+    var AR = document.documentElement.lang === 'ar';
     (function splitLine(root){
       var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, nodes = [];
       while((n = w.nextNode())) nodes.push(n);
@@ -1130,10 +1131,20 @@
             word.className = 'lword';
             frag.appendChild(word);
           }
-          var c = document.createElement('span');
-          c.className = 'lch';
-          c.textContent = t[i];
-          word.appendChild(c);
+          /* In Arabic the squeeze unit is the word, not the letter. Arabic
+             is a joined script: a letter in a box of its own loses the
+             connections that make it part of a word, and there is no way
+             round it in CSS — display:inline would keep the shaping but
+             transforms do not apply to inline boxes, which is the whole
+             effect. A word is a complete joining unit, so one box per word
+             carries the lens and leaves the shaping untouched. */
+          var c = AR ? word.lastChild : null;
+          if(!c){
+            c = document.createElement('span');
+            c.className = 'lch';
+            word.appendChild(c);
+          }
+          c.textContent += t[i];
         }
         node.parentNode.replaceChild(frag, node);
       });
