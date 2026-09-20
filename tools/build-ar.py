@@ -57,6 +57,49 @@ HEAD = {
     "<span class=\"k\">التكوين</span><span>ماجستير في هندسة البرمجيات — جامعة قسنطينة <span dir=\"ltr\">2</span>، <span dir=\"ltr\">2018</span></span>",
   "<span class=\"k\">Languages</span><span>Arabic · French · English</span>":
     "<span class=\"k\">اللغات</span><span>العربية · الفرنسية · الإنجليزية</span>",
+
+  # --- strings with no data-ed key: links, row keys, tally labels ---
+  ">Read the full background ": ">اقرأ الخلفية كاملة ",
+  ">Browse the archive ": ">تصفّح الأرشيف ",
+  ">Start with a case study ": ">ابدأ بدراسة حالة ",
+  ">Back to the featured work ": ">عودة إلى الأعمال المختارة ",
+  "</span> Scroll down": "</span> مرّر للأسفل",
+  ">Email</a>": ">البريد</a>",
+
+  "<div class=\"sys-k\">Mark</div>": "<div class=\"sys-k\">العلامة</div>",
+  "<div class=\"sys-k\">Typography</div>": "<div class=\"sys-k\">الطباعة</div>",
+  "<div class=\"sys-k\">Colour</div>": "<div class=\"sys-k\">اللون</div>",
+  "<div class=\"sys-k\">Packaging</div>": "<div class=\"sys-k\">التغليف</div>",
+  "<div class=\"sys-k\">Architecture</div>": "<div class=\"sys-k\">المعمار</div>",
+  "<div class=\"sys-k\">Environment</div>": "<div class=\"sys-k\">البيئة</div>",
+  "<div class=\"sys-k\">Digital</div>": "<div class=\"sys-k\">الرقميّ</div>",
+  "<div class=\"sys-k\">Social</div>": "<div class=\"sys-k\">التواصل الاجتماعي</div>",
+  "<div class=\"sys-k\">Wordmark</div>": "<div class=\"sys-k\">الشعار المكتوب</div>",
+  "<div class=\"sys-k\">SKU system</div>": "<div class=\"sys-k\">نظام المنتجات</div>",
+  "<div class=\"sys-k\">Carton</div>": "<div class=\"sys-k\">العلبة</div>",
+
+  "<div class=\"l\">Identity systems</div>": "<div class=\"l\">أنظمة هوية</div>",
+  "<div class=\"l\">Years apart</div>": "<div class=\"l\">سنوات بينهما</div>",
+  "<div class=\"l\">Product categories</div>": "<div class=\"l\">فئات منتجات</div>",
+  "<div class=\"l\">Client</div>": "<div class=\"l\">العميل</div>",
+  "<div class=\"l\">Outcome</div>": "<div class=\"l\">النتيجة</div>",
+  "<div class=\"l\">SKUs on shelf</div>": "<div class=\"l\">منتجات على الرفّ</div>",
+  "<div class=\"l\">Logo modes</div>": "<div class=\"l\">صيغ الشعار</div>",
+  "<div class=\"l\">Languages</div>": "<div class=\"l\">لغات</div>",
+  "<div class=\"l\">Trade-show build</div>": "<div class=\"l\">جناح معرض</div>",
+  "<div class=\"l\">Products</div>": "<div class=\"l\">منتجات</div>",
+  "<div class=\"l\">Logo formats</div>": "<div class=\"l\">صيغ الشعار</div>",
+  "<div class=\"l\">Years to the sub-brand</div>": "<div class=\"l\">سنوات حتى العلامة الفرعية</div>",
+  "<div class=\"l\">Brands in the family</div>": "<div class=\"l\">علامات في العائلة</div>",
+
+  "Yellow-green → deep blue": "أخضر مصفرّ ← أزرق عميق",
+  "60 / 30 / 10 — grey, grey, gold": "<span dir=\"ltr\">60 / 30 / 10</span> — رماديّ، رماديّ، ذهبيّ",
+  "Deep ocean blue / yellow-green": "أزرق محيطيّ عميق / أخضر مصفرّ",
+  "Coffee / skintone / sand / olive": "بُنّي / لون البشرة / رمليّ / زيتونيّ",
+
+  ">Case 01 ": ">الحالة 01 ",
+  ">Case 02 ": ">الحالة 02 ",
+  ">Case 03 ": ">الحالة 03 ",
 }
 
 
