@@ -1880,3 +1880,51 @@ html[lang="ar"]{
    direction, which also keeps the space between its two halves where the
    type was drawn to have it. */
 [dir="rtl"] .nav-mark, [dir="rtl"] .wordmark{direction:ltr;}
+
+/* --- Arabic label sizes ------------------------------------------------
+   The small tier of this site is Latin small-caps: .6rem or so, uppercased
+   and tracked out, which gives a short label presence at a size the letters
+   themselves could not carry. Arabic has no uppercase, and tracking is not
+   available to it either - it would break the joins. Set at the same size
+   with both devices gone, these labels came out at 8.6px to 11.5px of
+   Arabic, where the dots and the hamzas stop resolving: measured, 164
+   elements across 19 styles below 13px.
+
+   So the tier is re-set rather than scaled. 13px is the floor at which
+   Arabic detail survives on a screen; the upper labels go to 14px to keep
+   the two steps of hierarchy the Latin has. Everything from body copy up
+   is left alone - it was already 15px and over, and reads correctly. */
+html[lang="ar"]{
+  --ar-label:0.82rem;     /* 13.1px - the floor for Arabic label text */
+  --ar-label-lg:0.88rem;  /* 14.1px - the step above it */
+}
+
+[lang="ar"] .reel-cap span,
+[lang="ar"] .swatch-note,
+[lang="ar"] .spec dt,
+[lang="ar"] .showcase-sector,
+[lang="ar"] .disciplines .k,
+[lang="ar"] .tag,
+[lang="ar"] .sys-k,
+[lang="ar"] .idx-sector,
+[lang="ar"] .lineage figcaption,
+[lang="ar"] .plate-pair figcaption,
+[lang="ar"] .plate-wide figcaption,
+[lang="ar"] .range figcaption,
+[lang="ar"] .facts .k,
+[lang="ar"] .arch-item .m,
+[lang="ar"] .poster-eyebrow,
+[lang="ar"] .foot,
+[lang="ar"] .foot-links a,
+[lang="ar"] .next .k,
+[lang="ar"] .proof .l,
+[lang="ar"] .tally .l,
+[lang="ar"] .comm-n{font-size:var(--ar-label);}
+
+[lang="ar"] .eyebrow,
+[lang="ar"] .kicker,
+[lang="ar"] .nav-links a,
+[lang="ar"] .nav-lang,
+[lang="ar"] .narrative h3,
+[lang="ar"] .spec dd,
+[lang="ar"] .tlink{font-size:var(--ar-label-lg);}
