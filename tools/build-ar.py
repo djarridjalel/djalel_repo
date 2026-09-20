@@ -36,8 +36,8 @@ HEAD = {
     "<title>Natural Solution + Natural Skin — Djarri Design Studio</title>",
   "<title>Laformul + BioFormul — Djarri Design Studio</title>":
     "<title>Laformul + BioFormul — Djarri Design Studio</title>",
-  "Creative Director and packaging designer for pharmaceutical, parapharmaceutical and consumer-health brands. Co-General Director at Revolution Agency.":
-    "مدير إبداعي ومصمّم تغليف لعلامات الأدوية وشبه الصيدلانيات والصحة الاستهلاكية. مدير عام مشارك في Revolution Agency.",
+  "Creative Director and packaging designer for pharmaceutical, parapharmaceutical and consumer-health brands. Director of the filmmaking department at Revolution Agency.":
+    "مدير إبداعي ومصمّم تغليف لعلامات الأدوية وشبه الصيدلانيات والصحة الاستهلاكية. مدير قسم الإنتاج السينمائي في Revolution Agency.",
   "Identities, campaigns, catalogues, brand systems and film work beyond the three featured case studies.":
     "هويات وحملات وكتالوجات وأنظمة علامات وأعمال فيلمية، إلى جانب دراسات الحالة الثلاث المعروضة.",
   "A full rebrand for a pharmaceutical laboratory: identity, a five-SKU packaging system, an exhibition build and a bilingual site.":
@@ -64,10 +64,8 @@ HEAD = {
   # the credentials list on About carries no data-ed keys either
   "<span class=\"k\">Position</span><span>Creative Director · Packaging &amp; Brand Designer</span>":
     "<span class=\"k\">المنصب</span><span>مدير إبداعي · مصمّم تغليف وعلامات</span>",
-  "<span class=\"k\">Leadership</span><span>Co-General Director, Revolution Agency</span>":
-    "<span class=\"k\">القيادة</span><span>مدير عام مشارك، Revolution Agency</span>",
-  "<span class=\"k\">Also</span><span>Head of the filmmaking department — product films, brand films and motion work</span>":
-    "<span class=\"k\">وأيضًا</span><span>رئيس قسم الإنتاج السينمائي — أفلام منتجات وأفلام علامات وأعمال حركة</span>",
+  "<span class=\"k\">Leadership</span><span>Director of the filmmaking department, Revolution Agency — product films, brand films and motion work</span>":
+    "<span class=\"k\">القيادة</span><span>مدير قسم الإنتاج السينمائي، Revolution Agency — أفلام منتجات وأفلام علامات وأعمال حركة</span>",
   "<span class=\"k\">Experience</span><span>9+ years · 100+ products on shelves · 30+ brand identities · 100+ client projects</span>":
     "<span class=\"k\">الخبرة</span><span><span dir=\"ltr\">9+</span> سنوات · <span dir=\"ltr\">100+</span> منتج على الرفوف · <span dir=\"ltr\">30+</span> هوية علامة · <span dir=\"ltr\">100+</span> مشروع عميل</span>",
   "<span class=\"k\">Sectors</span><span>Pharmaceutical · Parapharmaceutical · Dermo-cosmetic · Consumer health</span>":
