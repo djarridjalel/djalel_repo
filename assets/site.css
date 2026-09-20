@@ -1920,3 +1920,29 @@ html[lang="ar"]{
    floor the rest of the Arabic labels were re-set to. It joins them. */
 [dir="rtl"] .rail{justify-self:end;}
 [lang="ar"] .rail{font-size:var(--ar-label); text-align:right;}
+
+/* The hero wordmark sits in a flex row with space-between, and RTL reverses
+   that axis - so the mark crossed to the right. It is a Latin logotype and
+   already carries its own direction; the row it sits in takes the same, so
+   the mark stays where it was drawn to be. */
+[dir="rtl"] .footrow{direction:ltr;}
+
+/* The refraction, tightened for Arabic. The effect is a chromatic split
+   either side of the glyph: -2px blue, +2px yellow, and a wider -4/+4 pair
+   behind it. Latin strokes are mostly vertical, so a sideways offset gives
+   them a lit edge. Arabic's connecting strokes run horizontally - the
+   offset slides ALONG them rather than across, thickening the stroke
+   instead of rimming it, and at 4px the dots and hamzas separate into marks
+   of their own. Measured on the rendered line, Arabic holds 0.912
+   self-similarity at a 1px shift against Latin's 0.865: the script is
+   simply more continuous sideways, so it has less room for a sideways
+   effect. The split drops to half a pixel - still two colours, still
+   refraction - and the wide pair stops being a displacement and becomes a
+   glow, which adds light without adding a second copy of the letter. */
+[lang="ar"] .hero.has-glass .type:not(.type-glass) .lens-base{
+  text-shadow:
+    -0.5px 0 3px rgba(56,140,255,.9),
+     0.5px 0 3px rgba(255,206,0,.9),
+     0 0 10px rgba(56,140,255,.35),
+     0 0 10px rgba(255,206,0,.35);
+}
