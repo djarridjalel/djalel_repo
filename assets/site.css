@@ -1790,7 +1790,14 @@ html[lang="ar"]{
    about physical pixels, not about reading order - and a row of client
    marks has no reading order to respect. Flipping the container would
    invert the maths and buy nothing. */
-[dir="rtl"] .track, [dir="rtl"] .shelf-row{direction:ltr;}
+/* The containers, not just the tracks. A track is width:max-content and far
+   wider than its frame, and which end of the frame it is anchored to is
+   decided by the PARENT's direction, not its own. Set on the tracks alone,
+   both marquees were pinned to the right edge and ran off to the left:
+   measured, the shelf row sat at x=-21075 of its 22463px, and none of the
+   28 client marks were on screen at all. */
+[dir="rtl"] .marquee, [dir="rtl"] .track,
+[dir="rtl"] .shelf-rows, [dir="rtl"] .shelf-row{direction:ltr;}
 
 /* The deck fans away from the brief, and in RTL the brief is on the other
    side, so the fan turns with it. */
