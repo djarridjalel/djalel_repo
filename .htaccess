@@ -1,16 +1,12 @@
 # Djarri Design Studio — serving rules.
 #
-# Compression first: on a cold visit nothing paints until index.html and
-# site.css have both arrived, and that pair is ~162KB uncompressed against
-# ~46KB gzipped. On mobile data that difference is most of the blank screen.
-<IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml \
-    text/javascript application/javascript application/json image/svg+xml
-</IfModule>
-<IfModule mod_brotli.c>
-  AddOutputFilterByType BROTLI_COMPRESS text/html text/css text/plain text/xml \
-    text/javascript application/javascript application/json image/svg+xml
-</IfModule>
+# Compression is deliberately NOT set here. LiteSpeed and most shared hosts
+# already compress text responses, and asking a second filter to compress an
+# already-compressed response produces a body the browser decodes once and
+# then cannot parse — a stylesheet that arrives looking truncated, with the
+# rules past the cut silently dropped. If the host turns out not to compress
+# (check for content-encoding: gzip on site.css), turn it on in the hosting
+# panel rather than here, where it cannot double up.
 
 # Caching. The asset filenames carry no content hash, so nothing here may be
 # held long enough to outlive an edit: a stale site.css or content.json would
@@ -42,5 +38,3 @@
   </FilesMatch>
 </IfModule>
 
-# The asset folders are there to be fetched from, not browsed.
-Options -Indexes
