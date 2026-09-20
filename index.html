@@ -461,7 +461,11 @@
        lens alone — on a yellow glyph the yellow half of the split has
        nothing to separate itself from and only reads as a bloom. */
     .gt .ch{transition:color .22s ease;}
-    .gt .ch.on{color:var(--accent);}
+    /* One accent, two stops, chosen by the ground rather than by the band -
+       see the note in site.css. The default is the stop that is legible on
+       bone; the hero opts into the bright one because it is dark. */
+    .gt .ch.on{color:var(--a-dark);}
+    .hero .gt .ch.on{color:var(--accent);}
   }
   @media (prefers-reduced-motion:reduce){
     .gt .ch{transition:none;}

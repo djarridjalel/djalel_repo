@@ -1610,10 +1610,24 @@ a{color:inherit;}
 
 @media (hover:hover) and (pointer:fine){
   .gt .ch{transition:color .22s ease;}
-  .gt .ch.on{color:var(--accent);}
-  /* on the bone ground a 1.32:1 yellow is unreadable, so the light bands take
-     the same hue at the one stop that clears AA */
-  .band-bone .gt .ch.on, .dossier .gt .ch.on{color:var(--a-dark);}
+  /* The lit colour is one accent at two stops, and which stop is not a
+     choice per band - it follows the ground. #FFCE00 is 13.27:1 on ink and
+     1.32:1 on bone, so it is the only readable answer on one and unreadable
+     on the other.
+
+     This used to be written the other way round: accent by default, with
+     the light bands opting out through .band-bone. The shelf is a bright
+     band that is not a .band-bone, so it fell through the gap and lit its
+     heading in raw yellow while every other bright band lit in gold - two
+     colours on one page, from a selector that did not reach. Same fault the
+     eyebrow and the lede had on this band once.
+
+     Inverted, the fall-through cannot happen: the legible stop is the
+     default and the dark grounds - which are a closed set - opt in. */
+  .gt .ch.on{color:var(--a-dark);}
+  .hero .gt .ch.on,
+  .band-ink .gt .ch.on,
+  .poster:not(.poster-light) .gt .ch.on{color:var(--accent);}
 
   .bronze{transition:color .38s ease;}
   .outcome.gt-zone:hover .bronze{color:var(--a-dark);}
