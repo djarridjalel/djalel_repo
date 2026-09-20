@@ -1470,6 +1470,40 @@ a{color:inherit;}
 .band-ink .facts .k{color:rgba(255,255,255,.5);}
 @media (max-width:560px){ .facts li{grid-template-columns:1fr; gap:6px;} }
 
+/* ---- the contact page's own rhythm -------------------------------------
+   The page is four things stacked: the invitation, the two ways in, the
+   facts, and a line pointing elsewhere. At the shared spacing they ran
+   together — the actions sat on the list's top rule with nothing between
+   them, and the closing line began on its bottom rule. Each part now ends
+   before the next begins, and the rows carry more of their own height, so
+   the list reads as a table rather than as a block of ruled text.
+
+   Scoped to .contact: About uses the same list deliberately tighter, in a
+   column beside other things rather than alone on a page. */
+.contact .lede{margin-bottom:clamp(26px, 3.4vh, 40px);}
+/* The line that earns the two actions stays close to them; everything that
+   explains what to write comes after, where it is read by whoever is still
+   reading. A call to action under a paragraph of body copy is not one. */
+.contact .lede-lead{margin-bottom:clamp(20px, 2.6vh, 30px);}
+.contact .close-actions{margin-bottom:clamp(38px, 5.4vh, 64px);}
+.contact .facts{margin-bottom:clamp(30px, 4.4vh, 52px);}
+.contact .facts li{padding:clamp(17px, 2.3vh, 26px) 0;}
+.contact .facts li:last-child{border-bottom:0;}
+/* The two actions are 25px of text, which is a fine thing to read and a
+   poor thing to hit: under the 44px a thumb needs, on the page whose whole
+   job is being tapped, and WhatsApp is a phone action before it is anything
+   else. The target grows without the type moving — the rule under the words
+   stays exactly where it was drawn. */
+.contact .close-mail{position:relative;}
+.contact .close-mail::after{
+  content:""; position:absolute; left:0; right:0; top:50%;
+  height:44px; transform:translateY(-50%);
+}
+/* side by side while there is room, stacked with air when there is not */
+.contact .close-actions{gap:clamp(20px, 3.4vw, 52px) clamp(24px, 4vw, 56px);}
+/* the closing line is a pointer, not a second lede */
+.contact .facts + .lede{margin-bottom:0;}
+
 .close-line{
   margin:0 0 clamp(28px,4vw,44px);
   font-weight:300;
@@ -1478,10 +1512,11 @@ a{color:inherit;}
 }
 .close-line b{font-weight:700;}
 .close-actions{display:flex; flex-wrap:wrap; gap:clamp(16px,3vw,40px); align-items:center;}
-/* The one action on the page that is the point of the page. It is the same
-   link as every other — same mono, same rule under it, same arrow — just
-   set a size up, because a lone control at the standard size reads as a
-   footnote rather than as the thing being asked for. */
+/* The actions that are the point of the page — the mail address and the
+   WhatsApp thread. Each is the same link as every other on the site — same
+   mono, same rule under it, same arrow — just set a size up, because a
+   control at the standard size reads as a footnote rather than as the thing
+   being asked for. Two of them, at one size, so neither is the fallback. */
 .close-mail{
   font-size:clamp(.78rem, 1.15vw, .95rem);
   letter-spacing:.12em;

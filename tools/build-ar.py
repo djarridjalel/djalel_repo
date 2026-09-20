@@ -69,6 +69,8 @@ HEAD = {
     "<meta property=\"og:title\" content=\"ابدأ مشروعًا — Djarri Design Studio\">",
   "Bring the range while it is still an idea.":
     "اعرض التشكيلة وهي ما تزال فكرة.",
+  "https://wa.me/213556956452?text=Hello%20%E2%80%94%20I%27d%20like%20to%20book%20a%20call%20about%20a%20project.":
+    "https://wa.me/213556956452?text=%D9%85%D8%B1%D8%AD%D8%A8%D9%8B%D8%A7%20%E2%80%94%20%D8%A3%D9%88%D8%AF%D9%91%20%D8%AD%D8%AC%D8%B2%20%D9%85%D9%83%D8%A7%D9%84%D9%85%D8%A9%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D9%85%D8%B4%D8%B1%D9%88%D8%B9.",
   # the credentials list on About carries no data-ed keys either
   "<span class=\"k\">Position</span><span>Creative Director · Packaging &amp; Brand Designer</span>":
     "<span class=\"k\">المنصب</span><span>مدير إبداعي · مصمّم تغليف وعلامات</span>",
