@@ -410,7 +410,12 @@
       p = p < 0 ? 0 : (p > 1 ? 1 : p);
       // equal share of the travel each, and the last one keeps the remainder
       var i = Math.floor(p * n);
-      aim(i > n - 1 ? n - 1 : i);
+      if(i > n - 1) i = n - 1;
+      if(seeking >= 0){
+        if(i !== seeking) return;             // still on the way: do not choose
+        seeking = -1; clearTimeout(seekTimer);
+      }
+      aim(i);
     }
     function onScroll(){
       if(queued) return;
@@ -425,10 +430,22 @@
        page to that row's share of the run: the selection follows because
        the scroll position now says so, and the two can never disagree.
        Focus does the same, so tabbing through the list walks the run. */
+    /* A seek scrolls smoothly, which means the page passes through every
+       position between here and there — and each one is a scroll event that
+       would re-aim the run at whatever row it is currently over. Clicking the
+       fifth row from the first made the picture walk the three in between and
+       arrive last, which reads as a flash rather than a choice. So while a
+       seek is travelling the scroll position stops choosing; it takes over
+       again when the run arrives, or after a second and a bit if it never
+       does, which is the case where someone grabbed the page mid-flight. */
+    var seeking = -1, seekTimer = null;
     function seek(i){
       var travel = sec.getBoundingClientRect().height - innerHeight;
       if(travel <= 0) return;
       var top = scrollY + sec.getBoundingClientRect().top;
+      seeking = i;
+      clearTimeout(seekTimer);
+      seekTimer = setTimeout(function(){ seeking = -1; }, 1300);
       scrollTo({ top: top + travel * (i + 0.5) / n, behavior: 'smooth' });
     }
     [].forEach.call(sec.querySelectorAll('.comm-hit'), function(h, i){
@@ -515,6 +532,7 @@
   var zones = document.querySelectorAll('.gt-zone');
   if(!zones.length) return;
 
+  var ARABIC = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
   function split(root){
     var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, nodes = [];
     while((n = w.nextNode())) nodes.push(n);
@@ -522,11 +540,20 @@
       var t = node.nodeValue;
       if(!/\S/.test(t)) return;
       var frag = document.createDocumentFragment();
-      for(var i = 0; i < t.length; i++){
-        if(/\s/.test(t[i])){ frag.appendChild(document.createTextNode(t[i])); continue; }
+      /* Arabic is joined: a letter's shape depends on its neighbours, and a
+         run of text only shapes within one element. Cut it a glyph at a time
+         and every letter falls back to its isolated form — the word comes
+         apart. So Arabic is cut at the spaces instead, and the light travels
+         a word at a time. Latin keeps its per-letter pass, including on the
+         Arabic pages, where the brand names are still Latin. */
+      var units = ARABIC.test(t) ? t.split(/(\s+)/) : t.split('');
+      for(var i = 0; i < units.length; i++){
+        var u = units[i];
+        if(!u) continue;
+        if(/^\s+$/.test(u)){ frag.appendChild(document.createTextNode(u)); continue; }
         var s = document.createElement('span');
         s.className = 'ch';
-        s.textContent = t[i];
+        s.textContent = u;
         frag.appendChild(s);
       }
       node.parentNode.replaceChild(frag, node);

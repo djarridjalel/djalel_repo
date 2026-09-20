@@ -23,8 +23,8 @@ NAV_EN = {"Work": "الأعمال", "Archive": "الأرشيف",
 _HEAD_SEEN = set()
 _HEAD_UNUSED = set()
 HEAD = {
-  "<title>Djarri Design Studio — Ranges that still hold at the thirty-first product</title>":
-    "<title>Djarri Design Studio — تشكيلات تصمد عند المنتج الحادي والثلاثين</title>",
+  "<title>Djarri Design Studio — Unlocking your brands' unrealised potential</title>":
+    "<title>Djarri Design Studio — إطلاق الطاقات الكامنة في علاماتك</title>",
   "<title>About Abdeldjalil Djarri — Djarri Design Studio</title>":
     "<title>عن عبد الجليل جرّي — Djarri Design Studio</title>",
   "<title>Selected Archive — Djarri Design Studio</title>":
@@ -48,10 +48,10 @@ HEAD = {
     "علامة تجميل طبّي بُنيت من الصفر، ثم امتدّت إلى علامة شقيقة ذات منحى علمي بعد أن أثبتت الأولى السوق.",
   "Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.":
     "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جرّي.",
-  "Ranges that still hold at the thirty-first product — brand identity and packaging systems for regulated health markets.":
-    "تشكيلات تصمد عند المنتج الحادي والثلاثين — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
-  "<b>ranges</b> that still <b>hold</b> at the <b>thirty-first</b> product":
-    "<b>تشكيلات</b> ما تزال <b>تصمد</b> عند المنتج <b>الحادي والثلاثين</b>",
+  "Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.":
+    "إطلاق الطاقات الكامنة في علاماتك — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
+  "<b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b>":
+    "<b>إطلاق</b> الطاقات <b>الكامنة</b> في <b>علاماتك</b>",
   "Abdeldjalil DJARRI · Creative Director<br>":
     "عبد الجليل جرّي · مدير إبداعي<br>",
   "Identity · Packaging · Creative direction":
@@ -172,8 +172,10 @@ def build(page, words):
     # connections that make it part of a word. The whole page would render as
     # disconnected glyphs. So the effect is dropped here rather than guarded
     # in the shared script: a hover flourish is worth less than legible text.
-    html = re.sub(r'\s+gt-zone\b', '', html)
-    html = re.sub(r'\s+gt\b(?=[\s"])', '', html)
+    # The pointer-light stays. It used to be stripped here because its
+    # splitter cut every glyph into its own span, which takes a joined
+    # script apart; it now cuts Arabic at the spaces instead, so the
+    # headings keep their shaping and the light travels word by word.
 
     # head copy, which carries no data-ed of its own
     for pat, rep in HEAD.items():

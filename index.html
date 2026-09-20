@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Djarri Design Studio — Ranges that still hold at the thirty-first product</title>
+<title>Djarri Design Studio — Unlocking your brands' unrealised potential</title>
 <meta name="description" content="Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.">
 <meta property="og:title" content="Djarri Design Studio">
-<meta property="og:description" content="Ranges that still hold at the thirty-first product — brand identity and packaging systems for regulated health markets.">
+<meta property="og:description" content="Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.">
 <meta property="og:type" content="website">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -718,7 +718,7 @@
       <span class="wide-only" data-ed="index.t3">Pharma &amp; parapharma brand systems<br></span>
       Identity · Packaging · Creative direction
     </div>
-    <h1 class="headline lens"><span class="lens-base"><b>ranges</b> that still <b>hold</b> at the <b>thirty-first</b> product</span></h1>
+    <h1 class="headline lens"><span class="lens-base"><b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b></span></h1>
     <div class="footrow">
       <div class="wordmark gt gt-zone"><span class="n" data-ed="index.t4">DJARRI</span><span class="s" data-ed="index.t5">DESIGN&nbsp;STUDIO</span></div>
     </div>
@@ -1491,6 +1491,7 @@
      Whitespace is left as bare text: a span around a space still breaks the
      line, but it also becomes a lit "letter" with nothing to show for it. */
   function split(root){
+    var AR_TEXT = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
     var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
     var nodes = [], n;
     while((n = walker.nextNode())) nodes.push(n);
@@ -1498,11 +1499,21 @@
       var t = node.nodeValue;
       if(!/\S/.test(t)) return;
       var frag = document.createDocumentFragment();
-      for(var i = 0; i < t.length; i++){
-        if(/\s/.test(t[i])){ frag.appendChild(document.createTextNode(t[i])); continue; }
+      /* Arabic is joined: a letter's shape depends on its neighbours, and a
+         run only shapes within one element. Cut a glyph at a time and every
+         letter drops to its isolated form — measured, the same heading came
+         out 380px split against 650px whole, which is the word coming apart.
+         So Arabic is cut at the spaces and the light moves a word at a time.
+         Latin keeps its per-letter pass, including on the Arabic pages where
+         the brand names are still Latin. */
+      var units = AR_TEXT.test(t) ? t.split(/(\s+)/) : t.split('');
+      for(var i = 0; i < units.length; i++){
+        var u = units[i];
+        if(!u) continue;
+        if(/^\s+$/.test(u)){ frag.appendChild(document.createTextNode(u)); continue; }
         var s = document.createElement('span');
         s.className = 'ch';
-        s.textContent = t[i];
+        s.textContent = u;
         frag.appendChild(s);
       }
       node.parentNode.replaceChild(frag, node);
