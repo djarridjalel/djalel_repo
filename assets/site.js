@@ -315,15 +315,20 @@
       next.addEventListener('load',  swap, {once:true});
       next.addEventListener('error', swap, {once:true});
     }
+    /* No mouseenter. The pointer merely crossing the list used to change the
+       picture, which fought the held run for control of the same selection
+       and meant the section answered to whichever happened last. Choosing is
+       now deliberate: scrolling through the held run, or a tap, or the
+       keyboard. All three are things someone did on purpose. */
     hits.forEach(function(h, i){
-      h.addEventListener('mouseenter', function(){ show(i); });
-      h.addEventListener('focus',      function(){ show(i); });
-      h.addEventListener('click',      function(){ show(i); });
+      h.addEventListener('focus', function(){ show(i); });
+      h.addEventListener('click', function(){ show(i); });
     });
 
-    // the pinned run below drives the same selection the pointer does
+    // the held run below drives the same selection a tap does
     group.commShow = show;
     group.commCount = rows.length;
+    group.commIndex = function(){ return at; };
   });
 
   /* ---- hold the commissions section while it is read --------------------
@@ -369,13 +374,33 @@
       sec.classList.remove('pinned');
       sec.style.removeProperty('--comm-steps');
       on = false;
+      if(timer !== null){ clearTimeout(timer); timer = null; }
     }
     function decide(){
       if(mq.matches && !motion.matches){ if(!on) enable(); }
       else if(on || sec.classList.contains('pinned')) disable();
     }
 
-    var queued = false;
+    /* A scroll can cover several steps in one flick, and five pictures
+       flicking past is the thing the held section exists to prevent. So the
+       run never jumps: it walks one row at a time towards wherever the
+       scroll has got to, and every row it lands on is guaranteed DWELL
+       before the next. Fast scrolling makes the list run to catch up, and
+       each frame still gets its own moment on the way. */
+    var DWELL = 340, timer = null, want = 0, queued = false;
+    function step(){
+      timer = null;
+      if(!on) return;
+      var cur = group.commIndex();
+      if(cur === want) return;
+      group.commShow(cur + (want > cur ? 1 : -1));
+      timer = setTimeout(step, DWELL);
+    }
+    function aim(i){
+      want = i;
+      if(timer === null && group.commIndex() !== want) step();
+    }
+
     function update(){
       if(!on) return;
       var r = sec.getBoundingClientRect();
@@ -385,13 +410,31 @@
       p = p < 0 ? 0 : (p > 1 ? 1 : p);
       // equal share of the travel each, and the last one keeps the remainder
       var i = Math.floor(p * n);
-      group.commShow(i > n - 1 ? n - 1 : i);
+      aim(i > n - 1 ? n - 1 : i);
     }
     function onScroll(){
       if(queued) return;
       queued = true;
       requestAnimationFrame(function(){ queued = false; update(); });
     }
+
+    /* While the section is held, the scroll position is what chooses, so a
+       click that only set the selection would be undone by the very next
+       scroll event — and these rows are buttons, so a click that does
+       nothing is worse than no button at all. Clicking therefore moves the
+       page to that row's share of the run: the selection follows because
+       the scroll position now says so, and the two can never disagree.
+       Focus does the same, so tabbing through the list walks the run. */
+    function seek(i){
+      var travel = sec.getBoundingClientRect().height - innerHeight;
+      if(travel <= 0) return;
+      var top = scrollY + sec.getBoundingClientRect().top;
+      scrollTo({ top: top + travel * (i + 0.5) / n, behavior: 'smooth' });
+    }
+    [].forEach.call(sec.querySelectorAll('.comm-hit'), function(h, i){
+      h.addEventListener('click', function(){ if(on) seek(i); });
+      h.addEventListener('focus', function(){ if(on) seek(i); });
+    });
 
     decide();
     addEventListener('scroll', onScroll, {passive:true});
