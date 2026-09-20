@@ -320,7 +320,88 @@
       h.addEventListener('focus',      function(){ show(i); });
       h.addEventListener('click',      function(){ show(i); });
     });
+
+    // the pinned run below drives the same selection the pointer does
+    group.commShow = show;
+    group.commCount = rows.length;
   });
+
+  /* ---- hold the commissions section while it is read --------------------
+     The section is worth more than the second and a half it takes to flick
+     past it, so scrolling into it holds it still and steps through the five
+     ways before letting go.
+
+     Sticky does the holding and the scroll position does the choosing, which
+     means this adds no wheel handler, no scroll locking and no animation
+     loop. Everything a visitor expects of a page still works: the scrollbar
+     reflects where they are, Page Down and the trackpad behave, and scrolling
+     on through leaves the section on the last of the five rather than
+     trapping anyone in it.
+
+     Three things switch it off, and each is a case where holding the page
+     would be worse than letting it go: a viewport too small to show the
+     section whole, reduced motion, and a browser without sticky. */
+  (function(){
+    var sec = document.getElementById('commissions');
+    if(!sec) return;
+    var group = sec.querySelector('[data-comm-group]');
+    var wrap = sec.querySelector('.wrap');
+    if(!group || !wrap || typeof group.commShow !== 'function') return;
+    if(!CSS || !CSS.supports || !CSS.supports('position', 'sticky')) return;
+
+    var n = group.commCount || 0;
+    if(n < 2) return;
+    var mq = matchMedia('(min-width:1024px) and (min-height:760px)');
+    var motion = matchMedia('(prefers-reduced-motion: reduce)');
+    var on = false;
+
+    function enable(){
+      sec.style.setProperty('--comm-steps', n);
+      sec.classList.add('pinned');
+      /* Measured, not assumed: the tighter metrics have to actually fit this
+         viewport. If the held view would clip its own last row, the section
+         is better off scrolling the way it always did. */
+      if(wrap.scrollHeight > innerHeight + 2){ disable(); return; }
+      on = true;
+      update();
+    }
+    function disable(){
+      sec.classList.remove('pinned');
+      sec.style.removeProperty('--comm-steps');
+      on = false;
+    }
+    function decide(){
+      if(mq.matches && !motion.matches){ if(!on) enable(); }
+      else if(on || sec.classList.contains('pinned')) disable();
+    }
+
+    var queued = false;
+    function update(){
+      if(!on) return;
+      var r = sec.getBoundingClientRect();
+      var travel = r.height - innerHeight;        // the distance spent held
+      if(travel <= 0) return;
+      var p = -r.top / travel;
+      p = p < 0 ? 0 : (p > 1 ? 1 : p);
+      // equal share of the travel each, and the last one keeps the remainder
+      var i = Math.floor(p * n);
+      group.commShow(i > n - 1 ? n - 1 : i);
+    }
+    function onScroll(){
+      if(queued) return;
+      queued = true;
+      requestAnimationFrame(function(){ queued = false; update(); });
+    }
+
+    decide();
+    addEventListener('scroll', onScroll, {passive:true});
+    var t = null;
+    addEventListener('resize', function(){
+      clearTimeout(t);
+      t = setTimeout(function(){ disable(); decide(); }, 160);
+    });
+    if(motion.addEventListener) motion.addEventListener('change', function(){ disable(); decide(); });
+  })();
 
   /* ---- warm the commissions panel ---------------------------------------
      Four of the five panel images are held at opacity 0, so nothing on

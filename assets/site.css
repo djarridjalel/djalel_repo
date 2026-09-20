@@ -1841,6 +1841,53 @@ html[lang="ar"]{
 [dir="rtl"] .showcase:nth-of-type(even) .reel-dots{margin-left:0; margin-right:auto;}
 [dir="rtl"] .showcase-sector{margin-left:0; margin-right:auto;}
 
+/* ---- the commissions run, held while it is read ------------------------
+   Scrolling into the section holds it still and steps the selection, so
+   all five ways are seen rather than scrolled past in one flick.
+
+   Native sticky does the holding. The page goes on scrolling normally
+   underneath, which is the whole point: the scrollbar stays honest, the
+   keyboard and trackpad keep working, and a visitor who wants out just
+   keeps scrolling. Nothing here swallows a wheel event.
+
+   The section is only tall enough to hold while it is stepping. The
+   .pinned class is added by script, and only after it has measured that
+   the whole section fits the viewport at these tighter metrics — a held
+   section that is taller than the screen would hide its own last row. */
+#commissions.pinned{
+  height:calc(100vh + var(--comm-steps, 5) * var(--comm-step, 62vh));
+  padding-block:0;
+}
+#commissions.pinned > .wrap{
+  position:sticky; top:0; min-height:100vh;
+  display:flex; flex-direction:column; justify-content:center;
+  padding-block:clamp(18px, 3vh, 40px);
+}
+/* The rows give up the slack. Their padding is the only soft part of the
+   section, and tightening it is what lets five rows and an A4 sheet share
+   one screen. The transform-on-hover indent is untouched, so the rows
+   still cannot reflow under the pointer. */
+#commissions.pinned .comm-hit{padding-block:clamp(9px, 1.3vh, 18px);}
+/* The two margins under the heading are the rest of the slack. At 1440x900
+   the held view came out 5px over the viewport on the row padding alone,
+   which is the difference between holding the section and refusing to. */
+#commissions.pinned .h-sec{margin-bottom:clamp(14px, 2.2vh, 30px);}
+#commissions.pinned .comm{margin-top:clamp(14px, 2.4vh, 32px);}
+/* The last few pixels come from inside the rows. At 1280x800 — an ordinary
+   laptop — the held view was 20px over, which is the whole difference
+   between the section holding and declining to. These two margins scale
+   with the viewport instead of being fixed, so a shorter screen gives up
+   a little more of the rhythm and a taller one keeps it. */
+#commissions.pinned .comm-n{margin-bottom:clamp(4px, 0.7vh, 8px);}
+#commissions.pinned .comm-s{margin-top:clamp(5px, 0.8vh, 10px);}
+
+@media (prefers-reduced-motion:reduce){
+  /* A section that refuses to scroll is the thing being asked about. */
+  #commissions.pinned{height:auto; padding-block:var(--slab);}
+  #commissions.pinned > .wrap{position:static; min-height:0; display:block;}
+  #commissions.pinned .comm-hit{padding-block:clamp(16px,2vw,26px);}
+}
+
 [dir="rtl"] .comm-hit{text-align:right;}
 [dir="rtl"] .comm-hit:hover, [dir="rtl"] .comm-hit:focus-visible{
   transform:translateX(calc(-1 * clamp(10px,1.4vw,22px)));
