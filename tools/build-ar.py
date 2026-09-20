@@ -20,19 +20,38 @@ NAV_EN = {"Work": "الأعمال", "Archive": "الأرشيف",
 
 # Strings with no data-ed key of their own: the head, and the hero headline,
 # which sits inside the locked hero markup.
+_HEAD_SEEN = set()
+_HEAD_UNUSED = set()
 HEAD = {
-  "<title>Djarri Design Studio — Ranges that still hold at the thirty-first product</title>":
-    "<title>Djarri Design Studio — تشكيلات تصمد عند المنتج الحادي والثلاثين</title>",
-  "<title>About — Djarri Design Studio</title>":
-    "<title>عن الاستوديو — Djarri Design Studio</title>",
-  "<title>Archive — Djarri Design Studio</title>":
-    "<title>الأرشيف — Djarri Design Studio</title>",
+  "<title>Djarri Design Studio — Unlocking your brands' unrealised potential</title>":
+    "<title>Djarri Design Studio — إطلاق الطاقات الكامنة في علاماتك</title>",
+  "<title>About Abdeldjalil Djarri — Djarri Design Studio</title>":
+    "<title>عن عبد الجليل جرّي — Djarri Design Studio</title>",
+  "<title>Selected Archive — Djarri Design Studio</title>":
+    "<title>مختارات من الأرشيف — Djarri Design Studio</title>",
+  # brand names stay in Latin, as they do throughout the Arabic body copy
+  "<title>Evolab Laboratories — Djarri Design Studio</title>":
+    "<title>Evolab Laboratories — Djarri Design Studio</title>",
+  "<title>Natural Solution + Natural Skin — Djarri Design Studio</title>":
+    "<title>Natural Solution + Natural Skin — Djarri Design Studio</title>",
+  "<title>Laformul + BioFormul — Djarri Design Studio</title>":
+    "<title>Laformul + BioFormul — Djarri Design Studio</title>",
+  "Creative Director and packaging designer for pharmaceutical, parapharmaceutical and consumer-health brands. Co-General Director at Revolution Agency.":
+    "مدير إبداعي ومصمّم تغليف لعلامات الأدوية وشبه الصيدلانيات والصحة الاستهلاكية. مدير عام مشارك في Revolution Agency.",
+  "Identities, campaigns, catalogues, brand systems and film work beyond the three featured case studies.":
+    "هويات وحملات وكتالوجات وأنظمة علامات وأعمال فيلمية، إلى جانب دراسات الحالة الثلاث المعروضة.",
+  "A full rebrand for a pharmaceutical laboratory: identity, a five-SKU packaging system, an exhibition build and a bilingual site.":
+    "إعادة بناء كاملة لعلامة مخبر أدوية: هوية، ونظام تغليف لخمسة منتجات، وجناح معرض، وموقع بلغتين.",
+  "A three-year parapharmaceutical partnership that scaled past thirty products without being redrawn, and the skincare sub-brand it produced — which kept the name, the typeface and almost nothing else.":
+    "شراكة شبه صيدلانية امتدّت ثلاث سنوات وتجاوزت ثلاثين منتجًا دون إعادة رسم النظام، والعلامة الفرعية للعناية بالبشرة التي نتجت عنها — واحتفظت بالاسم والخط، ولا شيء آخر تقريبًا.",
+  "A dermo-cosmetic brand built from zero, then extended into a science-led sibling once the first one had proved the market.":
+    "علامة تجميل طبّي بُنيت من الصفر، ثم امتدّت إلى علامة شقيقة ذات منحى علمي بعد أن أثبتت الأولى السوق.",
   "Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.":
     "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جرّي.",
-  "Ranges that still hold at the thirty-first product — brand identity and packaging systems for regulated health markets.":
-    "تشكيلات تصمد عند المنتج الحادي والثلاثين — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
-  "<b>ranges</b> that still <b>hold</b> at the <b>thirty-first</b> product":
-    "<b>تشكيلات</b> ما تزال <b>تصمد</b> عند المنتج <b>الحادي والثلاثين</b>",
+  "Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.":
+    "إطلاق الطاقات الكامنة في علاماتك — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
+  "<b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b>":
+    "<b>إطلاق</b> الطاقات <b>الكامنة</b> في <b>علاماتك</b>",
   "Abdeldjalil DJARRI · Creative Director<br>":
     "عبد الجليل جرّي · مدير إبداعي<br>",
   "Identity · Packaging · Creative direction":
@@ -160,6 +179,10 @@ def build(page, words):
 
     # head copy, which carries no data-ed of its own
     for pat, rep in HEAD.items():
+        if pat in src or pat in html:
+            _HEAD_SEEN.add(pat); _HEAD_UNUSED.discard(pat)
+        elif pat not in _HEAD_SEEN:
+            _HEAD_UNUSED.add(pat)
         html = html.replace(pat, rep)
 
     # the Arabic face, alongside the Latin ones the artwork captions still need
@@ -215,3 +238,13 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+if _HEAD_UNUSED:
+    import sys
+    print('\nERROR: %d <head>/unkeyed pattern(s) matched no English page.' % len(_HEAD_UNUSED),
+          file=sys.stderr)
+    print('The English copy was reworded; update the mapping or the Arabic pages '
+          'keep the English (or a translation of dead copy):', file=sys.stderr)
+    for k in sorted(_HEAD_UNUSED):
+        print('  - ' + k[:120].replace('\n', ' '), file=sys.stderr)
+    sys.exit(1)
