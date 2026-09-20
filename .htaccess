@@ -8,6 +8,22 @@
 # (check for content-encoding: gzip on site.css), turn it on in the hosting
 # panel rather than here, where it cannot double up.
 
+# Types, declared rather than assumed. A host that hands back site.css as
+# text/plain still serves the file — you can open it in a tab and read it
+# whole — but the browser will not apply a stylesheet it was not told was
+# one, and the page renders on its inline rules alone. Reproduced: the
+# sheet parses to zero rules, the deck loses position:absolute and the
+# caption list gets its bullets back.
+<IfModule mod_mime.c>
+  AddType text/css                 .css
+  AddType application/javascript   .js
+  AddType application/json         .json
+  AddType image/svg+xml            .svg
+  AddType image/webp               .webp
+  AddType model/gltf-binary        .glb
+  AddType font/woff2               .woff2
+</IfModule>
+
 # Caching. The asset filenames carry no content hash, so nothing here may be
 # held long enough to outlive an edit: a stale site.css or content.json would
 # be invisible to the person who just published a change. HTML and the
