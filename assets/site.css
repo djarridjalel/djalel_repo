@@ -116,7 +116,7 @@ a{color:inherit;}
   transition:color .25s ease, border-color .25s ease;
 }
 .nav-links a:hover, .nav-links a[aria-current="page"]{
-  color:var(--ink); border-bottom-color:var(--a-dark);
+  color:var(--a-dark); border-bottom-color:var(--a-dark);
 }
 @media (max-width:560px){
   .nav-mark .s{display:none;}
@@ -1851,7 +1851,7 @@ html[lang="ar"]{
   border-bottom:1px solid transparent;
   transition:color .25s ease, border-color .25s ease;
 }
-.nav-lang:hover{color:var(--ink); border-bottom-color:var(--a-dark);}
+.nav-lang:hover{color:var(--a-dark); border-bottom-color:var(--a-dark);}
 
 /* The hero declares its own faces inline, in a stylesheet that loads after
    this one, so these win on specificity rather than on order. Only the
@@ -1946,3 +1946,21 @@ html[lang="ar"]{
      0 0 10px rgba(56,140,255,.35),
      0 0 10px rgba(255,206,0,.35);
 }
+
+/* The case-study titles are links now, not labels - the name of the work is
+   the most obvious thing to click and it was inert. They take the same
+   hover the rest of the site takes.
+
+   That colour is --a-dark, not --accent, and the two are the same accent:
+   #FFCE00 measures 1.32:1 on bone and fails even the 3:1 that large text
+   is allowed, so the light grounds carry the accent at the one stop that
+   clears AA. Everything that hovers on bone now agrees - the nav and the
+   language switch were going to ink while the links, the footer, the spec
+   rows and the arrows all went to the accent. */
+.showcase-client{
+  text-decoration:none;
+  color:inherit;
+  transition:color .25s ease;
+}
+.showcase-client:hover, .showcase-client:focus-visible{color:var(--a-dark);}
+.showcase-client:focus-visible{outline:2px solid var(--a-dark); outline-offset:3px;}
