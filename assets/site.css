@@ -673,6 +673,21 @@ a{color:inherit;}
 .reel-card:not(.on) img{opacity:.92;}
 .reel-card img{transition:opacity var(--pace-fx) ease-out;}
 
+/* The fan's opening state, written so the deck is already right before
+   paint() runs — and stays right if script never arrives at all.
+
+   On a cold cache there is a window where the cards are parsed and the
+   script is not. Without these every sheet sat at inset:0 with no slot and
+   no .on, so five sheets at .92 stacked into one translucent ghost of each
+   other. These are the values paint() writes for the opening selection;
+   it writes them inline, which outranks a stylesheet, so the moment it
+   runs it still wins. */
+.reel-card:nth-child(1){--p:0; --o:0; --ao:0; --co:0; --cao:0;}
+.reel-card:nth-child(2){--p:1; --o:1; --ao:1; --co:1; --cao:1;}
+.reel-card:nth-child(3){--p:2; --o:2; --ao:2; --co:2; --cao:2;}
+.reel-card:nth-child(4){--p:3; --o:3; --ao:3; --co:2; --cao:2;}
+.reel-card:nth-child(5){--p:4; --o:4; --ao:4; --co:2; --cao:2;}
+
 /* The name sits under the sheet, not across it.
 
    The reference sets its captions inside the image, and on the photographs

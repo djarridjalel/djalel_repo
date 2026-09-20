@@ -294,8 +294,26 @@
     function show(i){
       if(i === at) return;
       at = i;
+      // The list answers the pointer at once: that is the part the hand is
+      // waiting on, and it costs nothing to draw.
       rows.forEach(function(r, k){ r.classList.toggle('on', k === i); });
-      imgs.forEach(function(m, k){ m.classList.toggle('on', k === i); });
+
+      /* The panel waits for something to show. Four of these five are held
+         at opacity 0, so on a cold cache a swap can land on an image that
+         has not arrived — and a panel that goes blank reads as the hover
+         being broken, which is worse than one that lags. So the outgoing
+         image keeps the frame until the incoming one can actually be
+         drawn, and the one being asked for jumps the queue. */
+      var next = imgs[i];
+      function swap(){
+        if(at !== i) return;              // the pointer has moved on since
+        imgs.forEach(function(m, k){ m.classList.toggle('on', k === i); });
+      }
+      if(next.complete && next.naturalWidth) return swap();
+      try{ next.fetchPriority = 'high'; }catch(e){}
+      next.loading = 'eager';
+      next.addEventListener('load',  swap, {once:true});
+      next.addEventListener('error', swap, {once:true});
     }
     hits.forEach(function(h, i){
       h.addEventListener('mouseenter', function(){ show(i); });
@@ -303,6 +321,34 @@
       h.addEventListener('click',      function(){ show(i); });
     });
   });
+
+  /* ---- warm the commissions panel ---------------------------------------
+     Four of the five panel images are held at opacity 0, so nothing on
+     screen depends on them until a row is hovered — and then everything
+     does. Lazy is right for first paint and wrong at that moment: on a cold
+     cache the swap lands on an image that has not finished arriving and the
+     panel goes blank, which reads as the hover being broken.
+
+     So once the page has loaded and the main thread has had a moment, pull
+     them in the background at low priority. Setting loading to eager
+     releases an image the browser has not started. The gallery sheets need
+     none of this: every one of them is on screen in the fan, so they load
+     on approach the way lazy intends. */
+  (function(){
+    function warm(){
+      [].forEach.call(document.querySelectorAll('.comm-panel img'), function(img){
+        if(img.complete && img.naturalWidth) return;
+        try{ img.fetchPriority = 'low'; }catch(e){}
+        img.loading = 'eager';
+      });
+    }
+    function soon(){
+      if(window.requestIdleCallback) requestIdleCallback(warm, {timeout:2500});
+      else setTimeout(warm, 600);
+    }
+    if(document.readyState === 'complete') soon();
+    else addEventListener('load', soon);
+  })();
 
   /* ---- concept lines resolve as they enter ------------------------------
      The one motion act two gets. .rv starts at opacity 0, so anything
