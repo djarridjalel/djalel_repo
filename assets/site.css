@@ -1910,3 +1910,13 @@ html[lang="ar"]{
 [lang="ar"] .narrative h3,
 [lang="ar"] .spec dd,
 [lang="ar"] .tlink{font-size:var(--ar-label-lg);}
+
+/* The hero's credentials rail. It is a grid item set to justify-self:start,
+   and in RTL "start" is the right-hand edge - so the rail crossed the hero
+   and sat over the glass pane. It belongs on the same side of the frame in
+   both languages, which in RTL means asking for the end instead.
+
+   Its size was missed by the label pass: at 11.2px it was under the 13.1px
+   floor the rest of the Arabic labels were re-set to. It joins them. */
+[dir="rtl"] .rail{justify-self:end;}
+[lang="ar"] .rail{font-size:var(--ar-label); text-align:right;}

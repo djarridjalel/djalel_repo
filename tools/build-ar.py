@@ -28,13 +28,13 @@ HEAD = {
   "<title>Archive — Djarri Design Studio</title>":
     "<title>الأرشيف — Djarri Design Studio</title>",
   "Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.":
-    "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جاري.",
+    "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جرّي.",
   "Ranges that still hold at the thirty-first product — brand identity and packaging systems for regulated health markets.":
     "تشكيلات تصمد عند المنتج الحادي والثلاثين — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
   "<b>ranges</b> that still <b>hold</b> at the <b>thirty-first</b> product":
     "<b>تشكيلات</b> ما تزال <b>تصمد</b> عند المنتج <b>الحادي والثلاثين</b>",
   "Abdeldjalil DJARRI · Creative Director<br>":
-    "عبد الجليل جاري · مدير إبداعي<br>",
+    "عبد الجليل جرّي · مدير إبداعي<br>",
   "Identity · Packaging · Creative direction":
     "هوية · تغليف · إدارة إبداعية",
   # the four proof tiles carry no data-ed of their own
