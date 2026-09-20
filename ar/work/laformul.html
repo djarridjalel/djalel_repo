@@ -13,8 +13,73 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../assets/site.css">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
 </head>
 <body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
 
 <div id="mark3d" data-src="../../assets/mark.glb" aria-hidden="true"></div>
 <nav class="nav" aria-label="Primary">
