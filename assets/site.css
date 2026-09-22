@@ -1002,6 +1002,10 @@ a{color:inherit;}
   display:grid; grid-template-columns:repeat(4, minmax(0,1fr));
   border-top:1px solid var(--rule); margin-bottom:clamp(24px,3.5vw,40px);
 }
+/* Three, where there are only three facts worth counting. A tile reading
+   "1" is not a proof point; it fills a row at the cost of the numbers
+   beside it. */
+.tally.tally-3{grid-template-columns:repeat(3, minmax(0,1fr));}
 .tally div{padding:20px 18px 0 0;}
 .tally .n{
   font-size:clamp(1.5rem,3vw,2.4rem); font-weight:600; letter-spacing:-.03em;
@@ -1469,6 +1473,16 @@ a{color:inherit;}
 }
 .band-ink .facts .k{color:rgba(255,255,255,.5);}
 @media (max-width:560px){ .facts li{grid-template-columns:1fr; gap:6px;} }
+
+/* The invitation that closes a case study. Same two actions as the contact
+   page, because a reader this far in should not need a third page to act. */
+.case-cta{padding-top:0;}
+.case-cta .lede{margin-bottom:clamp(22px, 3vh, 34px);}
+.case-cta .close-mail{position:relative;}
+.case-cta .close-mail::after{
+  content:""; position:absolute; left:0; right:0; top:50%;
+  height:44px; transform:translateY(-50%);
+}
 
 /* ---- the contact page's own rhythm -------------------------------------
    The page is four things stacked: the invitation, the two ways in, the
