@@ -89,7 +89,6 @@ HEAD = {
   ">Read the full background ": ">اقرأ الخلفية كاملة ",
   ">Browse the archive ": ">تصفّح الأرشيف ",
   ">Start with a case study ": ">ابدأ بدراسة حالة ",
-  ">Back to the featured work ": ">عودة إلى الأعمال المختارة ",
   "</span> Scroll down": "</span> مرّر للأسفل",
   ">Email</a>": ">البريد</a>",
 
