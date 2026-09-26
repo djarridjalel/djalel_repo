@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About Abdeldjalil Djarri — Djarri Design Studio</title>
+<meta name="description" content="Creative Director and packaging designer for pharmaceutical, parapharmaceutical and consumer-health brands. Director of the filmmaking department at Revolution Agency.">
+<meta property="og:title" content="About Abdeldjalil Djarri">
+<meta property="og:description" content="Creative Director and packaging designer for regulated health categories.">
+<meta property="og:type" content="profile">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=da7c0967">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
+</head>
+<body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
+
+<div id="mark3d" data-src="assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="index.html"><span class="n gt" data-ed="about.t1">DJARRI</span><span class="s gt" data-ed="about.t2">DESIGN&nbsp;STUDIO</span></a>
+  <div class="nav-links">
+    <a href="index.html#work">Work</a>
+    <a href="archive.html">Archive</a>
+    <a href="about.html" aria-current="page">About</a>
+    <a href="contact.html">Contact</a>
+  <a class="nav-lang" href="ar/about.html" lang="ar" dir="rtl">العربية</a>
+  </div>
+</nav>
+
+<main class="has-nav-offset">
+  <section class="band band-bone">
+    <div class="wrap">
+      <p class="eyebrow" data-ed="about.t3">About</p>
+      <h1 class="h-sec gt gt-zone" style="max-width:20ch" data-ed="about.t4">Abdeldjalil Djarri —<br><b>Creative Director.</b></h1>
+      <p class="lede measure" data-ed="about.t5">Packaging and brand design for pharmaceutical, parapharmaceutical, skincare and consumer-health products. Nine years of it, in markets where a design decision has to answer to a regulator as well as to a shelf.</p>
+    </div>
+  </section>
+
+  <section class="band band-bone">
+    <div class="wrap">
+      <div class="split">
+        <div>
+          <h2 class="h-sec gt gt-zone" data-ed="about.t6">What the nine years <b>actually taught.</b></h2>
+        </div>
+        <div>
+          <p class="lede" data-ed="about.t7">Regulated categories are unforgiving in a specific way: the constraints arrive before the brief does. Mandatory information, dosage hierarchy, substrate, print tolerance and a shelf where eleven of your own products compete with each other — all of it fixed before a single decision about how the thing should look.</p>
+          <p class="lede" data-ed="about.t8">Working inside that for nine years changes what you think design is for. The deliverable stops being an artwork and becomes a set of rules: the ones that still hold when the catalogue doubles, the sales team improvises a flyer, and the designer is no longer in the room.</p>
+          <p class="lede" style="margin-bottom:0" data-ed="about.t9">Three of those systems are documented in full as case studies. All three are still in use.</p>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:var(--slab)">
+        <div>
+          <p class="eyebrow" data-ed="about.t10">The record</p>
+        </div>
+        <ul class="facts">
+          <li><span class="k">Position</span><span>Creative Director · Packaging &amp; Brand Designer</span></li>
+          <li><span class="k">Leadership</span><span>Director of the filmmaking department, Revolution Agency — product films, brand films and motion work</span></li>
+          <li><span class="k">Experience</span><span>9+ years · 100+ products on shelves · 30+ brand identities · 100+ client projects</span></li>
+          <li><span class="k">Sectors</span><span>Pharmaceutical · Parapharmaceutical · Dermo-cosmetic · Consumer health</span></li>
+          <li><span class="k">Education</span><span>Master's degree, Software Engineering — University of Constantine 2, 2018</span></li>
+          <li><span class="k">Languages</span><span>Arabic · French · English</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-bone">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow" data-ed="about.t11">Background</p>
+        <h2 class="h-sec gt gt-zone" style="margin-bottom:0" data-ed="about.t12">Two disciplines, <b>used together.</b></h2>
+      </div>
+      <div>
+        <p class="lede" data-ed="about.t13">The degree is in software engineering; the practice is design, developed alongside it and then in place of it. That combination turns out to matter more than it sounds: a packaging range is a system with inheritance, constraints and edge cases, and it fails the way software fails — not at launch, but three years in, when someone adds the thirty-first case nobody designed for.</p>
+        <p class="lede" data-ed="about.t14">The filmmaking department came later, and for the same reason. A brand that exists on a carton, a catalogue, a stand and a screen needs someone who can hold all four at once.</p>
+        <p class="lede" style="margin-bottom:0" data-ed="about.t15">The career has been self-taught in the parts that matter and formally trained in the parts that helped. It is not a line on a CV: it is why a catalogue can pass thirty products without the system being redrawn once.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Moved here from the homepage. A testimonial belongs beside the person
+     being vouched for, not in the run-up to the ask, where an empty one
+     was the last thing read before the invitation. -->
+<section class="band band-bone" id="kind-words">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="about.t21">Kind words</p>
+    <!-- The placeholder was 122 words explaining why it was empty, set in a
+         box, in the middle of the run-up to the ask. Explaining an absence at
+         length draws more attention to it than the absence would. One line
+         now, and the skeleton of the quote that will replace it. -->
+    <blockquote class="quote-lead gt gt-zone">
+      <span class="gt" data-ed="about.t23">One passage, set large, about how the collaboration actually ran.</span>
+    </blockquote>
+    <div class="quote-attr"><span class="tag" data-ed="about.t22">Awaiting approved quotes</span></div>
+  </div>
+</section>
+
+<section class="band band-bone" id="contact">
+    <div class="wrap">
+      <p class="eyebrow" data-ed="about.t16">Contact</p>
+      <h2 class="close-line gt gt-zone" data-ed="about.t17">The work starts <b>before anything is drawn.</b></h2>
+      <p class="lede measure" data-ed="about.t18">Identity and packaging commissions in regulated health categories. An email describing the range and where it is going is the fastest way in.</p>
+      <div class="close-actions">
+        <a class="tlink" href="mailto:djaleldjarri@icloud.com">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
+        <a class="tlink" href="work/laformul.html">Start with a case study <span class="arw">&#8594;</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span data-ed="about.t19">Djarri Design Studio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="work/evolab.html">Evolab</a>
+    <a href="work/natural-solution.html">Natural Solution + Natural Skin</a>
+    <a href="work/laformul.html">Laformul + BioFormul</a>
+    <a href="archive.html">Archive</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="mailto:djaleldjarri@icloud.com">Email</a>
+  </nav>
+  <span data-ed="about.t20">Abdeldjalil Djarri · Creative Director</span>
+</footer>
+
+<script src="assets/content.js?v=35cd74ca"></script>
+<script src="assets/site.js?v=83a854b1" defer></script>
+<script src="assets/logo3d.js?v=2bf0c7a0" defer></script>
+</body>
+</html>

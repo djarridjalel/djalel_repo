@@ -1,0 +1,56 @@
+# Djarri Design Studio — serving rules.
+#
+# Compression is deliberately NOT set here. LiteSpeed and most shared hosts
+# already compress text responses, and asking a second filter to compress an
+# already-compressed response produces a body the browser decodes once and
+# then cannot parse — a stylesheet that arrives looking truncated, with the
+# rules past the cut silently dropped. If the host turns out not to compress
+# (check for content-encoding: gzip on site.css), turn it on in the hosting
+# panel rather than here, where it cannot double up.
+
+# Types, declared rather than assumed. A host that hands back site.css as
+# text/plain still serves the file — you can open it in a tab and read it
+# whole — but the browser will not apply a stylesheet it was not told was
+# one, and the page renders on its inline rules alone. Reproduced: the
+# sheet parses to zero rules, the deck loses position:absolute and the
+# caption list gets its bullets back.
+<IfModule mod_mime.c>
+  AddType text/css                 .css
+  AddType application/javascript   .js
+  AddType application/json         .json
+  AddType image/svg+xml            .svg
+  AddType image/webp               .webp
+  AddType model/gltf-binary        .glb
+  AddType font/woff2               .woff2
+</IfModule>
+
+# Caching. The asset filenames carry no content hash, so nothing here may be
+# held long enough to outlive an edit: a stale site.css or content.json would
+# be invisible to the person who just published a change. HTML and the
+# published content revalidate every time (a 304 costs one small round trip),
+# stylesheets and scripts get a day, and the images — which are replaced by
+# hand and rarely — get a month.
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/html                     "access plus 0 seconds"
+  ExpiresByType text/css                      "access plus 1 day"
+  ExpiresByType application/javascript        "access plus 1 day"
+  ExpiresByType text/javascript               "access plus 1 day"
+  ExpiresByType image/webp                    "access plus 30 days"
+  ExpiresByType image/svg+xml                 "access plus 30 days"
+  ExpiresByType image/png                     "access plus 30 days"
+  ExpiresByType image/jpeg                    "access plus 30 days"
+  ExpiresByType model/gltf-binary             "access plus 30 days"
+  ExpiresByType font/woff2                    "access plus 30 days"
+</IfModule>
+
+<IfModule mod_headers.c>
+  # The editor writes this on every publish; it must never be served stale.
+  <FilesMatch "content\.json$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+

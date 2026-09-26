@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evolab Laboratories — Djarri Design Studio</title>
+<meta name="description" content="A full rebrand for a pharmaceutical laboratory: identity, a five-SKU packaging system, an exhibition build and a bilingual site.">
+<meta property="og:title" content="Evolab Laboratories">
+<meta property="og:description" content="A full rebrand for a pharmaceutical laboratory: identity, a five-SKU packaging system, an exhibition build and a bilingual site.">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css?v=da7c0967">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
+</head>
+<body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
+
+<div id="mark3d" data-src="../assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="../index.html"><span class="n gt" data-ed="evolab.t1">DJARRI</span><span class="s gt" data-ed="evolab.t2">DESIGN&nbsp;STUDIO</span></a>
+  <div class="nav-links">
+    <a href="../index.html#work" aria-current="page">Work</a>
+    <a href="../archive.html">Archive</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+  <a class="nav-lang" href="../ar/work/evolab.html" lang="ar" dir="rtl">العربية</a>
+  </div>
+</nav>
+
+<main class="case case-opener">
+  <div class="poster">
+    <img class="poster-photo" src="../assets/work/evolab-poster.webp" alt="Evolab Laboratories packaging, photographed as a range" decoding="async" data-ed="evolab.i1">
+    <div class="poster-body">
+      <div class="poster-eyebrow"><span data-ed="evolab.t3">Case 01</span><span data-ed="evolab.t4">Pharmaceutical</span><span data-ed="evolab.t5">Evolab Laboratories</span></div>
+      <p class="poster-tension rv" data-ed="evolab.t6">A full pharmaceutical catalogue that had to read as scientifically credible and future-facing at the same time — mature enough to trust, current enough to feel new.</p>
+      <h1 class="poster-concept rv gt gt-zone" data-rv-delay="140" data-ed="evolab.t7">A compressed circle <b>unfurls into a perfect one.</b></h1>
+    </div>
+  </div>
+
+  <div class="dossier">
+    <div class="dossier-grid">
+      <aside class="spec">
+        <dl>
+          <div><dt data-ed="evolab.t8">Role</dt><dd data-ed="evolab.t9">Creative Director</dd></div>
+          <div><dt data-ed="evolab.t10">Sector</dt><dd data-ed="evolab.t11">Pharmaceutical</dd></div>
+          <div><dt data-ed="evolab.t12">Market</dt><dd data-ed="evolab.t13">Algeria</dd></div>
+          <div><dt data-ed="evolab.t14">Scope</dt><dd data-ed="evolab.t15">Identity · Packaging · Exhibition · Digital</dd></div>
+          <div><dt data-ed="evolab.t16">Client</dt><dd data-ed="evolab.t17">Evolab Laboratories</dd></div>
+          <div><dt data-ed="evolab.t46">Result</dt><dd data-ed="evolab.t47">Launched across the full catalogue</dd></div>
+        </dl>
+        <div class="swatches" role="img" aria-label="Yellow-green → deep blue">
+            <span style="background:#B8C400"></span>
+            <span style="background:#6F9A32"></span>
+            <span style="background:#2E5C7A"></span>
+            <span style="background:#1B3A63"></span>
+        </div>
+        <div class="swatch-note">Yellow-green → deep blue</div>
+      </aside>
+
+      <div>
+        <section class="narrative">
+          <h3 data-ed="evolab.t18">Context</h3>
+          <div><p data-ed="evolab.t19">Evolab Laboratories manufactures and distributes a full pharmaceutical catalogue in Algeria — prescription and over-the-counter products sold through pharmacies, prescribed by physicians and bought by patients who are unwell and in a hurry.</p>
+<p data-ed="evolab.t20">Three audiences, three different reasons to trust a box, and one identity that had to satisfy all of them without splitting into three.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="evolab.t21">Challenge</h3>
+          <div><p data-ed="evolab.t22">The existing brand read as established but dated, and the catalogue had grown faster than any system governing it. Products that shared a manufacturer did not look like they shared anything else.</p>
+<p data-ed="evolab.t23">The real problem was not the logo. It was that no rule existed for what a new SKU should look like, so every launch was an argument.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="evolab.t24">Delivered</h3>
+          <div><p data-ed="evolab.t25">Creative direction across the whole programme: identity, the packaging system, art direction for the range photography, the exhibition stand from 3D through to the on-site build, and UX/UI direction for the site, delivered with a development partner.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="evolab.t26">Approach</h3>
+          <div><p data-ed="evolab.t27">The mark starts compressed and resolves into a true circle — a laboratory's work, drawn once. That single gesture then governs everything downstream: the palette runs the same unfurling in tone, yellow-green to deep blue, and the packaging hierarchy repeats it in the move from brand to molecule to dosage.</p>
+<p data-ed="evolab.t28">Because the mark had to survive a screen, a printed carton and one ink on blister foil, it was drawn in three modes from the start — gradient, tricolour, single-colour — rather than being improvised later by whoever was setting the artwork.</p></div>
+        </section>
+
+        <div class="sys">
+          <div class="sys-row">
+            <div class="sys-k">Mark</div>
+            <p class="sys-v" data-ed="evolab.t29">Three modes: gradient, tricolour, single-colour.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Typography</div>
+            <p class="sys-v" data-ed="evolab.t30">Futura against a custom display face. Geometry reads as science; the drawn face keeps it from reading as a hospital.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Colour</div>
+            <p class="sys-v" data-ed="evolab.t31">Yellow-green to deep blue.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Packaging</div>
+            <p class="sys-v" data-ed="evolab.t32">Five SKUs — Evofenid, Evopiramide, Lansoprotect, Xyline, Omeprotect. Each regulation-compliant on its own, and unmistakably one family on a shelf.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Environment</div>
+            <p class="sys-v" data-ed="evolab.t33">A full exhibition stand for Algeria’s leading pharmaceutical trade show, carried from 3D renders through to the on-site build.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Digital</div>
+            <p class="sys-v" data-ed="evolab.t34">evolabdz.com — bilingual, UX/UI direction, delivered with a development partner.</p>
+          </div>
+        </div>
+
+        <div class="plates">
+          <figure class="plate-wide">
+            <img src="../assets/work/evolab-range.webp" alt="The five-SKU packaging range, shown together" decoding="async" loading="lazy" data-ed="evolab.i3">
+            <figcaption data-ed="evolab.t35">Packaging system — five SKUs, one family</figcaption>
+          </figure>
+          <div class="plate-pair">
+          <figure>
+            <img src="../assets/work/evolab-detail.webp" alt="Close-up of a pharmaceutical carton with a debossed emblem" decoding="async" loading="lazy" data-ed="evolab.i4">
+            <figcaption data-ed="evolab.t36">Carton detail — the emblem debossed, not printed</figcaption>
+          </figure>
+          <figure>
+            <img src="../assets/work/evolab-grid.webp" alt="A graduated row of cartons showing the variant colour system" decoding="async" loading="lazy" data-ed="evolab.i5">
+            <figcaption data-ed="evolab.t37">Variant logic — tone carries the dosage step</figcaption>
+          </figure>
+          </div>
+          <figure class="plate-wide">
+            <img src="../assets/work/evolab-booth.webp" alt="The exhibition stand, with its backlit circular aperture" decoding="async" loading="lazy" data-ed="evolab.i6">
+            <figcaption data-ed="evolab.t38">Exhibition build — 3D direction through to the stand on the floor</figcaption>
+          </figure>
+        </div>
+
+        <div class="tally tally-3">
+          <div><div class="n">5</div><div class="l">SKUs on shelf</div></div>
+          <div><div class="n">3</div><div class="l">Logo modes</div></div>
+          <div><div class="n">2</div><div class="l">Languages</div></div>
+        </div>
+
+        <div class="outcome gt-zone">
+          <div class="l">Outcome</div>
+          <p class="bronze" data-ed="evolab.t39">Launched across Evolab’s full catalogue and staged live at Algeria’s top pharmaceutical exhibition.</p>
+        </div>
+
+        <div class="awaiting" style="margin-top:var(--slab)">
+          <span class="tag" data-ed="evolab.t40">Client voice — awaiting approval</span>
+          <p data-ed="evolab.t41">A short verified quote from Evolab Laboratories, tied specifically to this project, belongs here. Left empty until it is supplied and cleared.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<!-- The far end of the page is the furthest down a reader gets. Handing them
+     the next case study and nothing else spends that. -->
+<section class="band band-bone case-cta">
+  <div class="wrap">
+    <p class="lede measure" data-ed="evolab.t48">If a catalogue of yours has outgrown the rules governing it, an email is enough to start.</p>
+    <div class="close-actions">
+      <a class="tlink close-mail" href="mailto:djaleldjarri@icloud.com?subject=New%20project" data-ed="evolab.t49">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
+      <a class="tlink close-mail" href="https://wa.me/213556956452?text=Hello%20%E2%80%94%20I%27d%20like%20to%20book%20a%20call%20about%20a%20project." rel="noopener" data-ed="evolab.t50">Book a call on WhatsApp <span class="arw">&#8594;</span></a>
+    </div>
+  </div>
+</section>
+
+
+
+<a class="next" href="natural-solution.html">
+  <div>
+    <span class="k" data-ed="evolab.t42">Next case study</span>
+    <p class="t" data-ed="evolab.t43">Natural Solution — <b>thirty products, one system.</b></p>
+  </div>
+  <span class="arw">Case 02 &#8594;</span>
+</a>
+
+<footer class="foot">
+  <span data-ed="evolab.t44">Djarri Design Studio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="evolab.html">Evolab</a>
+    <a href="natural-solution.html">Natural Solution + Natural Skin</a>
+    <a href="laformul.html">Laformul + BioFormul</a>
+    <a href="../archive.html">Archive</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="mailto:djaleldjarri@icloud.com">Email</a>
+  </nav>
+  <span data-ed="evolab.t45">Abdeldjalil Djarri · Creative Director</span>
+</footer>
+
+<script src="../assets/content.js?v=35cd74ca"></script>
+<script src="../assets/site.js?v=83a854b1" defer></script>
+<script src="../assets/logo3d.js?v=2bf0c7a0" defer></script>
+</body>
+</html>

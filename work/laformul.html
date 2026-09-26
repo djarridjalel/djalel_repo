@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Laformul + BioFormul — Djarri Design Studio</title>
+<meta name="description" content="A dermo-cosmetic brand built from zero, then extended into a science-led sibling once the first one had proved the market.">
+<meta property="og:title" content="Laformul + BioFormul">
+<meta property="og:description" content="A dermo-cosmetic brand built from zero, then extended into a science-led sibling once the first one had proved the market.">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css?v=da7c0967">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
+</head>
+<body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
+
+<div id="mark3d" data-src="../assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="../index.html"><span class="n gt" data-ed="laformul.t1">DJARRI</span><span class="s gt" data-ed="laformul.t2">DESIGN&nbsp;STUDIO</span></a>
+  <div class="nav-links">
+    <a href="../index.html#work" aria-current="page">Work</a>
+    <a href="../archive.html">Archive</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+  <a class="nav-lang" href="../ar/work/laformul.html" lang="ar" dir="rtl">العربية</a>
+  </div>
+</nav>
+
+<main class="case case-opener">
+  <div class="poster">
+    <img class="poster-photo" src="../assets/work/laformul-poster.webp" alt="Laformul packaging, photographed as a range" decoding="async" data-ed="laformul.i1">
+    <div class="poster-body">
+      <div class="poster-eyebrow"><span data-ed="laformul.t3">Case 03</span><span data-ed="laformul.t4">Dermo-cosmetic</span><span data-ed="laformul.t5">Laformul + BioFormul</span></div>
+      <p class="poster-tension rv" data-ed="laformul.t6">Built before the brand existed. No product, no name on a shelf, no audience — strategy and identity defined from day one, then a second brand born out of the first one working.</p>
+      <h1 class="poster-concept rv gt gt-zone" data-rv-delay="140" data-ed="laformul.t7">Precision in black and white. Then <b>two linked circles.</b></h1>
+    </div>
+  </div>
+
+  <div class="dossier">
+    <div class="dossier-grid">
+      <aside class="spec">
+        <dl>
+          <div><dt data-ed="laformul.t8">Role</dt><dd data-ed="laformul.t9">Brand builder, from zero</dd></div>
+          <div><dt data-ed="laformul.t10">Sector</dt><dd data-ed="laformul.t11">Dermo-cosmetic</dd></div>
+          <div><dt data-ed="laformul.t12">Client</dt><dd data-ed="laformul.t13">Les Laboratoires Pro-Icon</dd></div>
+          <div><dt data-ed="laformul.t14">Scope</dt><dd data-ed="laformul.t15">Two full identity systems</dd></div>
+          <div><dt data-ed="laformul.t16">Span</dt><dd data-ed="laformul.t17">Two years apart</dd></div>
+          <div><dt data-ed="laformul.t45">Result</dt><dd data-ed="laformul.t46">Its success justified the second brand</dd></div>
+        </dl>
+        <div class="swatches" role="img" aria-label="60 / 30 / 10 — grey, grey, gold">
+            <span style="background:#101012"></span>
+            <span style="background:#8F8F92"></span>
+            <span style="background:#C9A227"></span>
+            <span style="background:#E4E4E2"></span>
+        </div>
+        <div class="swatch-note">60 / 30 / 10 — grey, grey, gold</div>
+      </aside>
+
+      <div>
+        <section class="narrative">
+          <h3 data-ed="laformul.t18">Context</h3>
+          <div><p data-ed="laformul.t19">Les Laboratoires Pro-Icon wanted to enter dermo-cosmetics with nothing in hand: no product on a shelf, no name anyone had heard, no audience.</p>
+<p data-ed="laformul.t20">Two years later the same client came back to extend into a more science-led biological range — not because the category had changed, but because the first brand had worked.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="laformul.t21">Challenge</h3>
+          <div><p data-ed="laformul.t22">A new name has no track record to trade on, so the design has to carry the entire credibility argument by itself. Anything decorative reads as compensation.</p>
+<p data-ed="laformul.t23">The second brief was harder than the first. BioFormul had to read as related to Laformul — same house, same standards — without reading as a copy, a dilution or a downgrade.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="laformul.t24">Delivered</h3>
+          <div><p data-ed="laformul.t25">Brand builder from zero across both: strategy and identity direction, logo, pattern, typography, the colour system, the packaging architecture and the range applications.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="laformul.t26">Approach</h3>
+          <div><p data-ed="laformul.t27">Laformul answers the credibility problem with restraint: bold black type, generous white space, iridescent product textures. The restraint <strong>is</strong> the argument — a new name earns trust by looking certain.</p>
+<p data-ed="laformul.t28">BioFormul answers the lineage problem structurally rather than cosmetically. Two linked circles — science and care in continuous motion — sit on the same typeface and the same 60/30/10 discipline, so the pair read as siblings rather than as a brand and its imitator.</p>
+<p data-ed="laformul.t29">The gold is the ten. It is the smallest share of the system and the reason the science never turns cold.</p></div>
+        </section>
+
+        <div class="sys">
+          <div class="sys-row">
+            <div class="sys-k">Laformul</div>
+            <p class="sys-v" data-ed="laformul.t30">Serum, SPF and cream — the founding range.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">BioFormul</div>
+            <p class="sys-v" data-ed="laformul.t31">Launched two years later, once Laformul had proved the category.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Typography</div>
+            <p class="sys-v" data-ed="laformul.t32">Gilroy across both.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Colour</div>
+            <p class="sys-v" data-ed="laformul.t33">60/30/10 — grey, grey, gold.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Architecture</div>
+            <p class="sys-v" data-ed="laformul.t34">SKU-level colour logic — gold, orange, multi-tone — so each formula tells its own story without leaving the system.</p>
+          </div>
+        </div>
+
+        <div class="plates">
+          <figure class="plate-wide">
+            <img src="../assets/work/laformul-range.webp" alt="The Laformul and BioFormul ranges, shown together" decoding="async" loading="lazy" data-ed="laformul.i3">
+            <figcaption data-ed="laformul.t35">Two systems — serum, SPF, cream, and the science-led extension</figcaption>
+          </figure>
+          <div class="plate-pair">
+          <figure>
+            <img src="../assets/work/laformul-detail.webp" alt="Close-up of a frosted laboratory-grade dropper bottle and carton" decoding="async" loading="lazy" data-ed="laformul.i4">
+            <figcaption data-ed="laformul.t36">BioFormul — the science-led register, kept clinical</figcaption>
+          </figure>
+          <figure>
+            <img src="../assets/work/laformul-system.webp" alt="Close-up of a matte carton with the emblem debossed into the board" decoding="async" loading="lazy" data-ed="laformul.i5">
+            <figcaption data-ed="laformul.t37">Carton construction — the mark held in the board itself</figcaption>
+          </figure>
+          </div>
+        </div>
+
+        <div class="tally tally-3">
+          <div><div class="n">2</div><div class="l">Identity systems</div></div>
+          <div><div class="n">2</div><div class="l">Years apart</div></div>
+          <div><div class="n">3</div><div class="l">Product categories</div></div>
+        </div>
+
+        <div class="outcome gt-zone">
+          <div class="l">Outcome</div>
+          <p class="bronze" data-ed="laformul.t38">Laformul’s commercial success directly justified BioFormul’s launch — design work that grew the business that paid for it.</p>
+        </div>
+
+        <div class="awaiting" style="margin-top:var(--slab)">
+          <span class="tag" data-ed="laformul.t39">Client voice — awaiting approval</span>
+          <p data-ed="laformul.t40">A short verified quote from Les Laboratoires Pro-Icon, tied specifically to this project, belongs here. Left empty until it is supplied and cleared.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<!-- The far end of the page is the furthest down a reader gets. Handing them
+     the next case study and nothing else spends that. -->
+<section class="band band-bone case-cta">
+  <div class="wrap">
+    <p class="lede measure" data-ed="laformul.t47">If a brand of yours is still at this stage — or ready for its sibling — an email is enough to start.</p>
+    <div class="close-actions">
+      <a class="tlink close-mail" href="mailto:djaleldjarri@icloud.com?subject=New%20project" data-ed="laformul.t48">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
+      <a class="tlink close-mail" href="https://wa.me/213556956452?text=Hello%20%E2%80%94%20I%27d%20like%20to%20book%20a%20call%20about%20a%20project." rel="noopener" data-ed="laformul.t49">Book a call on WhatsApp <span class="arw">&#8594;</span></a>
+    </div>
+  </div>
+</section>
+
+
+
+<a class="next" href="evolab.html">
+  <div>
+    <span class="k" data-ed="laformul.t41">Next case study</span>
+    <p class="t" data-ed="laformul.t42">Evolab Laboratories — <b>a circle, unfurling.</b></p>
+  </div>
+  <span class="arw">Case 01 &#8594;</span>
+</a>
+
+<footer class="foot">
+  <span data-ed="laformul.t43">Djarri Design Studio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="evolab.html">Evolab</a>
+    <a href="natural-solution.html">Natural Solution + Natural Skin</a>
+    <a href="laformul.html">Laformul + BioFormul</a>
+    <a href="../archive.html">Archive</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="mailto:djaleldjarri@icloud.com">Email</a>
+  </nav>
+  <span data-ed="laformul.t44">Abdeldjalil Djarri · Creative Director</span>
+</footer>
+
+<script src="../assets/content.js?v=35cd74ca"></script>
+<script src="../assets/site.js?v=83a854b1" defer></script>
+<script src="../assets/logo3d.js?v=2bf0c7a0" defer></script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Selected Archive — Djarri Design Studio</title>
+<meta name="description" content="Identities, campaigns, catalogues, brand systems and film work beyond the three featured case studies.">
+<meta property="og:title" content="Selected Archive">
+<meta property="og:description" content="Identities, campaigns, catalogues, brand systems and film work beyond the three featured case studies.">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css?v=da7c0967">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
+</head>
+<body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
+
+<div id="mark3d" data-src="assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="index.html"><span class="n gt" data-ed="archive.t1">DJARRI</span><span class="s gt" data-ed="archive.t2">DESIGN&nbsp;STUDIO</span></a>
+  <div class="nav-links">
+    <a href="index.html#work">Work</a>
+    <a href="archive.html" aria-current="page">Archive</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+  <a class="nav-lang" href="ar/archive.html" lang="ar" dir="rtl">العربية</a>
+  </div>
+</nav>
+
+<main class="has-nav-offset">
+  <section class="band band-bone">
+    <div class="wrap">
+      <p class="eyebrow" data-ed="archive.t3">Selected archive</p>
+      <h1 class="h-sec gt gt-zone" data-ed="archive.t4">The work that didn't get <b>a case study.</b></h1>
+      <p class="lede measure" data-ed="archive.t5">Nine years produces a great deal more than three brand systems. What follows is the rest of it, grouped by what it is rather than ranked — identities, campaigns, print, and the film work that sits alongside the design practice.</p>
+
+      <!-- A first look at the work behind the categories below. Everything here
+           is real and attributed from what is printed on it: the laboratory
+           mark on each carton, the name on each mark. -->
+      <p class="eyebrow arch-label" data-ed="archive.t31">Selected projects</p>
+      <div class="arch-projects">
+        <div class="arch-proj">
+          <div class="arch-proj-head">
+            <h3>Dermilyne Laboratoire</h3>
+            <p class="m" data-ed="archive.t32">Packaging · 7 products</p>
+          </div>
+          <p class="d" data-ed="archive.t33">Packaging across a laboratory's over-the-counter range — skin, throat, scalp, foot and nasal care — under one house mark.</p>
+          <ul class="arch-shots arch-shots-lead">
+        <li><img src="assets/shelf/p24.webp" alt="Dermilyne — Titanoréilyne" width="760" height="688" decoding="async" loading="lazy"><span class="arch-cap">Titanoréilyne</span></li>
+        <li><img src="assets/shelf/p29.webp" alt="Dermilyne — Hémo+" width="760" height="521" decoding="async" loading="lazy"><span class="arch-cap">Hémo+</span></li>
+        <li><img src="assets/shelf/p27.webp" alt="Dermilyne — Biogilyne" width="760" height="522" decoding="async" loading="lazy"><span class="arch-cap">Biogilyne</span></li>
+        <li><img src="assets/shelf/p26.webp" alt="Dermilyne — Biccadé" width="760" height="578" decoding="async" loading="lazy"><span class="arch-cap">Biccadé</span></li>
+        <li><img src="assets/shelf/p30.webp" alt="Dermilyne — HydraPied" width="760" height="682" decoding="async" loading="lazy"><span class="arch-cap">HydraPied</span></li>
+        <li><img src="assets/shelf/p31.webp" alt="Dermilyne — RhinoBio Plus" width="760" height="594" decoding="async" loading="lazy"><span class="arch-cap">RhinoBio Plus</span></li>
+        <li><img src="assets/shelf/p28.webp" alt="Dermilyne — Dystadys" width="760" height="516" decoding="async" loading="lazy"><span class="arch-cap">Dystadys</span></li>
+          </ul>
+        </div>
+        <div class="arch-proj">
+          <div class="arch-proj-head">
+            <h3>Racine Lab</h3>
+            <p class="m" data-ed="archive.t34">Packaging · 3 products</p>
+          </div>
+          <p class="d" data-ed="archive.t35">Packaging for three products: a plant-extract toothpaste and two creams.</p>
+          <ul class="arch-shots">
+        <li><img src="assets/shelf/p16.webp" alt="Racine Lab — Hémoin" width="760" height="509" decoding="async" loading="lazy"><span class="arch-cap">Hémoin</span></li>
+        <li><img src="assets/shelf/p15.webp" alt="Racine Lab — Dexemol" width="760" height="494" decoding="async" loading="lazy"><span class="arch-cap">Dexemol</span></li>
+        <li><img src="assets/shelf/p17.webp" alt="Racine Lab — AloFresh" width="760" height="649" decoding="async" loading="lazy"><span class="arch-cap">AloFresh</span></li>
+          </ul>
+        </div>
+        <div class="arch-proj">
+          <div class="arch-proj-head">
+            <h3 data-ed="archive.t36">Identities</h3>
+            <p class="m" data-ed="archive.t37">7 of 30+</p>
+          </div>
+          <p class="d" data-ed="archive.t38">Marks for clinics, medical practices and pharmaceutical businesses.</p>
+          <ul class="arch-marks">
+        <li><img src="assets/logos/clinique-imen.svg" alt="Clinique Imen" width="124" height="169" decoding="async" loading="lazy"></li>
+        <li><img src="assets/logos/clinique-dentaire-sahnoun.svg" alt="Clinique Dentaire Sahnoun" width="176" height="180" decoding="async" loading="lazy"></li>
+        <li><img src="assets/logos/luxo-clinique.svg" alt="Luxo Clinique" width="269" height="194" decoding="async" loading="lazy"></li>
+        <li><img src="assets/logos/dr-simoud-bilel.svg" alt="Dr. Simoud Bilel" width="156" height="194" decoding="async" loading="lazy"></li>
+        <li><img src="assets/logos/ldm-groupe.svg" alt="LDM Groupe" width="166" height="103" decoding="async" loading="lazy"></li>
+        <li><img src="assets/logos/direct-pharma.svg" alt="Direct Pharma" width="214" height="192" decoding="async" loading="lazy"></li>
+        <li><img src="assets/logos/chemist-cooper-group.svg" alt="Chemist Cooper Group" width="365" height="127" decoding="async" loading="lazy"></li>
+          </ul>
+        </div>
+        <div class="arch-proj arch-film">
+          <div>
+            <div class="arch-proj-head">
+              <h3 data-ed="archive.t39">Campaign film</h3>
+              <p class="m" data-ed="archive.t40">Direction · Film department</p>
+            </div>
+            <p class="d" data-ed="archive.t41">A campaign film shot from the clean room to the production floor, with the team who work there.</p>
+          </div>
+          <img src="assets/work/comm-campaign.webp" alt="Four frames from the campaign film — clean room, production floor and the team" width="1280" height="1810" decoding="async" loading="lazy">
+        </div>
+      </div>
+
+      <p class="eyebrow arch-label" data-ed="archive.t42">Across the practice</p>
+      <div class="arch-grid">
+        <div class="arch-item">
+          <h3 data-ed="archive.t8">Brand identities</h3>
+          <p class="m" data-ed="archive.t9">30+ systems · since 2016</p>
+          <p class="d" data-ed="archive.t10">Marks, stationery and identity guidelines across pharmacy, clinical, laboratory and dental clients — the fourteen shown on the homepage strip among them.</p>
+        </div>
+        <div class="arch-item">
+          <h3 data-ed="archive.t11">Campaigns &amp; advertising</h3>
+          <p class="m" data-ed="archive.t12">Print · Point of sale · Social</p>
+          <p class="d" data-ed="archive.t13">Product launches and seasonal campaigns for pharmacy and parapharmacy, carried from concept through to the printed panel on the wall.</p>
+        </div>
+        <div class="arch-item">
+          <h3 data-ed="archive.t14">Brand systems &amp; guidelines</h3>
+          <p class="m" data-ed="archive.t15">Manuals · Grids · Colour logic</p>
+          <p class="d" data-ed="archive.t16">The documents that let a client's own team keep the system intact between projects — which is the difference between an identity and a one-off.</p>
+        </div>
+        <div class="arch-item">
+          <h3 data-ed="archive.t17">Film &amp; motion</h3>
+          <p class="m" data-ed="archive.t18">Direction · Film department</p>
+          <p class="d" data-ed="archive.t19">Product films, brand films and motion work produced through Revolution Agency's filmmaking department.</p>
+        </div>
+        <div class="arch-item">
+          <h3 data-ed="archive.t20">Catalogues &amp; flyers</h3>
+          <p class="m" data-ed="archive.t21">Editorial · Medical communication</p>
+          <p class="d" data-ed="archive.t22">Product catalogues, range flyers and medical communication pieces — the material a sales team actually carries into a pharmacy.</p>
+        </div>
+        <div class="arch-item">
+          <h3 data-ed="archive.t23">Exhibition &amp; environment</h3>
+          <p class="m" data-ed="archive.t24">3D direction · On-site build</p>
+          <p class="d" data-ed="archive.t25">Trade-show stands taken from 3D visualisation through to the structure standing on the floor of the hall.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+<!-- The far end of the page is the furthest down a reader gets; it ends on
+     a way to act rather than a way back. -->
+<section class="band band-bone case-cta">
+  <div class="wrap">
+    <p class="lede measure" data-ed="archive.t28">If something here is close to what you need, an email is enough to start.</p>
+    <div class="close-actions">
+      <a class="tlink close-mail" href="mailto:djaleldjarri@icloud.com?subject=New%20project" data-ed="archive.t29">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
+      <a class="tlink close-mail" href="https://wa.me/213556956452?text=Hello%20%E2%80%94%20I%27d%20like%20to%20book%20a%20call%20about%20a%20project." rel="noopener" data-ed="archive.t30">Book a call on WhatsApp <span class="arw">&#8594;</span></a>
+    </div>
+  </div>
+</section>
+
+
+<footer class="foot">
+  <span data-ed="archive.t26">Djarri Design Studio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="work/evolab.html">Evolab</a>
+    <a href="work/natural-solution.html">Natural Solution + Natural Skin</a>
+    <a href="work/laformul.html">Laformul + BioFormul</a>
+    <a href="archive.html">Archive</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="mailto:djaleldjarri@icloud.com">Email</a>
+  </nav>
+  <span data-ed="archive.t27">Abdeldjalil Djarri · Creative Director</span>
+</footer>
+
+<script src="assets/content.js?v=35cd74ca"></script>
+<script src="assets/site.js?v=83a854b1" defer></script>
+<script src="assets/logo3d.js?v=2bf0c7a0" defer></script>
+</body>
+</html>

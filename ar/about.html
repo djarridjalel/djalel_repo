@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>عن عبد الجليل جرّي — Djarri Design Studio</title>
+<meta name="description" content="مدير إبداعي ومصمّم تغليف لعلامات الأدوية وشبه الصيدلانيات والصحة الاستهلاكية. مدير قسم الإنتاج السينمائي في Revolution Agency.">
+<meta property="og:title" content="About Abdeldjalil Djarri">
+<meta property="og:description" content="Creative Director and packaging designer for regulated health categories.">
+<meta property="og:type" content="profile">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css?v=da7c0967">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
+</head>
+<body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
+
+<div id="mark3d" data-src="../assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="index.html"><span class="n gt" data-ed="about.t1">DJARRI</span><span class="s gt" data-ed="about.t2">DESIGN&nbsp;STUDIO</span></a>
+  <div class="nav-links">
+    <a href="index.html#work">الأعمال</a>
+    <a href="archive.html">الأرشيف</a>
+    <a href="about.html" aria-current="page">عن الاستوديو</a>
+    <a href="contact.html">اتصل</a>
+    <a class="nav-lang" href="../about.html" lang="en" dir="ltr">EN</a>
+  </div>
+</nav>
+
+<main class="has-nav-offset">
+  <section class="band band-bone">
+    <div class="wrap">
+      <p class="eyebrow" data-ed="about.t3">عن الاستوديو</p>
+      <h1 class="h-sec gt gt-zone" style="max-width:20ch" data-ed="about.t4">عبد الجليل جرّي —<br><b>مدير إبداعي.</b></h1>
+      <p class="lede measure" data-ed="about.t5">تصميم تغليف وعلامات لمنتجات الأدوية وشبه الصيدلانيات والعناية بالبشرة والصحة الاستهلاكية. تسع سنوات من ذلك، في أسواق يُساءل فيها القرار التصميمي أمام الجهة المنظِّمة كما يُساءل أمام الرفّ.</p>
+    </div>
+  </section>
+
+  <section class="band band-bone">
+    <div class="wrap">
+      <div class="split">
+        <div>
+          <h2 class="h-sec gt gt-zone" data-ed="about.t6">ما علّمته تسع السنوات <b>فعلًا.</b></h2>
+        </div>
+        <div>
+          <p class="lede" data-ed="about.t7">الفئات المقنّنة قاسية على نحو خاصّ: القيود تصل قبل أن يصل التكليف. المعلومات الإلزامية، وتراتب الجرعات، والخامة، وهامش الطباعة، ورفّ يتزاحم عليه أحد عشر منتجًا من إنتاجك نفسه — كلّ ذلك محسوم قبل أيّ قرار واحد عن شكل الشيء.</p>
+          <p class="lede" data-ed="about.t8">العمل داخل ذلك تسع سنوات يغيّر تصوّرك عن الغاية من التصميم. يكفّ المُسلَّم عن كونه عملًا فنيًّا ويصير مجموعة قواعد: تلك التي تظلّ صامدة حين يتضاعف الكتالوج، ويرتجل فريق المبيعات منشورًا، ولا يكون المصمّم في الغرفة.</p>
+          <p class="lede" style="margin-bottom:0" data-ed="about.t9">ثلاثة من تلك الأنظمة موثّقة بالكامل كدراسات حالة. وثلاثتها ما تزال قيد الاستعمال.</p>
+        </div>
+      </div>
+
+      <div class="split" style="margin-top:var(--slab)">
+        <div>
+          <p class="eyebrow" data-ed="about.t10">السجلّ</p>
+        </div>
+        <ul class="facts">
+          <li><span class="k">المنصب</span><span>مدير إبداعي · مصمّم تغليف وعلامات</span></li>
+          <li><span class="k">القيادة</span><span>مدير قسم الإنتاج السينمائي، Revolution Agency — أفلام منتجات وأفلام علامات وأعمال حركة</span></li>
+          <li><span class="k">الخبرة</span><span><span dir="ltr">9+</span> سنوات · <span dir="ltr">100+</span> منتج على الرفوف · <span dir="ltr">30+</span> هوية علامة · <span dir="ltr">100+</span> مشروع عميل</span></li>
+          <li><span class="k">القطاعات</span><span>أدوية · شبه صيدلانيات · تجميل جلدي · صحّة استهلاكية</span></li>
+          <li><span class="k">التكوين</span><span>ماجستير في هندسة البرمجيات — جامعة قسنطينة <span dir="ltr">2</span>، <span dir="ltr">2018</span></span></li>
+          <li><span class="k">اللغات</span><span>العربية · الفرنسية · الإنجليزية</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-bone">
+    <div class="wrap split">
+      <div>
+        <p class="eyebrow" data-ed="about.t11">الخلفية</p>
+        <h2 class="h-sec gt gt-zone" style="margin-bottom:0" data-ed="about.t12">تخصّصان، <b>يُستعملان معًا.</b></h2>
+      </div>
+      <div>
+        <p class="lede" data-ed="about.t13">الشهادة في هندسة البرمجيات؛ والممارسة تصميم، نما إلى جانبها ثم حلّ محلّها. وهذا الجمع يهمّ أكثر ممّا يبدو: تشكيلة التغليف نظام له وراثة وقيود وحالات حدّية، وهي تنهار كما تنهار البرمجيات — لا عند الإطلاق، بل بعد ثلاث سنوات، حين يضيف أحدهم الحالة الحادية والثلاثين التي لم يصمّمها أحد.</p>
+        <p class="lede" data-ed="about.t14">جاء قسم الإنتاج السينمائي لاحقًا، وللسبب نفسه. العلامة التي توجد على علبة وكتالوج وجناح وشاشة تحتاج من يمسك الأربعة في آن واحد.</p>
+        <p class="lede" style="margin-bottom:0" data-ed="about.t15">المسار عصاميّ في ما يهمّ، ومدروس نظاميًّا في ما أفاد. وهو ليس سطرًا في سيرة ذاتية: هو سبب قدرة كتالوج على تجاوز ثلاثين منتجًا دون أن يُعاد رسم النظام مرّة واحدة.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Moved here from the homepage. A testimonial belongs beside the person
+     being vouched for, not in the run-up to the ask, where an empty one
+     was the last thing read before the invitation. -->
+<section class="band band-bone" id="kind-words">
+  <div class="wrap">
+    <p class="eyebrow" data-ed="about.t21">كلمات طيّبة</p>
+    <!-- The placeholder was 122 words explaining why it was empty, set in a
+         box, in the middle of the run-up to the ask. Explaining an absence at
+         length draws more attention to it than the absence would. One line
+         now, and the skeleton of the quote that will replace it. -->
+    <blockquote class="quote-lead gt gt-zone">
+      <span class="gt" data-ed="about.t23">فقرة واحدة، بحجم كبير، عن كيف جرى التعاون فعلًا.</span>
+    </blockquote>
+    <div class="quote-attr"><span class="tag" data-ed="about.t22">في انتظار اقتباسات معتمدة</span></div>
+  </div>
+</section>
+
+<section class="band band-bone" id="contact">
+    <div class="wrap">
+      <p class="eyebrow" data-ed="about.t16">اتصل</p>
+      <h2 class="close-line gt gt-zone" data-ed="about.t17">العمل يبدأ <b>قبل أن يُرسَم أيّ شيء.</b></h2>
+      <p class="lede measure" data-ed="about.t18">تكليفات الهوية والتغليف في فئات الصحة المقنّنة. رسالة تصف التشكيلة ووجهتها هي أسرع طريق للبدء.</p>
+      <div class="close-actions">
+        <a class="tlink" href="mailto:djaleldjarri@icloud.com">djaleldjarri@icloud.com <span class="arw">&#8592;</span></a>
+        <a class="tlink" href="work/laformul.html">ابدأ بدراسة حالة <span class="arw">&#8592;</span></a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <span data-ed="about.t19">Djarri Design Studio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="work/evolab.html">Evolab</a>
+    <a href="work/natural-solution.html">Natural Solution + Natural Skin</a>
+    <a href="work/laformul.html">Laformul + BioFormul</a>
+    <a href="archive.html">الأرشيف</a>
+    <a href="about.html">عن الاستوديو</a>
+    <a href="contact.html">اتصل</a>
+    <a href="mailto:djaleldjarri@icloud.com">البريد</a>
+  </nav>
+  <span data-ed="about.t20">عبد الجليل جرّي · مدير إبداعي</span>
+</footer>
+
+<script src="../assets/content.js?v=35cd74ca"></script>
+<script src="../assets/site.js?v=83a854b1" defer></script>
+<script src="../assets/logo3d.js?v=2bf0c7a0" defer></script>
+</body>
+</html>

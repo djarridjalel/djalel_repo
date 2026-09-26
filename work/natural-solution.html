@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natural Solution + Natural Skin — Djarri Design Studio</title>
+<meta name="description" content="A three-year parapharmaceutical partnership that scaled past thirty products without being redrawn, and the skincare sub-brand it produced — which kept the name, the typeface and almost nothing else.">
+<meta property="og:title" content="Natural Solution + Natural Skin">
+<meta property="og:description" content="A three-year partnership that scaled past thirty products, and the skincare sub-brand it produced in a deliberately different voice.">
+<meta property="og:type" content="article">
+<link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css?v=da7c0967">
+<style id="boot-css">
+  /* Boot screen. Inlined because a screen whose job is to cover the wait
+     must not itself wait on a request. Only the ground, the mark and the
+     bar are here; everything else waits for site.css like the rest.
+     .on-ink is set on the pages that open on the dark hero, so the boot
+     ground matches what it hands over to and nothing flashes between. */
+  #boot{position:fixed; inset:0; z-index:9999; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:15px;
+    background:#F2F1EE; color:#0A0A0B;}
+  #boot.on-ink{background:#0A0A0B; color:#FFFFFF;}
+  #boot b{font:600 .72rem/1 'Poppins', system-ui, -apple-system, sans-serif;
+    letter-spacing:.26em; text-transform:uppercase;}
+  #boot i{display:block; width:128px; height:2px; border-radius:2px;
+    background:rgba(120,120,120,.26); overflow:hidden;}
+  #boot i::after{content:""; display:block; height:100%; width:38%; border-radius:2px;
+    /* the accent reads at 1.32:1 on bone, so the light ground takes the dark
+       form of it — the same rule the rest of the site follows */
+    background:#6E5400; transform:translateX(-100%);
+    animation:boot-slide 1.1s cubic-bezier(.4,0,.2,1) infinite;}
+  #boot.on-ink i::after{background:#FFCE00;}
+  @keyframes boot-slide{to{transform:translateX(365%);}}
+  /* One transition, and the screen stops being a hit target the moment it
+     goes — a fully transparent overlay that still swallows clicks is worse
+     than no overlay at all. */
+  html.booted #boot{opacity:0; visibility:hidden;
+    transition:opacity .45s ease, visibility 0s .45s;}
+  @media (prefers-reduced-motion:reduce){
+    #boot i::after{animation-duration:2.6s;}
+    html.booted #boot{transition:none;}
+  }
+</style>
+<noscript>
+  <!-- The boot screen is lifted by script. Without script it would never
+       lift, and an opaque overlay would be the whole site. -->
+  <style>#boot{display:none !important;}</style>
+</noscript>
+
+</head>
+<body>
+<div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
+<script>
+/* Lift the boot screen when the hero's own layers are in — not on window
+   load, which also waits for every logo and poster below the fold and would
+   hold a blank screen over a page that is ready to read. Three ways out, so
+   a stalled or failed image can never strand a visitor here. */
+(function(){
+  var h = document.documentElement, done = false;
+  function go(){ if(!done){ done = true; h.className += ' booted'; } }
+  function heroIn(){
+    var imgs = [].slice.call(document.querySelectorAll('.pl img'));
+    if(!imgs.length) return go();
+    var left = imgs.length;
+    function tick(){ if(--left <= 0) go(); }
+    imgs.forEach(function(i){
+      if(i.complete) return tick();
+      i.addEventListener('load', tick, {once:true});
+      i.addEventListener('error', tick, {once:true});
+    });
+  }
+  if(document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', heroIn);
+  else heroIn();
+  addEventListener('load', go);
+  setTimeout(go, 6000);
+})();
+</script>
+
+
+<div id="mark3d" data-src="../assets/mark.glb" aria-hidden="true"></div>
+<nav class="nav" aria-label="Primary">
+  <a class="nav-mark gt gt-zone" href="../index.html"><span class="n gt" data-ed="natural.t1">DJARRI</span><span class="s gt" data-ed="natural.t2">DESIGN&nbsp;STUDIO</span></a>
+  <div class="nav-links">
+    <a href="../index.html#work" aria-current="page">Work</a>
+    <a href="../archive.html">Archive</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+  <a class="nav-lang" href="../ar/work/natural-solution.html" lang="ar" dir="rtl">العربية</a>
+  </div>
+</nav>
+
+<main class="case case-opener">
+  <div class="poster poster-light">
+    <img class="poster-photo" src="../assets/work/natural-poster.webp" alt="Natural Solution packaging — the range at scene scale" decoding="async" data-ed="natural.i1">
+    <div class="poster-body">
+      <div class="poster-eyebrow"><span data-ed="natural.t3">Case 02</span><span data-ed="natural.t4">Parapharmaceutical</span><span data-ed="natural.t5">Natural Solution + Natural Skin</span></div>
+      <p class="poster-tension rv" data-ed="natural.t6">A natural-origin story that still had to read as clinically credible — botanical enough to be believed, disciplined enough not to tip into decoration. Three years later it had earned a sub-brand, and the question became how little of the parent that sub-brand should carry.</p>
+      <h1 class="poster-concept rv gt gt-zone" data-rv-delay="140" data-ed="natural.t7">Three leaves in the shape of a T. Then <b>the same name in a different voice.</b></h1>
+    </div>
+  </div>
+
+  <div class="dossier">
+    <div class="dossier-grid">
+      <aside class="spec">
+        <dl>
+          <div><dt data-ed="natural.t8">Role</dt><dd data-ed="natural.t9">Creative Director</dd></div>
+          <div><dt data-ed="natural.t10">Sector</dt><dd data-ed="natural.t11">Parapharmaceutical</dd></div>
+          <div><dt data-ed="natural.t12">Duration</dt><dd data-ed="natural.t13">3-year partnership</dd></div>
+          <div><dt data-ed="natural.t14">Scope</dt><dd data-ed="natural.t15">Two identities · Packaging direction · Naming · Social</dd></div>
+          <div><dt data-ed="natural.t16">Client</dt><dd data-ed="natural.t17">Natural Solution · Natural Skin</dd></div>
+          <div><dt data-ed="natural.t78">Result</dt><dd data-ed="natural.t79">Past thirty products, never redrawn</dd></div>
+        </dl>
+      </aside>
+
+      <div>
+        <div class="part">
+          <p class="eyebrow" data-ed="natural.t53">Part one</p>
+          <h2 class="gt gt-zone">Natural Solution</h2>
+          <p class="part-note" data-ed="natural.t54">The parent. Food supplements and phytotherapy through pharmacies, and a catalogue nobody could size in advance.</p>
+          <div class="swatches" role="img" aria-label="Deep ocean blue / yellow-green">
+            <span style="background:#0D3B66"></span>
+            <span style="background:#2F6B8F"></span>
+            <span style="background:#7FA33C"></span>
+            <span style="background:#A8C300"></span>
+          </div>
+          <div class="swatch-note" data-ed="natural.t55">Deep ocean blue / yellow-green</div>
+        </div>
+        <section class="narrative">
+          <h3 data-ed="natural.t18">Context</h3>
+          <div><p data-ed="natural.t19">Natural Solution sells food supplements and phytotherapy through pharmacies — a category where the natural-origin claim is the reason to buy and simultaneously the reason to doubt.</p>
+<p data-ed="natural.t20">The catalogue was already broad when the work started, and it kept growing. Any system had to be designed for a product count nobody could predict.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="natural.t21">Challenge</h3>
+          <div><p data-ed="natural.t22">Two failure modes sat on either side. Lean too far into botanical and the range reads as health-food and loses the pharmacy. Lean too far into clinical and the natural-origin claim — the whole proposition — disappears.</p>
+<p data-ed="natural.t23">Underneath that, a scale problem: thirty-odd products need to look related without looking identical, or a customer cannot find the one they were sent in for.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="natural.t24">Delivered</h3>
+          <div><p data-ed="natural.t25">Creative direction across the identity and the packaging direction for the full catalogue, plus the promotional and presentation templates the brand's own team would use between projects.</p></div>
+        </section>
+        <section class="narrative">
+          <h3 data-ed="natural.t26">Approach</h3>
+          <div><p data-ed="natural.t27">The mark is three leaves arranged to form the letter T — botanical content, typographic discipline. The argument is settled inside the logo, which is what lets everything downstream stop arguing about it.</p>
+<p data-ed="natural.t28">The colour rule does the rest of the work: deep ocean blue against yellow-green, and the green is never allowed to stand alone. One sentence, and it is what keeps the range out of health-food territory across every product added since.</p>
+<p data-ed="natural.t29">Six logo formats were drawn up front, because a mark that has to sit on a jar lid, a pharmacy shelf and a phone screen is really three marks. Drawing them all is what stopped the brand improvising them later.</p></div>
+        </section>
+
+        <section class="narrative">
+          <h3 data-ed="natural.t30">The sub-brand</h3>
+          <div><p data-ed="natural.t31">After three years the partnership produced <strong>Natural Skin</strong>, and the decision that mattered was how little of the parent it would carry.</p>
+          <p data-ed="natural.t32">A sub-brand is only worth creating when the parent has recognition to lend, and skincare is bought on warmth where phytotherapy is bought on precision. One visual language cannot ask for both without conceding half of each — so what was lent was the name, the typeface, and the argument about how to be credible and natural at the same time. Not the look.</p>
+          <p data-ed="natural.t52">That the lending could be this selective is the evidence the parent had become a brand rather than a style.</p></div>
+        </section>
+
+        <div class="sys">
+          <div class="sys-row">
+            <div class="sys-k">Mark</div>
+            <p class="sys-v" data-ed="natural.t33">Six formats: horizontal, vertical, compact, social, print, simplified.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Typography</div>
+            <p class="sys-v" data-ed="natural.t34">Gilroy — humanist enough to carry the botanical claim, geometric enough to hold the clinical one.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Colour</div>
+            <p class="sys-v" data-ed="natural.t35">Deep ocean blue against yellow-green. The green never stands alone.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Packaging</div>
+            <p class="sys-v" data-ed="natural.t36">Direction across a catalogue that grew past thirty products without the system being redrawn once.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Social</div>
+            <p class="sys-v" data-ed="natural.t38">Promotional and presentation templates, so three years of output stayed recognisably one brand.</p>
+          </div>
+        </div>
+
+        <div class="plates">
+          <figure class="plate-wide">
+            <img src="../assets/work/natural-range.webp" alt="The full Natural Solution range, nineteen products shown together" decoding="async" loading="lazy" data-ed="natural.i3">
+            <figcaption data-ed="natural.t39">The range — one system, thirty-odd products, nineteen of them here</figcaption>
+          </figure>
+          <div class="plate-pair">
+          <figure>
+            <img src="../assets/work/natural-detail.webp" alt="Close-up of an amber dropper bottle and its label" decoding="async" loading="lazy" data-ed="natural.i4">
+            <figcaption data-ed="natural.t40">Bottle and label — the natural claim, kept precise</figcaption>
+          </figure>
+          <figure>
+            <img src="../assets/work/natural-catalogue.webp" alt="An open product catalogue with loose flyers beside it" decoding="async" loading="lazy" data-ed="natural.i5">
+            <figcaption data-ed="natural.t41">Catalogue and flyers — the system in print</figcaption>
+          </figure>
+          </div>
+        </div>
+
+
+        <div class="part">
+          <p class="eyebrow" data-ed="natural.t56">Part two</p>
+          <h2 class="gt gt-zone">Natural Skin</h2>
+          <p class="part-note" data-ed="natural.t57">The sub-brand, year three. Skincare for urban Algeria, sold through the same parapharmacy counter and addressed in a different voice.</p>
+          <div class="swatches" role="img" aria-label="Coffee, skintone, sand and olive">
+            <span style="background:#5B3329"></span>
+            <span style="background:#E1C6B4"></span>
+            <span style="background:#E4E1DD"></span>
+            <span style="background:#465225"></span>
+          </div>
+          <div class="swatch-note" data-ed="natural.t58">Coffee / skintone / sand / olive</div>
+        </div>
+
+        <section class="narrative">
+          <h3 data-ed="natural.t59">Audience</h3>
+          <div><p data-ed="natural.t60">Women of eighteen to thirty-five in urban Algeria — social-first, curious about skincare, buying on a parapharmacy recommendation rather than an advertisement. They want the premium sensation without the premium price, and they want to be taught something. The brief was explicit that this is not an audience asking anyone to repair their skin.</p>
+          <p data-ed="natural.t61">Behind them sits the second audience that actually stocks the range: parapharmacy and pharmacy buyers, who care about credible advice, clear instructions and being able to match a customer to a product without reading the back of the carton.</p></div>
+        </section>
+
+        <section class="narrative">
+          <h3 data-ed="natural.t62">Position</h3>
+          <div><p data-ed="natural.t63">The category offers two failed registers. Falsely organic, which no pharmacy buyer believes, and clinically cold, which the audience does not want. The brand is written to be neither: calm premium with a rebel streak of honesty — <em>soft on skin, strong on integrity</em>.</p>
+          <p data-ed="natural.t64">So the naturalness is never argued in words. There is no ingredient rhetoric on the front of the pack. It is carried instead by the palette, by leaf-scale photography, by real skin at real magnification, and by leaving space — while the typography, the spacing and the studio lighting carry the credibility. Both halves have to be present at once, and neither is allowed to win.</p></div>
+        </section>
+
+        <section class="narrative">
+          <h3 data-ed="natural.t65">Approach</h3>
+          <div><p data-ed="natural.t66">The wordmark is the break. Where the parent is wide and light, Natural Skin is heavy, rounded and tightly set, with <em>Natural</em> held above it in Typo Writer — a mono voice that then runs through every line of body copy on the pack. The rule attached to it is that the mark is used as a clean stamp and never decorated: the organic feeling is asked of the photograph, the shadow and the composition, not of the logo.</p>
+          <p data-ed="natural.t67">Gilroy is the thread back to the parent, which is the one piece of the system that did not change.</p>
+          <p data-ed="natural.t68">Products are named as diagnoses rather than promises — <strong>Sébu-Check</strong> for combination and oily skin, <strong>Xéro-Check</strong> for very dry and sensitive. The suffix is the same across the line, so the range reads as one method applied to different problems. Every pack carries English, French and Arabic, and a sealed percentage rather than an adjective: ninety-five per cent natural ingredients, ninety-seven on the drier formula.</p>
+          <p data-ed="natural.t69">The ritual is named in three words, each of which appears with the brand's asterisk — <em>Nettoyer*, Respirer*, Rayonner*</em>. Clean, breathe, and the honest luminosity that follows, as against glossy perfection.</p></div>
+        </section>
+
+        <div class="sys">
+          <div class="sys-row">
+            <div class="sys-k">Wordmark</div>
+            <p class="sys-v" data-ed="natural.t70">Heavy rounded capitals, tightly set, with Natural above in mono.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Typography</div>
+            <p class="sys-v" data-ed="natural.t71">Gilroy, inherited from the parent, against Typo Writer for the mono voice — the one that carries the instructions, the claims and the ritual words.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Colour</div>
+            <p class="sys-v" data-ed="natural.t72">Coffee, skintone, sand and olive — warm neutrals for the skin tones the brand is speaking to, off-white for parapharmacy credibility, and a deep olive for permanence.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">SKU system</div>
+            <p class="sys-v" data-ed="natural.t73">The depth of the green encodes the skin type, light through to dark, so a buyer matches a customer to a carton across the shelf without reading anything. It is the same trick as the parent's colour rule, doing a different job.</p>
+          </div>
+          <div class="sys-row">
+            <div class="sys-k">Carton</div>
+            <p class="sys-v" data-ed="natural.t74">An open-face structure: clean luxury outside, a warmer message on the inner face. Built deliberately for the unboxing video and the parapharmacy display, which is where this audience actually meets the brand.</p>
+          </div>
+        </div>
+
+        <div class="plates">
+          <figure class="plate-wide">
+            <img src="../assets/work/nskin-cartons.webp" alt="Three Natural Skin cartons in ascending depths of green, each labelled for a different skin type" decoding="async" loading="lazy" data-ed="natural.i8">
+            <figcaption data-ed="natural.t75">The SKU system — green depth carries the skin type</figcaption>
+          </figure>
+          <div class="plate-pair">
+          <figure>
+            <img src="../assets/work/nskin-range.webp" alt="The Natural Skin range shown together — bottles, a tube and a pump" decoding="async" loading="lazy" data-ed="natural.i9">
+            <figcaption data-ed="natural.t76">The range, one method across five formats</figcaption>
+          </figure>
+          <figure>
+            <img src="../assets/work/nskin-carton-open.webp" alt="A Natural Skin carton opened to show the message printed on its inner face" decoding="async" loading="lazy" data-ed="natural.i10">
+            <figcaption data-ed="natural.t77">Clean outside, warm on the inner face</figcaption>
+          </figure>
+          </div>
+        </div>
+
+        <figure class="lineage">
+          <div>
+            <img src="../assets/work/mark-natural.svg" alt="Natural Solution mark" data-ed="natural.i6">
+            <figcaption data-ed="natural.t42">Wide, light, a leaf for the A</figcaption>
+          </div>
+          <div>
+            <img src="../assets/work/mark-natural-skin.svg" alt="Natural Skin mark" data-ed="natural.i7">
+            <figcaption data-ed="natural.t43">Heavy, rounded, a mono line above</figcaption>
+          </div>
+        </figure>
+
+        <div class="tally">
+          <div><div class="n">30+</div><div class="l">Products</div></div>
+          <div><div class="n">6</div><div class="l">Logo formats</div></div>
+          <div><div class="n">3</div><div class="l">Years to the sub-brand</div></div>
+          <div><div class="n">2</div><div class="l">Brands in the family</div></div>
+        </div>
+
+        <div class="outcome gt-zone">
+          <div class="l">Outcome</div>
+          <p class="bronze" data-ed="natural.t44">A flexible identity built to scale alongside the brand’s expanding catalogue — and it has, for three years, far enough to carry a sub-brand of its own.</p>
+        </div>
+
+        <div class="awaiting" style="margin-top:var(--slab)">
+          <span class="tag" data-ed="natural.t45">Client voice — awaiting approval</span>
+          <p data-ed="natural.t46">A short verified quote from Natural Solution, tied specifically to this project, belongs here. Left empty until it is supplied and cleared.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+<!-- The far end of the page is the furthest down a reader gets. Handing them
+     the next case study and nothing else spends that. -->
+<section class="band band-bone case-cta">
+  <div class="wrap">
+    <p class="lede measure" data-ed="natural.t80">If a range of yours is about to scale past the system holding it, an email is enough to start.</p>
+    <div class="close-actions">
+      <a class="tlink close-mail" href="mailto:djaleldjarri@icloud.com?subject=New%20project" data-ed="natural.t81">djaleldjarri@icloud.com <span class="arw">&#8594;</span></a>
+      <a class="tlink close-mail" href="https://wa.me/213556956452?text=Hello%20%E2%80%94%20I%27d%20like%20to%20book%20a%20call%20about%20a%20project." rel="noopener" data-ed="natural.t82">Book a call on WhatsApp <span class="arw">&#8594;</span></a>
+    </div>
+  </div>
+</section>
+
+
+
+<a class="next" href="laformul.html">
+  <div>
+    <span class="k" data-ed="natural.t47">Next case study</span>
+    <p class="t" data-ed="natural.t48">Laformul + BioFormul — <b>two brands, one lineage.</b></p>
+  </div>
+  <span class="arw">Case 03 &#8594;</span>
+</a>
+
+<footer class="foot">
+  <span data-ed="natural.t49">Djarri Design Studio</span>
+  <nav class="foot-links" aria-label="Footer">
+    <a href="evolab.html">Evolab</a>
+    <a href="natural-solution.html">Natural Solution + Natural Skin</a>
+    <a href="laformul.html">Laformul + BioFormul</a>
+    <a href="../archive.html">Archive</a>
+    <a href="../about.html">About</a>
+    <a href="../contact.html">Contact</a>
+    <a href="mailto:djaleldjarri@icloud.com">Email</a>
+  </nav>
+  <span data-ed="natural.t50">Abdeldjalil Djarri · Creative Director</span>
+</footer>
+
+<script src="../assets/content.js?v=35cd74ca"></script>
+<script src="../assets/site.js?v=83a854b1" defer></script>
+<script src="../assets/logo3d.js?v=2bf0c7a0" defer></script>
+</body>
+</html>
