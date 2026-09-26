@@ -967,7 +967,8 @@ function init(){
      A glowing dot on each part that opens a close-up, so the stand says
      where it can be clicked before anyone has to find out by hovering. The
      arch and the rest of the stand only answer with a label, and get none.
-     Each dot rides the centre of its zone's box as the table turns; they
+     Each dot rides the top of its zone's selection box - the point the
+     hover label is pinned to - as the table turns; they
      show once the stand has built, and step aside for the close-up. */
   const hotspots = [];
   const spotAt = new THREE.Vector3();
@@ -997,7 +998,9 @@ function init(){
   function placeSpots(){
     const h = stage.clientHeight;
     for (const s of hotspots){
-      s.box.getCenter(spotAt); table.localToWorld(spotAt); spotAt.project(camera);
+      const b = s.box;                                           // top of the selection box, where the label points
+      spotAt.set((b.min.x + b.max.x) / 2, b.max.y, (b.min.z + b.max.z) / 2);
+      table.localToWorld(spotAt); spotAt.project(camera);
       const x = (spotAt.x + 1) / 2 * canvas.clientWidth + canvasOffset, y = (1 - spotAt.y) / 2 * h;
       s.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
       /* the canvas runs past the stage on both sides, and so may a dot */
