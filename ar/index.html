@@ -74,6 +74,13 @@
     /* hero rhythm */
     --edge:clamp(24px, 6vw, 104px);
 
+    /* The air either side of a section rule. site.css sets it at 5vh,
+       which on a laptop is 34px - too little for this page, where the
+       client strip, the expertise band and the commissions run follow one
+       another on the same ground and read as one block. The homepage opens
+       the seams up; the case studies keep theirs. */
+    --seam:clamp(64px, 9vh, 120px);
+
     /* Accent — one flat colour, not a ramp.
        #FFCE00 is 13.27:1 on the ink ground. It is 1.32:1 on the bone
        dossier, so the light sections use --a-dark (#6E5400, 6.34:1)
