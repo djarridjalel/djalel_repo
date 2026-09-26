@@ -23,8 +23,8 @@ NAV_EN = {"Work": "الأعمال", "Archive": "الأرشيف",
 _HEAD_SEEN = set()
 _HEAD_UNUSED = set()
 HEAD = {
-  "<title>Djarri Design Studio — Unlocking your brands' unrealised potential</title>":
-    "<title>Djarri Design Studio — إطلاق الطاقات الكامنة في علاماتك</title>",
+  "<title>Djarri Design Studio — From identity to packaging to campaigns</title>":
+    "<title>Djarri Design Studio — من الهوية إلى التغليف إلى الحملات</title>",
   "<title>About Abdeldjalil Djarri — Djarri Design Studio</title>":
     "<title>عن عبد الجليل جرّي — Djarri Design Studio</title>",
   "<title>Selected Archive — Djarri Design Studio</title>":
@@ -48,8 +48,8 @@ HEAD = {
     "علامة تجميل طبّي بُنيت من الصفر، ثم امتدّت إلى علامة شقيقة ذات منحى علمي بعد أن أثبتت الأولى السوق.",
   "Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.":
     "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جرّي.",
-  "Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.":
-    "إطلاق الطاقات الكامنة في علاماتك — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
+  "From identity to packaging to campaigns — brand systems for healthcare brands, on the carton, on screen and on the show floor.":
+    "من الهوية إلى التغليف إلى الحملات — أنظمة علامات لعلامات الرعاية الصحية، على العلبة وعلى الشاشة وفي أجنحة المعارض.",
   # the stand in the hero: its unkeyed labels, hint and accessible names
   "Drag to turn &#8596;": "اسحب للتدوير &#8596;",
   "Click anywhere to go back": "انقر في أيّ مكان للعودة",
