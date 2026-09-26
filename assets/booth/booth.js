@@ -383,6 +383,12 @@ function init(){
      and to the right, past the right margin if it needs to.
      Narrow layouts (stand below the copy) use the column as it is. */
   const stacked = matchMedia('(max-width: 860px), (max-aspect-ratio: 4/5)');
+  /* Right to left, the page mirrors: the copy takes the right-hand column
+     and the stand the left, so the stand is anchored by its right side and
+     grows to the left. The canvas already spans the whole hero either way;
+     only which edge meets the gap before the copy changes. */
+  const MIRROR = getComputedStyle(hero).direction === 'rtl';
+  const edge = (bleed, sw) => MIRROR ? bleed + sw * 1.07 : bleed - sw * 0.07;
   const GROW = 1.2;                                           // side by side, vs. fitting the column
   let canvasOffset = 0;                                       // canvas left minus stage left, px
   function place(d, look){
@@ -415,8 +421,8 @@ function init(){
     if (model && !stacked.matches){
       /* grow, but keep the right side a gutter inside the window */
       const r = extent(w, h);
-      const anchor = bleed - sw * 0.07;
-      const room = w - 24 - anchor;
+      const anchor = edge(bleed, sw);
+      const room = MIRROR ? anchor - 24 : w - 24 - anchor;
       const k = Math.min(GROW, room / (r.maxX - r.minX));
       d /= k;
       place(d, look);
@@ -424,7 +430,7 @@ function init(){
     rest.pos.copy(camera.position); rest.look.copy(look);
     rest.w = w; rest.h = h; rest.ox = rest.oy = 0;
     rest.cx = w / 2 - (bleed + sw / 2);                       // centres the stage's middle
-    compose(w, h, bleed - sw * 0.07);                         // into the gap before the copy
+    compose(w, h, edge(bleed, sw));                           // into the gap before the copy
     applyCamera();
     kick();
   }
@@ -451,7 +457,7 @@ function init(){
     const r = extent(w, h);
     const cr = canvas.getBoundingClientRect(), br = cta.getBoundingClientRect();
     const dy = r.maxY - (br.bottom - cr.top);                  // floor onto the button's bottom
-    rest.ox = r.minX - anchor;                                 // left side onto the anchor
+    rest.ox = (MIRROR ? r.maxX : r.minX) - anchor;             // the copy-side edge onto the anchor
     rest.oy = dy;
   }
   new ResizeObserver(resize).observe(stage);
@@ -464,7 +470,7 @@ function init(){
   const REST = -0.1;
   let MIN = REST - L.turnLeft * Math.PI / 180, MAX = REST + L.turnRight * Math.PI / 180;
   let yaw = calm ? REST : REST + 0.55, target = REST, vel = 0;
-  let dragging = false, lastX = 0, lastY = 0, downX = 0, downY = 0, moved = 0, lastInput = -1e9;
+  let downSpot = null, dragging = false, lastX = 0, lastY = 0, downX = 0, downY = 0, moved = 0, lastInput = -1e9;
 
   /* the stops are hard: a drag may push past them by GIVE at most, and
      springs back on release */
@@ -476,6 +482,7 @@ function init(){
     /* capture, so the release is heard even outside the stage or the frame */
     try { stage.setPointerCapture(e.pointerId); } catch (err) {}
     dragging = true; moved = 0;
+    downSpot = e.target.closest ? e.target.closest('.bh-spot') : null;
     lastX = downX = e.clientX; lastY = downY = e.clientY;
     vel = 0;
     stage.classList.add('dragging');
@@ -521,21 +528,27 @@ function init(){
     if (click && moved < 6){
       if (focus.on) leaveFocus();
       else {
-        if (e.pointerType === 'touch') hitTest(e.clientX, e.clientY);
-        if (hover === CARTON) enterFocus(FOCUS);
-        else if (hover === SHELF) enterFocus(SHELF_BOX);
-        else if (hover === DESK && flyers.length){
-          let k = 0, bd = Infinity;                              // the flyer nearest the click
-          flyers.forEach((f, i) => { const d = f.box.min.distanceTo(lastHit); if (d < bd){ bd = d; k = i; } });
-          enterFocus(flyers[k]);
-        }
-        else if (hover === ROLLUP) enterFocus(BANNER);
-        else if (hover === FILM && SCREEN.mesh) enterFocus(SCREEN);
-        else if (e.pointerType === 'touch') setHover(null);
+        if (downSpot) spotHover(+downSpot.dataset.zone);       // a dot answers for its zone
+        else if (e.pointerType === 'touch') hitTest(e.clientX, e.clientY);
+        if (!openZone(hover) && e.pointerType === 'touch') setHover(null);
       }
     }
+    downSpot = null;
     if (calm) vel = 0;
     kick();
+  }
+  function openZone(i){
+    if (i === CARTON) enterFocus(FOCUS);
+    else if (i === SHELF) enterFocus(SHELF_BOX);
+    else if (i === DESK && flyers.length){
+      let k = 0, bd = Infinity;                                // the flyer nearest the click
+      flyers.forEach((f, n) => { const d = f.box.min.distanceTo(lastHit); if (d < bd){ bd = d; k = n; } });
+      enterFocus(flyers[k]);
+    }
+    else if (i === ROLLUP) enterFocus(BANNER);
+    else if (i === FILM && SCREEN.mesh) enterFocus(SCREEN);
+    else return false;
+    return true;
   }
   addEventListener('pointerup', e => endDrag(e, true));
   addEventListener('pointercancel', e => endDrag(e, false));
@@ -889,6 +902,8 @@ function init(){
     const r = canvas.getBoundingClientRect();
     pointerIn = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
     if (!pointerIn || dragging){ if (!dragging) setHover(null); return; }
+    const spot = e.target.closest ? e.target.closest('.bh-spot') : null;
+    if (spot){ spotHover(+spot.dataset.zone); return; }
     hitTest(e.clientX, e.clientY);
   }
   /* the close-up targets turn to face the viewer while hovered; the yaw that
@@ -948,6 +963,49 @@ function init(){
     kick();
   }
 
+  /* ---- hotspots -----------------------------------------------------------
+     A glowing dot on each part that opens a close-up, so the stand says
+     where it can be clicked before anyone has to find out by hovering. The
+     arch and the rest of the stand only answer with a label, and get none.
+     Each dot rides the centre of its zone's box as the table turns; they
+     show once the stand has built, and step aside for the close-up. */
+  const hotspots = [];
+  const spotAt = new THREE.Vector3();
+  function spotHover(i){
+    if (i === DESK && !desk.isEmpty()) desk.getCenter(lastHit);   // the middle flyer, not a stale hit
+    setHover(i);
+  }
+  function buildSpots(){
+    [CARTON, SHELF, ROLLUP, FILM, DESK].forEach((i, n) => {
+      if (i === FILM && !SCREEN.mesh) return;
+      if (i === DESK && !flyers.length) return;
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'bh-spot';
+      b.dataset.zone = i;
+      b.style.setProperty('--d', (n * 0.37).toFixed(2) + 's');     // the pulses don't beat together
+      b.setAttribute('aria-label', tr(ZONES[i].k) + ' — ' + tr('Click to look closer'));
+      /* a pointer is handled by the stage's press and release; this is
+         for the keyboard (Enter or Space), which sends a click with no press */
+      b.addEventListener('click', e => { if (e.detail === 0){ spotHover(i); openZone(i); } });
+      b.addEventListener('focus', () => spotHover(i));
+      b.addEventListener('blur', () => { if (!focus.on) setHover(null); });
+      stage.append(b);
+      hotspots.push({ el:b, i, box:hoverBox(i) });
+    });
+  }
+  function placeSpots(){
+    const h = stage.clientHeight;
+    for (const s of hotspots){
+      s.box.getCenter(spotAt); table.localToWorld(spotAt); spotAt.project(camera);
+      const x = (spotAt.x + 1) / 2 * canvas.clientWidth + canvasOffset, y = (1 - spotAt.y) / 2 * h;
+      s.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      /* the canvas runs past the stage on both sides, and so may a dot */
+      s.el.hidden = x < canvasOffset + 12 || x > canvasOffset + canvas.clientWidth - 12 || y < 0 || y > h;
+      s.el.classList.toggle('is-hover', hover === s.i);
+    }
+  }
+
   /* ---- loop --------------------------------------------------------------
      Runs only while something is moving and the stage is on screen. */
   let running = false, visible = true, buildStart = 0, last = 0;
@@ -969,6 +1027,9 @@ function init(){
       const e = 1 - Math.pow(1 - t, 3);
       clip.constant = -0.01 + e * (size.y + 0.6);
       busy = true;
+    } else if (!hotspots.length && !POSTER){                    // the poster is a clean still
+      buildSpots();
+      hero.classList.add('spots-on');
     }
 
     /* idle sway once nobody has touched it for a while */
@@ -1027,6 +1088,7 @@ function init(){
       tag.style.top = Math.max(120, y) + 'px';
     }
 
+    if (hotspots.length) placeSpots();
     draw();
     if (POSTER && !busy) window.__posterReady = true;
     if (busy || dragging) requestAnimationFrame(frame); else running = false;
