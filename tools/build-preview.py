@@ -31,38 +31,30 @@ def datauri(path):
                                               base64.b64encode(path.read_bytes()).decode())
     return _cache[path]
 
-VENDOR = ROOT / 'assets' / 'vendor' / 'three'
+_booth = None
 
-def spec(path):
-    """The bare specifier the import map gives a vendored three.js file."""
-    rel = path.relative_to(VENDOR).as_posix()
-    return 'three' if rel == 'three.module.min.js' else 'three/' + rel
+def booth_bundle():
+    """booth.js with three.js and the model folded into one import-free
+    module - see tools/preview-booth.mjs for why the viewer needs that."""
+    global _booth
+    if _booth is None:
+        import subprocess, tempfile
+        with tempfile.TemporaryDirectory() as d:
+            out = pathlib.Path(d) / 'booth.js'
+            subprocess.run(['node', str(ROOT / 'tools' / 'preview-booth.mjs'), str(out)], check=True)
+            _booth = out.read_text().replace('</script', '<\\/script')
+    return _booth
 
 def modules(base, html):
-    """The hero's stand is an ES module graph: booth.js, three.js and its
-    addons, which import one another by relative path, plus a model found
-    through import.meta.url. None of that resolves from a data: URL, so every
-    file is inlined under its bare specifier, relative imports are rewritten
-    to those specifiers, and the model URL becomes a data URI."""
+    """The stand's module graph cannot run in the viewer as it ships: the
+    import map, the preloads and the module script give way to the bundle."""
     if '<script type="importmap">' not in html:
         return html
-    imports = {}
-    for p in sorted(VENDOR.rglob('*.js')):
-        src = p.read_text()
-        src = re.sub(r'''(from\s*|import\s*\(\s*)(['"])(\.\.?/[^'"]+)\2''',
-                     lambda m: m.group(1) + m.group(2) + spec((p.parent / m.group(3)).resolve()) + m.group(2), src)
-        imports[spec(p)] = 'data:text/javascript;base64,' + base64.b64encode(src.encode()).decode()
-    html = re.sub(r'<script type="importmap">.*?</script>',
-                  lambda m: '<script type="importmap">' + json.dumps({'imports': imports}) + '</script>',
-                  html, count=1, flags=re.S)
-    # the preloads would inline the library and the model a second time
+    html = re.sub(r'\n?<!-- The hero\'s stand is a three\.js module\..*?-->\n', '\n', html, count=1, flags=re.S)
+    html = re.sub(r'<script type="importmap">.*?</script>\n?', '', html, count=1, flags=re.S)
     html = re.sub(r'<link rel="(?:modulepreload|preload)" href="(?:\.\./)*assets/(?:vendor|booth)/[^"]+"[^>]*>\n?', '', html)
-    def mod(m):
-        p = local(base, m.group(1))
-        src = p.read_text().replace("new URL('evolab-booth.glb', import.meta.url).href",
-                                    "'" + datauri(p.parent / 'evolab-booth.glb') + "'")
-        return '<script type="module">\n' + src + '\n</script>'
-    return re.sub(r'<script type="module" src="((?:\.\./)*assets/[^"]+)"></script>', mod, html)
+    return re.sub(r'<script type="module" src="(?:\.\./)*assets/booth/booth\.js[^"]*"></script>',
+                  lambda m: '<script type="module">\n' + booth_bundle() + '\n</script>', html)
 
 def build(rel):
     base = (ROOT / rel).parent
