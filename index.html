@@ -144,7 +144,12 @@
     line-height:1.02;
     letter-spacing:-.035em;
   }
-  .bh-h span{display:block;}
+  .bh-h > span{display:block;}
+  /* The copy lets the pointer through to the stage underneath, but the
+     headline answers it: the accent follows the pointer across the letters,
+     as on every other heading on the site. */
+  .bh-h{--gt-r:130px; pointer-events:auto;}
+  .bh-h > span{width:fit-content;}      /* only the words take the pointer, not the empty column beside them */
   .bh-sub{
     margin:1.4em 0 0; max-width:30ch;
     font-weight:300; font-size:clamp(1rem, 1.25vw, 1.2rem); line-height:1.5; color:var(--mute);
@@ -507,7 +512,7 @@
     <div class="bh-rail" data-ed="index.t95">Djarri Design Studio<br>Abdeldjalil Djarri · Creative Director</div>
 
     <div class="bh-main">
-      <h1 class="bh-h" data-ed="index.t96"><span>Identity,</span><span>packaging,</span><span>campaigns.</span></h1>
+      <h1 class="bh-h gt gt-zone" data-ed="index.t96"><span>Identity,</span><span>packaging,</span><span>campaigns.</span></h1>
       <p class="bh-sub" data-ed="index.t97">Brand systems for pharmaceutical and parapharmaceutical companies — on the carton, on screen and on the show floor.</p>
       <a class="bh-cta" href="#work" data-go-work><span class="dot" aria-hidden="true"></span><span data-ed="index.t98">See the case studies</span> <span aria-hidden="true">&#8595;</span></a>
     </div>
@@ -1174,6 +1179,6 @@
 <script src="assets/content.js?v=35cd74ca"></script>
 <script src="assets/site.js?v=83a854b1" defer></script>
 <script src="assets/logo3d.js?v=2bf0c7a0" defer></script>
-<script type="module" src="assets/booth/booth.js?v=e799269d"></script>
+<script type="module" src="assets/booth/booth.js?v=e2d3afa9"></script>
 </body>
 </html>

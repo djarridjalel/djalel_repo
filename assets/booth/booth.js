@@ -307,7 +307,15 @@ function init(){
     resize();
     kick();
   }
+  /* The close-up's backdrop. At rest the stand floats on the page, so the
+     canvas is clear; but a close-up can look past the edge of the model -
+     beyond the last wall, below the platform - and there it showed the page
+     itself, as a hard white edge through an otherwise out-of-focus room. So
+     as the camera flies in, the empty space fills with a soft hall grey,
+     which the lens then blurs with everything else. */
+  const BACKDROP = new THREE.Color(0xD9D8D4), _cc = new THREE.Color();
   function draw(){
+    renderer.setClearColor(BACKDROP, focus.c >= 0 ? easeIO(focus.t) : 0);
     if (lens && focus.c >= 0 && focus.t > 0 && focus.target.blur > 0) lens.render(smooth(0.3, 1, focus.t) * focus.target.blur);
     else if (composer && L.glow > 0) composer.render();
     else renderer.render(scene, camera);
@@ -860,13 +868,20 @@ function init(){
     flat.matrixAutoUpdate = false;
     maskScene.add(proxy, flat);
     const size = new THREE.Vector2(), ctr = new THREE.Vector3(), sz = new THREE.Vector3(), q = new THREE.Quaternion();
+    const _hdr = new THREE.Color();
     lens = {
       render(amount){
         renderer.getDrawingBufferSize(size);
         const w = size.x, h = size.y, hw = Math.max(1, w >> 1), hh = Math.max(1, h >> 1);
         if (sceneRT.width !== w || sceneRT.height !== h){ sceneRT.setSize(w, h); blurRT.setSize(hw, hh); maskRT.setSize(hw, hh); }
         const prev = renderer.getRenderTarget();
+        /* the scene target is tone-mapped at the end, so its clear colour is
+           divided by the exposure to come out as the same grey; the mask
+           must clear to nothing, or the backdrop would read as in focus */
+        renderer.getClearColor(_cc); const ca = renderer.getClearAlpha();
+        renderer.setClearColor(_hdr.copy(_cc).multiplyScalar(1 / renderer.toneMappingExposure), ca);
         renderer.setRenderTarget(sceneRT); renderer.render(scene, camera);
+        renderer.setClearColor(0x000000, 0);
 
         const c = focus.target;
         c.box.getCenter(ctr); c.box.getSize(sz).addScalar(0.004);
@@ -875,6 +890,7 @@ function init(){
         proxy.matrix.compose(ctr, q, sz).premultiply(table.matrixWorld);
         if (c.mesh) flat.matrix.copy(c.mesh.matrixWorld);
         renderer.setRenderTarget(maskRT); renderer.render(maskScene, camera);
+        renderer.setClearColor(_cc, ca);
 
         blur.uniforms.texel.value.set(1 / w, 1 / h);
         blur.uniforms.radius.value = h * 0.011 * amount;
@@ -1013,6 +1029,8 @@ function init(){
      Runs only while something is moving and the stage is on screen. */
   let running = false, visible = true, buildStart = 0, last = 0;
   const BUILD = 1900;
+  const IDLE = 2000;                                          // ms after the last touch before the sway resumes
+  let swayTimer = 0;
   new IntersectionObserver(es => {
     visible = es[0].isIntersecting;
     if (visible) kick(); else leaveFocus(true);               // scrolled away: back to the stand
@@ -1036,8 +1054,8 @@ function init(){
     }
 
     /* idle sway once nobody has touched it for a while */
-    if (!calm && !dragging && focus.t === 0 && hover === null && now - lastInput > 3500){
-      const sway = REST + Math.sin(now / 4200) * Math.min(0.16, (MAX - MIN) / 2);
+    if (!calm && !dragging && focus.t === 0 && hover === null && now - lastInput > IDLE){
+      const sway = REST + Math.sin(now / 3400) * Math.min(0.16, (MAX - MIN) / 2);
       target += (sway - target) * (1 - Math.pow(0.3, dt));    // eases back into the sway
       busy = true;
     }
@@ -1094,6 +1112,14 @@ function init(){
     if (hotspots.length) placeSpots();
     draw();
     if (POSTER && !busy) window.__posterReady = true;
-    if (busy || dragging) requestAnimationFrame(frame); else running = false;
+    if (busy || dragging) requestAnimationFrame(frame);
+    else {
+      running = false;
+      /* The loop sleeps when nothing moves, and the sway only starts a while
+         after the last touch - so something has to wake it for the sway, or
+         after the first hover the stand would never turn on its own again. */
+      if (!calm && !swayTimer && !dragging && focus.t === 0 && hover === null)
+        swayTimer = setTimeout(() => { swayTimer = 0; kick(); }, Math.max(0, IDLE - (now - lastInput)) + 30);
+    }
   }
 }
