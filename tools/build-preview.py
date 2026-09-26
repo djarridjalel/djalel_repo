@@ -31,6 +31,39 @@ def datauri(path):
                                               base64.b64encode(path.read_bytes()).decode())
     return _cache[path]
 
+VENDOR = ROOT / 'assets' / 'vendor' / 'three'
+
+def spec(path):
+    """The bare specifier the import map gives a vendored three.js file."""
+    rel = path.relative_to(VENDOR).as_posix()
+    return 'three' if rel == 'three.module.min.js' else 'three/' + rel
+
+def modules(base, html):
+    """The hero's stand is an ES module graph: booth.js, three.js and its
+    addons, which import one another by relative path, plus a model found
+    through import.meta.url. None of that resolves from a data: URL, so every
+    file is inlined under its bare specifier, relative imports are rewritten
+    to those specifiers, and the model URL becomes a data URI."""
+    if '<script type="importmap">' not in html:
+        return html
+    imports = {}
+    for p in sorted(VENDOR.rglob('*.js')):
+        src = p.read_text()
+        src = re.sub(r'''(from\s*|import\s*\(\s*)(['"])(\.\.?/[^'"]+)\2''',
+                     lambda m: m.group(1) + m.group(2) + spec((p.parent / m.group(3)).resolve()) + m.group(2), src)
+        imports[spec(p)] = 'data:text/javascript;base64,' + base64.b64encode(src.encode()).decode()
+    html = re.sub(r'<script type="importmap">.*?</script>',
+                  lambda m: '<script type="importmap">' + json.dumps({'imports': imports}) + '</script>',
+                  html, count=1, flags=re.S)
+    # the preloads would inline the library and the model a second time
+    html = re.sub(r'<link rel="(?:modulepreload|preload)" href="(?:\.\./)*assets/(?:vendor|booth)/[^"]+"[^>]*>\n?', '', html)
+    def mod(m):
+        p = local(base, m.group(1))
+        src = p.read_text().replace("new URL('evolab-booth.glb', import.meta.url).href",
+                                    "'" + datauri(p.parent / 'evolab-booth.glb') + "'")
+        return '<script type="module">\n' + src + '\n</script>'
+    return re.sub(r'<script type="module" src="((?:\.\./)*assets/[^"]+)"></script>', mod, html)
+
 def build(rel):
     base = (ROOT / rel).parent
     html = (ROOT / rel).read_text()
@@ -44,6 +77,7 @@ def build(rel):
                       and (cssdir / u.group(2)).resolve().exists() else u.group(0), text)
         return '<style>\n' + text + '\n</style>'
     html = re.sub(r'<link rel="stylesheet" href="((?:\.\./)*assets/[^"]+)">', css, html)
+    html = modules(base, html)
     html = re.sub(r'<script src="((?:\.\./)*assets/[^"]+)"[^>]*></script>',
                   lambda m: '<script>\n' + local(base, m.group(1)).read_text() + '\n</script>', html)
 

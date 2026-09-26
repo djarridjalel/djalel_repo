@@ -1802,7 +1802,6 @@ a{color:inherit;}
      Inverted, the fall-through cannot happen: the legible stop is the
      default and the dark grounds - which are a closed set - opt in. */
   .gt .ch.on{color:var(--a-dark);}
-  .hero .gt .ch.on,
   .band-ink .gt .ch.on,
   .poster:not(.poster-light) .gt .ch.on{color:var(--accent);}
 

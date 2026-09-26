@@ -15,7 +15,8 @@ import hashlib, pathlib, re, sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 PAGES = ['index.html', 'about.html', 'archive.html', 'contact.html', 'editor.html',
          'work/evolab.html', 'work/natural-solution.html', 'work/laformul.html']
-ASSETS = ['assets/site.css', 'assets/site.js', 'assets/content.js', 'assets/logo3d.js']
+ASSETS = ['assets/site.css', 'assets/site.js', 'assets/content.js', 'assets/logo3d.js',
+          'assets/booth/booth.js']
 
 def short(rel):
     return hashlib.sha256((ROOT / rel).read_bytes()).hexdigest()[:8]
@@ -29,9 +30,8 @@ def main():
             continue
         s = orig = p.read_text()
         for a in ASSETS:
-            name = a.split('/')[-1]
             # any depth of ../, with or without a version already on it
-            s = re.sub(r'((?:\.\./)*assets/' + re.escape(name) + r')(\?v=[0-9a-f]+)?(?=["\'])',
+            s = re.sub(r'((?:\.\./)*' + re.escape(a) + r')(\?v=[0-9a-f]+)?(?=["\'])',
                        lambda m: m.group(1) + '?v=' + ver[a], s)
         if s != orig:
             p.write_text(s); changed += 1

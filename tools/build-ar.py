@@ -50,12 +50,17 @@ HEAD = {
     "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جرّي.",
   "Unlocking your brands' unrealised potential — brand identity and packaging systems for regulated health markets.":
     "إطلاق الطاقات الكامنة في علاماتك — هوية علامات وأنظمة تغليف لأسواق صحية مقنّنة.",
-  "<b>unlocking</b> your <b>brands'</b> unrealised <b>potential</b>":
-    "<b>إطلاق</b> الطاقات <b>الكامنة</b> في <b>علاماتك</b>",
-  "Abdeldjalil DJARRI · Creative Director<br>":
-    "عبد الجليل جرّي · مدير إبداعي<br>",
-  "Identity · Packaging · Creative direction":
-    "هوية · تغليف · إدارة إبداعية",
+  # the stand in the hero: its unkeyed labels, hint and accessible names
+  "Drag to turn &#8596;": "اسحب للتدوير &#8596;",
+  "Click anywhere to go back": "انقر في أيّ مكان للعودة",
+  "aria-label=\"Evolab Laboratories exhibition stand — interactive 3D model. Drag to turn.\"":
+    "aria-label=\"جناح مختبرات Evolab في المعرض — نموذج ثلاثي الأبعاد تفاعلي. اسحب للتدوير.\"",
+  "alt=\"Evolab Laboratories exhibition stand, 3D model\"":
+    "alt=\"جناح مختبرات Evolab في المعرض، نموذج ثلاثي الأبعاد\"",
+  "aria-label=\"Flyers\"": "aria-label=\"المطويات\"",
+  "aria-label=\"Previous flyer\"": "aria-label=\"المطوية السابقة\"",
+  "aria-label=\"Next flyer\"": "aria-label=\"المطوية التالية\"",
+  "id=\"tagGo\">See the case studies &#8595;": "id=\"tagGo\">شاهد دراسات الحالة &#8595;",
   # the four proof tiles carry no data-ed of their own
   "<div class=\"l\">Years in<br>practice</div>": "<div class=\"l\">سنوات<br>ممارسة</div>",
   "<div class=\"l\">Products<br>on shelves</div>": "<div class=\"l\">منتجات<br>على الرفوف</div>",
@@ -89,7 +94,6 @@ HEAD = {
   ">Read the full background ": ">اقرأ الخلفية كاملة ",
   ">Browse the archive ": ">تصفّح الأرشيف ",
   ">Start with a case study ": ">ابدأ بدراسة حالة ",
-  "</span> Scroll down": "</span> مرّر للأسفل",
   ">Email</a>": ">البريد</a>",
 
   "<div class=\"sys-k\">Mark</div>": "<div class=\"sys-k\">العلامة</div>",
@@ -211,6 +215,9 @@ def build(page, words):
     # subdirectory deployment.
     html = re.sub(r'(?<=["\'(])(\.\./)*assets/',
                   lambda m: "../" * (depth + 1) + "assets/", html)
+    # the import map has to spell a relative URL with its leading ./, which
+    # the pattern above does not see
+    html = html.replace('"./assets/', '"' + "../" * (depth + 1) + 'assets/')
 
     # nav labels, and the switch back to English
     for en, ar in NAV_EN.items():
