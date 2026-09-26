@@ -11,8 +11,8 @@
 <link rel="icon" href="../assets/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../assets/site.css?v=da7c0967">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;600;700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../assets/site.css?v=54df5ad8">
 <style id="boot-css">
   /* Boot screen. Inlined because a screen whose job is to cover the wait
      must not itself wait on a request. Only the ground, the mark and the
@@ -106,104 +106,176 @@
 
   /* ============================================================
      HERO — THE EVOLAB STAND
-     Copy on the left, the stand on a turntable on the right. The
-     model is the only moving thing in the hero; the type holds still.
-     assets/booth/booth.js drives the stage; until it has drawn a
-     frame (or if WebGL is missing) the poster still stands in.
+     The stand is the protagonist, framed as the studio's work: the
+     studio's name in the accent across the top bar, a one-line headline
+     in the upper third, the stand large and centred, and one row along
+     the bottom that says whose work it is. The type holds still; the
+     stand is the only thing that moves. The stage runs under the whole
+     hero, so a close-up fills it, and booth.js fits the stand into the
+     room the headline and the base row leave (data-layout="center").
+     Ported from hero-lab.html (potfolio, claude/evolab-booth-hero).
      ============================================================ */
   .bh{
     --edge:clamp(20px, 5vw, 88px);      /* the booth's own, tighter than the page's */
+    --a-mid:#C29A00;                     /* the accent between its two stops, for the entrance */
     position:relative;
-    height:100svh; min-height:560px;
-    display:grid;
-    grid-template-columns:minmax(300px, 5fr) 7fr;
-    column-gap:clamp(24px, 4vw, 72px);
-    /* wide empty margins either side; on very wide screens the pair stays
-       within 1560px, centred */
-    --side:clamp(24px, 10vw, 220px);
-    padding-inline:max(var(--side), calc((100vw - 1560px) / 2));
+    height:100svh; min-height:620px;
+    display:grid; grid-template-rows:auto auto 1fr auto;
+    --pad:max(clamp(20px, 5vw, 88px), calc((100vw - 1560px) / 2));
+    padding:var(--edge) var(--pad);
     overflow:hidden;
     background:var(--bone);
   }
-  .bh-copy{
-    position:relative; z-index:2;
-    display:grid; grid-template-rows:auto 1fr auto;
-    padding-block:var(--edge);
-    pointer-events:none;
+  .bh > :not(.bh-stage){position:relative; z-index:2; pointer-events:none;}
+  .bh a, .bh button{pointer-events:auto;}
+  .bh-bar, .bh-base{
+    display:flex; justify-content:space-between; align-items:baseline; gap:12px 32px; flex-wrap:wrap;
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
+    line-height:1.6; color:var(--mute);
   }
-  .bh-copy a{pointer-events:auto;}
-  .bh-rail{
-    font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase;
-    line-height:1.8; color:var(--mute);
+  .bh-bar b, .bh-base b{color:var(--ink); font-weight:500;}
+  /* the studio's name, in the display face and the accent: the one
+     coloured word on the page before the pointer adds more. On the bone
+     ground the accent is its dark stop - the bright one does not read. */
+  .bh-bar .bh-name{
+    font-family:var(--display); font-size:clamp(1.05rem, 1.35vw, 1.3rem); font-weight:700;
+    letter-spacing:-.01em; text-transform:none; color:var(--a-dark); margin-inline-end:.45em;
   }
-  .bh-main{align-self:center;}
+  /* who runs it reads with the name: same face, a step smaller, in ink */
+  .bh-bar .bh-role{
+    font-family:var(--display); font-size:clamp(.95rem, 1.15vw, 1.1rem); font-weight:500;
+    letter-spacing:-.005em; text-transform:none; color:var(--ink);
+  }
+  .bh-head{text-align:center; margin-top:clamp(36px, 11vh, 120px);}   /* the headline sits in the upper third, not against the bar */
   .bh-h{
     margin:0;
-    font-weight:600;
-    font-size:clamp(2.4rem, 5.6vw, 5.4rem);
+    font-weight:200;                     /* the small words light, the three stages bold */
+    font-size:clamp(2rem, 4.2vw, 4.5rem);
     line-height:1.02;
     letter-spacing:-.035em;
+    --gt-r:130px;                        /* the pointer's pool, sized to a letter this large */
   }
-  .bh-h > span{display:block;}
-  /* The copy lets the pointer through to the stage underneath, but the
-     headline answers it: the accent follows the pointer across the letters,
-     as on every other heading on the site. */
-  .bh-h{--gt-r:130px; pointer-events:auto;}
-  .bh-h > span{width:fit-content;}      /* only the words take the pointer, not the empty column beside them */
+  .bh-h b{font-weight:600;}
+  .bh-h > span{pointer-events:auto;}     /* only the words take the pointer */
+  @media (hover:hover) and (pointer:fine){
+    .bh-h .ch{transition:color .22s ease;}
+    .bh-h .ch.on{color:var(--a-dark);}
+  }
+  @media (prefers-reduced-motion: reduce){ .bh-h .ch{transition:none;} }
+  /* the entrance: a light runs through the headline, each letter comes up
+     in the bright accent, cools to its dark stop and settles in ink; the
+     rest of the copy only fades in around it, and the stand comes last */
+  @media (prefers-reduced-motion: no-preference){
+    .bh.intro .bh-bar{animation:bhDrop .9s cubic-bezier(.25,.6,.3,1) backwards .15s;}
+    .bh.intro .bh-h .ch{animation:bhCh .85s cubic-bezier(.25,.6,.3,1) backwards; animation-delay:calc(850ms + var(--i) * 48ms);}
+    .bh.intro .bh-lede{animation:bhRise 1.1s cubic-bezier(.25,.6,.3,1) backwards 2.2s;}
+    .bh.intro .bh-base{animation:bhFade 1s ease backwards 3s;}
+  }
+  @keyframes bhCh{
+    0%{opacity:0; color:var(--accent);}
+    22%{opacity:1; color:var(--accent);}
+    55%{color:var(--a-mid);}
+    100%{opacity:1;}
+  }
+  @keyframes bhFade{ from{opacity:0;} }
+  @keyframes bhDrop{ from{opacity:0; transform:translateY(-12px);} }
+  @keyframes bhRise{ from{opacity:0; transform:translateY(6px);} }
+  .bh-lede{
+    margin:clamp(14px, 2.2vh, 24px) auto 0;
+    display:flex; justify-content:center; align-items:center; gap:14px 28px; flex-wrap:wrap;
+  }
   .bh-sub{
-    margin:1.4em 0 0; max-width:30ch;
-    font-weight:300; font-size:clamp(1rem, 1.25vw, 1.2rem); line-height:1.5; color:var(--mute);
+    margin:0; max-width:none; text-wrap:balance;
+    font-weight:300; font-size:clamp(.98rem, 1.15vw, 1.12rem); line-height:1.45; color:var(--mute);
   }
-  .bh-cta{
-    display:inline-flex; align-items:center; gap:.7em;
-    margin-top:2.2em; padding:.95em 1.5em;
-    background:var(--ink); color:#fff; text-decoration:none;
-    font-size:.95rem; font-weight:600; border-radius:999px;
-    transition:transform .25s cubic-bezier(.22,.61,.36,1);
-  }
-  .bh-cta:hover{transform:translateY(-2px);}
-  .bh-cta .dot{width:8px; height:8px; border-radius:50%; background:var(--accent);}
-  .bh-foot{
-    display:flex; gap:28px; flex-wrap:wrap;
-    font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);
-    line-height:1.4;
-  }
-  .bh-foot b{color:var(--ink); font-weight:500;}
+  .bh-sub > span{display:block;}         /* one sentence per line */
+  .bh-sub .nw{white-space:nowrap;}
+  .bh-stats{display:flex; gap:10px 28px; flex-wrap:wrap;}
+  .bh-base{align-self:end;}
+  .bh-base, .bh-bar, .bh-head, .bh-bar-r{transition:opacity .5s ease;}
+  /* a close-up has the whole hero: the headline, the stats and the base row step back */
+  .bh.focused .bh-base,
+  .bh.focused .bh-head,
+  .bh.focused .bh-bar-r{opacity:0;}
+  .bh.focused .bh-head *{pointer-events:none;}
 
   /* --- the stage ------------------------------------------------ */
-  .bh-stage{position:relative; cursor:grab; touch-action:pan-y;}
+  .bh-stage{position:absolute; inset:0; z-index:0; touch-action:pan-y;}
+  .bh.on-stand .bh-stage{cursor:grab;}
   .bh-stage.dragging{cursor:grabbing;}
   .bh-stage canvas{position:absolute; top:0; left:0; width:100%; height:100%; display:block; outline:none;}  /* width and left set by booth.js */
   .bh-poster{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:contain;
+    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;   /* the stand alone, shot at the hero's full size */
     transition:opacity .6s ease;
   }
   .bh.gl-ready .bh-poster{opacity:0; pointer-events:none;}
+  /* loading: a label and a thin line, only if the model is still coming
+     once the copy is in */
+  .bh-load{
+    position:absolute; left:50%; top:58%; z-index:2; transform:translate(-50%, -50%);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+    padding:14px 20px 16px; border-radius:14px;
+    background:rgba(250,250,248,.9); border:1px solid var(--rule); box-shadow:0 10px 30px rgba(10,10,11,.08);
+    opacity:0; pointer-events:none; transition:opacity .5s ease;
+  }
+  .bh.loading .bh-load{opacity:1; transition-delay:.25s;}
+  .bh-load span{font-family:var(--mono); font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:var(--mute);}
+  .bh-load i{position:relative; display:block; width:180px; height:2px; background:var(--rule); overflow:hidden; border-radius:2px;}
+  .bh-load i::after{
+    content:""; position:absolute; left:0; top:0; bottom:0; width:30%;
+    background:var(--a-dark); border-radius:2px;
+    animation:bh-load-run 1.3s cubic-bezier(.45,0,.25,1) infinite;
+  }
+  .bh.load-known .bh-load i::after{width:calc(var(--load, 0) * 100%); animation:none; transition:width .25s ease;}
+  @keyframes bh-load-run{ 0%{transform:translateX(-100%);} 100%{transform:translateX(340%);} }
+  @media (prefers-reduced-motion: reduce){
+    .bh-load i::after{animation:none; width:100%; opacity:.5;}
+  }
 
-  /* the plaque on the turntable's edge — HTML, so it stays legible */
-  .bh-plaque{
-    position:absolute; right:0; bottom:var(--edge);          /* the stats' line, right margin */
-    font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase;
-    line-height:1.4; color:var(--mute); white-space:nowrap; text-align:right;
-    transition:opacity .5s ease;
-  }
-  .bh-plaque b{color:var(--ink); font-weight:500;}
-  .bh.focused .bh-plaque{opacity:0;}
-  .bh-hint{
-    position:absolute; right:0; top:var(--edge);             /* the rail's first line, right margin */
-    font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);
-    line-height:1.8;
-    transition:opacity .5s ease;
-  }
-  .bh.touched .bh-hint{opacity:0;}
-  /* the close-up of a carton: one quiet line where the hint was */
+  /* The stand rests in greyscale, so the page's own ink and accent lead and
+     Evolab's colours read as the subject of the work, not the page's
+     brand. It takes its colour when pointed at, turned or opened. */
+  .bh-stage canvas,
+  .bh-poster{filter:grayscale(1); transition:filter .7s ease;}
+  /* the entrance ends with the stand: the canvas stays clear until the
+     headline has run (booth.js waits for it) and fades in as it turns.
+     The poster is only the fallback when WebGL cannot run. */
+  .bh-stage canvas{opacity:0; transition:filter .7s ease, opacity 1.6s ease;}
+  .bh.gl-ready .bh-stage canvas{opacity:1;}
+  .bh[data-layout="center"] .bh-poster{opacity:0;}
+  .bh[data-layout="center"].no-gl .bh-poster{opacity:1;}
+  .bh.intro .bh-load{opacity:0; transition:none;}
+  .bh.lit .bh-stage canvas,
+  .bh.focused .bh-stage canvas,
+  .bh-stage.dragging canvas{filter:none;}
+
+  .bh-hint{transition:opacity .5s ease;}
+  .bh.touched .bh-hint,
+  .bh.focused .bh-hint{opacity:0;}
+  /* the close-up of a part: one quiet line at the top right */
   .bh-back{
-    position:absolute; right:0; top:var(--edge);
+    position:absolute; right:var(--pad); top:var(--edge);
     font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--mute);
     line-height:1.8; opacity:0; pointer-events:none;
     transition:opacity .5s ease;
   }
   .bh.focused .bh-back{opacity:1; transition-delay:.6s;}
+  /* a close-up's few words: what the viewer is looking at */
+  .bh-caption{
+    position:absolute; left:var(--pad); bottom:var(--edge); z-index:3; max-width:min(36ch, calc(100% - 2 * var(--pad)));
+    padding:14px 18px 15px; border-radius:14px;
+    background:rgba(250,250,248,.82); -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+    border:1px solid var(--rule); box-shadow:0 10px 30px rgba(10,10,11,.08);
+    opacity:0; transform:translateY(8px); pointer-events:none;
+    transition:opacity .45s ease, transform .45s ease;
+  }
+  .bh.focused .bh-caption{opacity:1; transform:none; transition-delay:.8s;}
+  .bh-caption-k{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--mono); font-size:.64rem; letter-spacing:.16em; text-transform:uppercase; color:var(--a-dark);
+  }
+  .bh-caption-k::before{content:""; width:7px; height:7px; border-radius:50%; background:var(--accent);}
+  .bh-caption-v{margin:.45em 0 0; font-size:.9rem; line-height:1.45; color:var(--ink);}
   /* the desk close-up: step from one flyer to the next */
   .bh-arrows{
     position:absolute; left:50%; bottom:var(--edge); z-index:3; transform:translate(-50%, 8px);
@@ -222,10 +294,10 @@
     min-width:9em; text-align:center;
     font-family:var(--mono); font-size:.7rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink);
   }
-  /* in the close-up the blurred stand fills the hero; a light veil keeps the copy legible */
+  /* in the close-up the blurred stand fills the hero; a light veil at the top keeps the bar legible */
   .bh::before{
     content:""; position:absolute; inset:0; z-index:1; pointer-events:none;
-    background:linear-gradient(90deg, rgba(242,241,238,.72) 0%, rgba(242,241,238,.5) 38%, rgba(242,241,238,0) 58%);
+    background:linear-gradient(180deg, rgba(242,241,238,.7) 0%, rgba(242,241,238,0) 14%);
     opacity:0; transition:opacity .8s ease;
   }
   .bh.focused::before{opacity:1; transition-delay:.3s;}
@@ -292,47 +364,52 @@
   .bh-tag-v{margin:.35em 0 0; font-size:.86rem; line-height:1.4;}
   .bh-tag-go{display:block; margin-top:.5em; font-size:.74rem; font-weight:600;}
 
-  /* --- narrow / portrait: copy on top, the stage beneath it ----- */
+  /* --- narrow / portrait: the page scrolls; the stand gets a band of its
+     own between the lede and the base row ---------------------------- */
   @media (max-width: 860px), (max-aspect-ratio: 4/5){
-    .bh{grid-template-columns:1fr; grid-template-rows:auto 1fr; height:auto; min-height:100svh; padding-inline:0;}
-    .bh::before{display:none;}
-    .bh-copy{padding:var(--edge); padding-bottom:0; grid-template-rows:auto auto auto; gap:28px;}
-    .bh-h{font-size:clamp(2.2rem, 11vw, 3.6rem);}
-    .bh-stage{min-height:min(62svh, 115vw);}
-    .bh-plaque{left:50%; right:auto; bottom:clamp(20px, 5vh, 48px); transform:translateX(-50%); text-align:center;
-      white-space:normal; width:calc(100% - 2*var(--edge)); line-height:1.7;}
-    .bh-hint, .bh-back{top:12px; right:var(--edge);}
+    .bh{padding:var(--edge) 20px; height:auto; min-height:100svh;}
+    .bh-bar-r, .bh-hint{display:none;}
+    .bh-bar{font-size:.62rem;}
+    .bh-role{display:block; margin-top:4px;}
+    .bh-base{margin-top:calc(44vw + 36px); flex-direction:column; align-items:flex-start; gap:8px;}
+    .bh.focused .bh-bar{opacity:0;}              /* "tap anywhere to go back" takes the top */
+    .bh-h{font-size:clamp(2rem, 9.5vw, 3.4rem);}
+    .bh-h > span{display:block;}
+    .bh-sub{font-size:.95rem;}
+    .bh-sub > span{display:inline;}
+    .bh-back{right:20px;}
+    .bh-caption{left:20px; right:20px; max-width:none; padding:11px 14px 12px;}
+    .bh-caption-v{font-size:.84rem;}
+    .bh.flyers .bh-caption{bottom:calc(var(--edge) + 60px);}
   }
   @media (prefers-reduced-motion: reduce){
-    .bh-cta, .bh-poster, .bh-tag, .bh-back, .bh::before, .bh-arrows{transition:none;}
+    .bh-poster, .bh-tag, .bh-back, .bh::before, .bh-arrows, .bh-stage canvas, .bh-caption{transition:none;}
   }
 
   /* --- Arabic ----------------------------------------------------
-     Right to left the hero mirrors: the grid runs from the right, so the
-     copy takes the right-hand column and the stand the left, and booth.js
-     anchors the stand by its right side to match (it reads the direction).
-     Everything pinned to a side of the stage swaps sides with it. The
-     flyer arrows stay left-to-right: they step along the desk as it
-     physically stands. The small labels take the Arabic floor (see
-     site.css): there is no uppercase or tracking to carry them. */
-  [dir="rtl"] .bh::before{background:linear-gradient(270deg, rgba(242,241,238,.72) 0%, rgba(242,241,238,.5) 38%, rgba(242,241,238,0) 58%);}
-  [dir="rtl"] .bh-plaque{right:auto; left:0; text-align:left;}
-  [dir="rtl"] .bh-hint,
-  [dir="rtl"] .bh-back{right:auto; left:0;}
+     The layout is centred, so it mirrors by itself: the bar and the base
+     row run from the right. What is pinned to a side swaps sides, the
+     flyer arrows keep their physical order along the desk, and the small
+     labels take the Arabic floor (see site.css) - there is no uppercase
+     or tracking to carry them. */
+  [dir="rtl"] .bh-back{right:auto; left:var(--pad);}
+  [dir="rtl"] .bh-caption{left:auto; right:var(--pad);}
   [dir="rtl"] .bh-arrows{direction:ltr;}
-  @media (max-width: 860px), (max-aspect-ratio: 4/5){
-    [dir="rtl"] .bh-plaque{left:50%; text-align:center;}
-    [dir="rtl"] .bh-hint,
-    [dir="rtl"] .bh-back{left:var(--edge);}
-  }
-  [dir="rtl"] .bh-h{line-height:1.25;}
-  [lang="ar"] .bh-rail,
-  [lang="ar"] .bh-foot,
-  [lang="ar"] .bh-plaque,
-  [lang="ar"] .bh-hint,
+  [dir="rtl"] .bh-h{line-height:1.3;}
+  [lang="ar"] .bh-h{font-weight:300;}
+  [lang="ar"] .bh-h b{font-weight:700;}
+  [lang="ar"] .bh-bar,
+  [lang="ar"] .bh-base,
   [lang="ar"] .bh-back,
+  [lang="ar"] .bh-load span,
+  [lang="ar"] .bh-caption-k,
   [lang="ar"] .bh-tag-k,
   [lang="ar"] .bh-arrows-name{font-size:var(--ar-label);}
+  @media (max-width: 860px), (max-aspect-ratio: 4/5){
+    [dir="rtl"] .bh-back{left:20px;}
+    [dir="rtl"] .bh-caption{left:20px; right:20px;}
+    [dir="rtl"] .bh-base{align-items:flex-start;}
+  }
 
   /* ============================================================
      CLIENT STRIP
@@ -507,23 +584,24 @@
   </div>
 </nav>
 
-<header class="hero bh" id="hero">
-  <div class="bh-copy">
-    <div class="bh-rail" data-ed="index.t95">Djarri Design Studio<br>عبد الجليل جرّي · مدير إبداعي</div>
+<header class="hero bh" id="hero" data-layout="center">
+  <div class="bh-bar">
+    <span data-ed="index.t101"><b class="bh-name">Djarri Design Studio</b><span class="bh-role">عبد الجليل جرّي، مدير إبداعي</span></span>
+    <span class="bh-stats bh-bar-r" data-ed="index.t99"><span><b dir="ltr">9+</b> سنوات</span> <span><b dir="ltr">100+</b> منتج على الرفوف</span> <span><b dir="ltr">30+</b> هوية</span></span>
+  </div>
 
-    <div class="bh-main">
-      <h1 class="bh-h gt gt-zone" data-ed="index.t96"><span>هوية،</span><span>تغليف،</span><span>حملات.</span></h1>
-      <p class="bh-sub" data-ed="index.t97">أنظمة علامات لشركات الأدوية وشبه الصيدلانيات — على العلبة، وعلى الشاشة، وفي أجنحة المعارض.</p>
-      <a class="bh-cta" href="#work" data-go-work><span class="dot" aria-hidden="true"></span><span data-ed="index.t98">شاهد دراسات الحالة</span> <span aria-hidden="true">&#8595;</span></a>
+  <div class="bh-head">
+    <h1 class="bh-h" data-ed="index.t102"><span>من <b>الهوية</b></span> <span>إلى <b>التغليف</b></span> <span>إلى <b>الحملات.</b></span></h1>
+    <div class="bh-lede">
+      <p class="bh-sub" data-ed="index.t103"><span>لعلامات الرعاية الصحية: العلبة الأولى تضبط النبرة، و<span class="nw">الحادية والثلاثون</span> تفي بالوعد.</span> <span>وكذلك كل فيلم ومطوية وجناح من حولها.</span></p>
     </div>
-
-    <div class="bh-foot" data-ed="index.t99"><span><b dir="ltr">9+</b> سنوات</span> <span><b dir="ltr">100+</b> منتج على الرفوف</span> <span><b dir="ltr">30+</b> هوية</span></div>
   </div>
 
   <div class="bh-stage" id="stage" aria-label="جناح مختبرات Evolab في المعرض — نموذج ثلاثي الأبعاد تفاعلي. اسحب للتدوير.">
-    <img class="bh-poster" src="../assets/booth/evolab-booth-poster.webp" alt="جناح مختبرات Evolab في المعرض، نموذج ثلاثي الأبعاد" width="1600" height="1200" fetchpriority="high" decoding="async">
-    <span class="bh-hint" aria-hidden="true">اسحب للتدوير &#8596;</span>
+    <img class="bh-poster" src="../assets/booth/evolab-booth-poster.webp" alt="جناح مختبرات Evolab في المعرض، نموذج ثلاثي الأبعاد" width="2000" height="1200" data-box="222.3,430.1,1777.7,1055.2" fetchpriority="high" decoding="async">
+    <div class="bh-load" aria-hidden="true"><span>جارٍ تحميل الجناح</span><i></i></div>
     <span class="bh-back" aria-hidden="true">انقر في أيّ مكان للعودة</span>
+    <div class="bh-caption" aria-live="polite"><span class="bh-caption-k"></span><p class="bh-caption-v"></p></div>
     <div class="bh-arrows" aria-label="المطويات">
       <button class="bh-arrow" type="button" data-step="-1" aria-label="المطوية السابقة">&larr;</button>
       <span class="bh-arrows-name" aria-live="polite"></span>
@@ -534,9 +612,93 @@
       <p class="bh-tag-v" id="tagV"></p>
       <span class="bh-tag-go" id="tagGo">شاهد دراسات الحالة &#8595;</span>
     </div>
-    <div class="bh-plaque" data-ed="index.t100"><b>Evolab Laboratories</b> · جناح معرض · SIPHAL</div>
+  </div>
+
+  <div class="bh-base">
+    <span data-ed="index.t104">من أعمالنا — <b>Evolab Laboratories</b> · جناح SIPHAL · من التصميم ثلاثي الأبعاد إلى التركيب في الموقع</span>
+    <span class="bh-hint" aria-hidden="true">اسحب للتدوير &#8596;</span>
   </div>
 </header>
+<script>
+/* The poster is sized the way booth.js fits the model: its recorded stand
+   box (data-box, poster px) goes into the room between the headline block
+   and the base row, so the still and the model land on the same spot. */
+(function(){
+  var hero = document.getElementById('hero'), img = hero && hero.querySelector('.bh-poster');
+  if(!img || hero.dataset.layout !== 'center' || !img.dataset.box) return;
+  var B = img.dataset.box.split(',').map(Number), IW = img.width, IH = img.height;
+  var head = hero.querySelector('.bh-head'), base = hero.querySelector('.bh-base'), stage = document.getElementById('stage');
+  var narrow = matchMedia('(max-width: 860px), (max-aspect-ratio: 4/5)');
+  function place(){
+    var sw = stage.clientWidth, h = stage.clientHeight; if(!sw || !h) return;
+    var sr = stage.getBoundingClientRect();
+    var pad = narrow.matches ? 6 : (parseFloat(getComputedStyle(hero).paddingLeft) || 24);
+    var top = head.getBoundingClientRect().bottom - sr.top + h * .03, bottom = base.getBoundingClientRect().top - sr.top - h * .03;
+    var k = Math.min((sw - 2 * pad) / (B[2] - B[0]), (bottom - top) / (B[3] - B[1]));
+    var s = img.style;
+    s.inset = 'auto'; s.objectFit = 'fill';
+    s.width = IW * k + 'px'; s.height = IH * k + 'px';
+    s.left = sw / 2 - (B[0] + B[2]) / 2 * k + 'px';
+    s.top = (top + bottom) / 2 - (B[1] + B[3]) / 2 * k + 'px';
+  }
+  place();
+  addEventListener('resize', place);
+  if(document.fonts) document.fonts.ready.then(place);
+})();
+
+/* The headline: split into letters (words, in Arabic - a joined script
+   cannot be cut between letters), run the entrance through them, then
+   light those within --gt-r of the pointer. Boxes are measured once per
+   hover. The stand waits for the entrance: booth.js reads hero.introEnd. */
+(function(){
+  var h = document.querySelector('.bh-h');
+  if(!h) return;
+  var AR = document.documentElement.lang === 'ar';
+  var w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT, null), n, nodes = [];
+  while((n = w.nextNode())) nodes.push(n);
+  nodes.forEach(function(node){
+    var f = document.createDocumentFragment();
+    (AR ? node.nodeValue.split(/(\s+)/) : node.nodeValue.split('')).forEach(function(u){
+      if(!u) return;
+      if(/^\s+$/.test(u)){ f.appendChild(document.createTextNode(u)); return; }
+      var s = document.createElement('span'); s.className = 'ch'; s.textContent = u; f.appendChild(s);
+    });
+    node.parentNode.replaceChild(f, node);
+  });
+  [].forEach.call(h.querySelectorAll('.ch'), function(el, i){ el.style.setProperty('--i', AR ? i * 4 : i); });
+  var hero = h.closest('.bh');
+  var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  hero.classList.add('intro');
+  hero.introEnd = performance.now() + (still ? 0 : 3000);
+  setTimeout(function(){ hero.classList.remove('intro'); }, still ? 0 : 4100);   // done: the pointer's accent and the close-ups take over
+  if(!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  var cache = null, frame = null, last = null;
+  function measure(){
+    if(cache) return cache;
+    var r = parseFloat(getComputedStyle(h).getPropertyValue('--gt-r')) || 110;
+    cache = [].map.call(h.querySelectorAll('.ch'), function(el){
+      var b = el.getBoundingClientRect();
+      return {el:el, x:b.left + b.width/2, y:b.top + b.height/2, r2:r*r, lit:false};
+    });
+    return cache;
+  }
+  h.addEventListener('mouseenter', function(){ cache = null; });
+  h.addEventListener('mouseleave', function(){ measure().forEach(function(c){ c.lit = false; c.el.classList.remove('on'); }); cache = null; });
+  h.addEventListener('mousemove', function(e){
+    last = e;
+    if(frame !== null) return;
+    frame = requestAnimationFrame(function(){
+      frame = null;
+      measure().forEach(function(c){
+        var dx = last.clientX - c.x, dy = last.clientY - c.y, lit = dx*dx + dy*dy <= c.r2;
+        if(lit !== c.lit){ c.lit = lit; c.el.classList.toggle('on', lit); }
+      });
+    });
+  });
+  addEventListener('scroll', function(){ cache = null; }, {passive:true});
+  addEventListener('resize', function(){ cache = null; });
+})();
+</script>
 
 <section class="band band-bone" id="work">
   <div class="wrap">
@@ -1177,8 +1339,8 @@
 </script>
 
 <script src="../assets/content.js?v=35cd74ca"></script>
-<script src="../assets/site.js?v=83a854b1" defer></script>
+<script src="../assets/site.js?v=dd442321" defer></script>
 <script src="../assets/logo3d.js?v=2bf0c7a0" defer></script>
-<script type="module" src="../assets/booth/booth.js?v=e2d3afa9"></script>
+<script type="module" src="../assets/booth/booth.js?v=b2e18a99"></script>
 </body>
 </html>

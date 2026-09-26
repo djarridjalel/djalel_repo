@@ -1892,8 +1892,18 @@ html.has-dot, html.has-dot *{cursor:none !important;}
     0 0 30px 11px rgba(255,206,0,.14);
 }
 
+/* In the homepage hero, off the stand, the dot says the page goes on. */
+.dot b{
+  position:absolute; left:14px; top:-7px; white-space:nowrap;
+  font:500 .6rem/1 var(--mono); letter-spacing:.16em; text-transform:uppercase; color:var(--mute);
+  opacity:0; transform:translateX(-4px); transition:opacity .25s ease, transform .25s ease;
+}
+.dot.scroll b{opacity:1; transform:none;}
+[dir="rtl"] .dot b{left:auto; right:14px; transform:translateX(4px);}
+[dir="rtl"] .dot.scroll b{transform:none;}
+
 @media (prefers-reduced-motion:reduce){
-  .dot, .dot i{transition:none;}
+  .dot, .dot i, .dot b{transition:none;}
 }
 /* No cursor to replace on a touch device, and nothing to hide either. */
 @media not all and (hover:hover) and (pointer:fine){

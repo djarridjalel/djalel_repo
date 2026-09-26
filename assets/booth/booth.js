@@ -56,20 +56,33 @@ function init(){
     'The stand as part of the launch — carried from 3D renders to the on-site build.':
       'الجناح جزء من الإطلاق — من التصاميم ثلاثية الأبعاد إلى التركيب في الموقع.',
     'Evolab exhibition stand. Use the arrow keys to turn it.': 'جناح Evolab في المعرض. استخدم مفاتيح الأسهم لتدويره.',
-    'Tap anywhere to go back': 'المس أيّ مكان للعودة'
+    'Tap anywhere to go back': 'المس أيّ مكان للعودة',
+    'Packaging · Methylab': 'التغليف · Methylab',
+    'Methyldopa 250 mg. The range\u2019s carton system in Methylab\u2019s own colour, faced out on the shelving by the entrance.':
+      'ميثيل دوبا 250 ملغ. نظام علب المجموعة بلون Methylab الخاص، مصفوفًا على الرفوف عند المدخل.',
+    'The Xyline carton, doxycycline 100 mg. The chevron and the teal band carry the whole range; the front is set to read from across the aisle, the sides at arm\u2019s length on the shelf.':
+      'علبة Xyline، دوكسيسيكلين 100 ملغ. الشيفرون والشريط الفيروزي يحملان المجموعة كلّها؛ الواجهة تُقرأ من آخر الممرّ، والجوانب على مسافة ذراع من الرفّ.',
+    'Methylab, methyldopa 250 mg: the same carton system as Xyline, in its own red, faced out in rows by the entrance so the range reads as one family.':
+      'Methylab، ميثيل دوبا 250 ملغ: نظام العلب نفسه الذي لـXyline، بلونه الأحمر الخاص، مصفوفًا عند المدخل لتُقرأ المجموعة عائلةً واحدة.',
+    'Campaigns · Xyline roll-up': 'الحملات · لافتة Xyline',
+    'The launch roll-up: the carton, its chevron and the campaign\u2019s key visual carried to two metres of print, beside the Evolab one.':
+      'لافتة الإطلاق: العلبة وشيفرونها والصورة الرئيسية للحملة منقولةً إلى مترين من الطباعة، بجانب لافتة Evolab.',
+    'The launch film on the stand\u2019s screen, shot on Evolab\u2019s own production line: the brand shown where the product is made.':
+      'فيلم الإطلاق على شاشة الجناح، مصوَّر على خط إنتاج Evolab نفسه: العلامة معروضةً حيث يُصنع المنتج.'
   } : null;
+  /* the desk's captions are built per flyer, so they are built per language */
+  const AR_DCI = { Xyline:'دوكسيسيكلين 100 ملغ', Esoprotect:'إيزوميبرازول 40 ملغ و20 ملغ', Lansoprotect:'لانسوبرازول 30 ملغ',
+                   Evofenid:'كيتوبروفين 100 ملغ', Evomisil:'تيربينافين 250 ملغ', Omeprotect:'أوميبرازول 20 ملغ' };
   const tr = s => (AR && AR[s]) || s;
 
   /* ---- zones, in model units (metres), before centring --------------- */
   const ZONES = [
-    { id:'shelf',     k:'Packaging · Xyline', v:'Doxycycline 100 mg. One carton system for the Evolab range, built to read on the shelf and across the aisle.',
-      go:'Click to look closer',                              // the green shelving by the entrance; opens the niche's centre carton
+    { id:'shelf',     k:'Packaging · Methylab', v:'Methyldopa 250 mg. The range\u2019s carton system in Methylab\u2019s own colour, faced out on the shelving by the entrance.',
+      go:'Click to look closer',                              // the green shelving by the entrance; opens one of its Methylab cartons
       box:[[1.05, 0.0, -2.8], [1.6, 2.15, -1.7]] },
     { id:'film',      k:'Campaigns · Film', v:'Films and screen content for the launch, produced by the in-house film department.',
       go:'Click to look closer',
       box:[[10.85, 0.75, -5.2], [11.45, 2.4, -2.35]] },
-    { id:'identity',  k:'Identity',  v:'The arch carries the Evolab mark and the campaign line across the whole stand.',
-      box:[[1.35, 2.85, -5.75], [11.05, 4.5, -1.7]] },
     { id:'carton',    k:'Packaging · Xyline', v:'Doxycycline 100 mg. One carton system for the Evolab range, built to read on the shelf and across the aisle.',
       go:'Click to look closer', box:null },                  // the lit niche and its shelves; its box is found at load
     { id:'rollup',    k:'Campaigns · Xyline', v:'The Xyline launch roll-up: the carton\u2019s system carried to print at full height.',
@@ -113,7 +126,7 @@ function init(){
   let renderer;
   try{
     renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true, preserveDrawingBuffer:POSTER });
-  }catch(e){ return; }                                        // the poster image stays up
+  }catch(e){ hero.classList.add('no-gl'); return; }           // the poster image stays up
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, POSTER ? 2 : LITE ? 1.75 : 1.5));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
@@ -153,6 +166,42 @@ function init(){
 
   /* the cut that rises through the model while it builds */
   const clip = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  /* The corridor: in a close-up on the roll-up or the screen, a chair that
+     stands between the camera and the print is cut away, and only that: a
+     box from just in front of the print to the camera, as wide as the
+     print, above the floor. Only the chairs' shells take it (anything else
+     cut there, a table or a flyer, shows a raw edge); they clip by the
+     intersection of these planes and their own build plane (clipI), so
+     each must cut for a point to go. EVERY cuts everything, NONE nothing. */
+  const CORRIDOR_MATS = ['[Translucent Glass Gray]3'];
+  const clipI = new THREE.Plane(new THREE.Vector3(0, -1, 0), 0);
+  const EVERY = -1e6, NONE = 1e6;
+  const corr = [0, 1, 2, 3].map(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), EVERY));
+  /* everything else takes a second corridor, opened only for the screen:
+     on a phone its camera stands far back, behind a wall */
+  const corrAll = [0, 1, 2, 3].map(() => new THREE.Plane(new THREE.Vector3(0, 1, 0), EVERY));
+  let buildY = 0, built = false;
+  function endBuild(){                                        // the build plane stands aside for good
+    built = true;
+    clipI.set(new THREE.Vector3(0, 1, 0), EVERY);
+    corr[0].set(new THREE.Vector3(0, 1, 0), NONE);
+    corrAll[0].set(new THREE.Vector3(0, 1, 0), NONE);
+  }
+  const _C = new THREE.Vector3(), _N = new THREE.Vector3(), _R = new THREE.Vector3();
+  function corridor(t, on){
+    if (!built) return;
+    corrAll[0].set(THREE.Object3D.DEFAULT_UP, NONE);
+    if (!on || !t || !t.corridor){ corr[0].set(THREE.Object3D.DEFAULT_UP, NONE); return; }
+    t.box.getCenter(_C); table.localToWorld(_C);
+    _N.copy(t.n).applyQuaternion(table.quaternion).setY(0).normalize();
+    _R.crossVectors(THREE.Object3D.DEFAULT_UP, _N).normalize();
+    const w = t.W / 2 + 0.12, f = 0.06;
+    corr[0].set(_N.clone().negate(), _N.dot(_C) + f);                     // in front of the print
+    corr[1].set(_R.clone(), -_R.dot(_C) - w);                             // right of its left edge
+    corr[2].set(_R.clone().negate(), _R.dot(_C) - w);                     // left of its right edge
+    corr[3].set(new THREE.Vector3(0, -1, 0), 0.03);                       // above the floor
+    if (t.corridor === 'all') corr.forEach((pl, i) => corrAll[i].copy(pl));
+  }
 
   let model = null, size = new THREE.Vector3(), radius = 1, frameR = 1;
   const CARTON = ZONES.findIndex(z => z.id === 'carton'), ROLLUP = ZONES.findIndex(z => z.id === 'rollup'),
@@ -166,8 +215,21 @@ function init(){
 
   const loader = new GLTFLoader();
   loader.setMeshoptDecoder(MeshoptDecoder);
-  loader.load(new URL('evolab-booth.glb', import.meta.url).href, onLoad, undefined, () => {
+  /* loading: a thin line fills as the model arrives (a travelling pulse
+     when its size is not known), and the poster breathes behind it */
+  function progress(e){
+    if (!e || !e.lengthComputable || !e.total) return;
+    hero.classList.add('load-known');
+    hero.style.setProperty('--load', Math.min(1, e.loaded / e.total).toFixed(3));
+  }
+  hero.classList.add('loading');
+  /* the stand comes in last: after the headline has run (the page sets
+     hero.introEnd), whenever the model arrives before that */
+  const whenIntroDone = f => setTimeout(f, POSTER ? 0 : Math.max(0, (hero.introEnd || 0) - performance.now()));
+  loader.load(new URL('evolab-booth.glb', import.meta.url).href, gltf => whenIntroDone(() => onLoad(gltf)), progress, () => {
     canvas.remove();                                          // keep the poster
+    hero.classList.remove('loading');
+    hero.classList.add('no-gl');
   });
 
   function onLoad(gltf){
@@ -190,7 +252,9 @@ function init(){
       o.receiveShadow = true;
       const mats = Array.isArray(o.material) ? o.material : [o.material];
       mats.forEach(m => {
-        m.clippingPlanes = [clip]; m.clipShadows = true;
+        if (CORRIDOR_MATS.includes(m.name)){ m.clippingPlanes = [clipI, ...corr]; m.clipIntersection = true; }
+        else { m.clippingPlanes = [clipI, ...corrAll]; m.clipIntersection = true; }
+        m.clipShadows = true;
         const g = m.name === 'CeilingLight' ? 'ceilingGlow' : m.name === 'Material10' ? 'led'
                 : m.name === 'DeskCore' ? 'counter' : m.name === 'NicheLight' ? 'niche'
                 : m.name === 'ScreenLight' ? 'screen' : m.name === 'Untitled-1' ? 'banner'
@@ -260,9 +324,11 @@ function init(){
     frameR = Math.max(radius * 1.12, size.y * 1.1);
     buildBrackets();
     resize();
-    clip.constant = calm ? size.y + 1 : -0.01;
+    buildY = size.y + 1;                                      // no build: the canvas fades in as the stand turns
+    clip.constant = clipI.constant = buildY;
     buildStart = performance.now();
     hero.classList.add('gl-ready');
+    hero.classList.remove('loading');
     kick();
   }
 
@@ -316,7 +382,10 @@ function init(){
   const BACKDROP = new THREE.Color(0xD9D8D4), _cc = new THREE.Color();
   function draw(){
     renderer.setClearColor(BACKDROP, focus.c >= 0 ? easeIO(focus.t) : 0);
-    if (lens && focus.c >= 0 && focus.t > 0 && focus.target.blur > 0) lens.render(smooth(0.3, 1, focus.t) * focus.target.blur);
+    /* the lens eases off while the camera glides from one flyer to the next,
+       and settles again on arrival */
+    const glide = focus.sw < 1 ? 1 - 0.75 * Math.sin(Math.PI * focus.sw) : 1;
+    if (lens && focus.c >= 0 && focus.t > 0 && focus.target.blur > 0) lens.render(smooth(0.3, 1, focus.t) * focus.target.blur * glide);
     else if (composer && L.glow > 0) composer.render();
     else renderer.render(scene, camera);
   }
@@ -324,6 +393,12 @@ function init(){
     defaults: Object.assign({}, LIGHT_DEFAULTS),
     get: () => Object.assign({}, L),
     set(patch){ Object.assign(L, patch); applyLights(); kick(); },
+    /* the stand's box at rest, in canvas px: the poster records it, so the
+       page can size the still to the same box before the model arrives */
+    standBox(){
+      const r = extent(rest.w, rest.h);
+      return [r.minX, r.minY, r.maxX, r.maxY].map(v => Math.round(v * 10) / 10);
+    },
     /* debug: page position of the desk's front, at its flyers' height */
     desk(){
       const r = canvas.getBoundingClientRect(), v = new THREE.Vector3();
@@ -398,6 +473,11 @@ function init(){
   const MIRROR = getComputedStyle(hero).direction === 'rtl';
   const edge = (bleed, sw) => MIRROR ? bleed + sw * 1.07 : bleed - sw * 0.07;
   const GROW = 1.2;                                           // side by side, vs. fitting the column
+  /* Centred layout (data-layout="center"): the stage is the whole hero; the
+     stand is fitted into the space between the headline block and the base
+     row, and centred in it, so it leads and the type frames it. */
+  const CENTER = hero.dataset.layout === 'center';
+  const headEl = hero.querySelector('.bh-head'), baseEl = hero.querySelector('.bh-base');
   let canvasOffset = 0;                                       // canvas left minus stage left, px
   function place(d, look){
     camera.position.set(0, EYE, d);
@@ -410,8 +490,9 @@ function init(){
     const sw = stage.clientWidth, h = stage.clientHeight;
     if (!sw || !h) return;
     const sl = stage.getBoundingClientRect().left;
-    const bleed = stacked.matches ? 0 : Math.max(0, sl - hero.getBoundingClientRect().left);  // the whole hero, so the close-up fills it
-    const w = stacked.matches ? sw : Math.max(sw, Math.round(innerWidth - sl + bleed));
+    const single = stacked.matches || CENTER;                  // the canvas is the stage itself
+    const bleed = single ? 0 : Math.max(0, sl - hero.getBoundingClientRect().left);  // the whole hero, so the close-up fills it
+    const w = single ? sw : Math.max(sw, Math.round(innerWidth - sl + bleed));
     canvasOffset = -bleed;
     canvas.style.width = w + 'px';
     canvas.style.left = canvasOffset + 'px';
@@ -419,14 +500,28 @@ function init(){
     if (composer){ composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w, h); }
     camera.aspect = w / h;
     const vfov = THREE.MathUtils.degToRad(camera.fov);
-    const refAspect = stacked.matches ? camera.aspect : Math.round(innerWidth * 7 / 12) / h;
+    const refAspect = single ? camera.aspect : Math.round(innerWidth * 7 / 12) / h;
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * refAspect);
     const look = new THREE.Vector3(0, size.y * 0.42, 0);
     const fitW = frameR / Math.tan(hfov / 2);
     const fitH = (size.y * 0.62) / Math.tan(vfov / 2);
     let d = Math.max(fitW, fitH) * (refAspect < 1 ? 1.08 : 1.0) + radius * 0.1;
     place(d, look);
-    if (model && !stacked.matches){
+    let fit = null;
+    if (model && CENTER){
+      const sr = stage.getBoundingClientRect();
+      const pad = parseFloat(getComputedStyle(hero).paddingLeft) || 24;
+      const top = (headEl ? headEl.getBoundingClientRect().bottom - sr.top : h * .3) + h * .03;
+      const bottom = (baseEl ? baseEl.getBoundingClientRect().top - sr.top : h * .9) - h * .03;
+      fit = stacked.matches ? { left:6, right:sw - 6, top, bottom }             // narrow: edge to edge
+                            : { left:pad, right:sw - pad, top, bottom };
+      for (let n = 0; n < 3; n++){                             // perspective: settle in a few passes
+        const r = extent(w, h);
+        const k = Math.min((fit.right - fit.left) / (r.maxX - r.minX), (fit.bottom - fit.top) / (r.maxY - r.minY));
+        d /= k;
+        place(d, look);
+      }
+    } else if (model && !stacked.matches){
       /* grow, but keep the right side a gutter inside the window */
       const r = extent(w, h);
       const anchor = edge(bleed, sw);
@@ -438,7 +533,11 @@ function init(){
     rest.pos.copy(camera.position); rest.look.copy(look);
     rest.w = w; rest.h = h; rest.ox = rest.oy = 0;
     rest.cx = w / 2 - (bleed + sw / 2);                       // centres the stage's middle
-    compose(w, h, edge(bleed, sw));                           // into the gap before the copy
+    if (fit){
+      const r = extent(w, h);
+      rest.ox = (r.minX + r.maxX) / 2 - (fit.left + fit.right) / 2;
+      rest.oy = (r.minY + r.maxY) / 2 - (fit.top + fit.bottom) / 2;
+    } else compose(w, h, edge(bleed, sw));                    // into the gap before the copy
     applyCamera();
     kick();
   }
@@ -446,13 +545,13 @@ function init(){
   /* the stand's box at rest, projected: canvas px */
   function extent(w, h){
     const c = new THREE.Vector3(), rot = new THREE.Matrix4().makeRotationY(REST);
-    let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
     for (const x of [-size.x/2, size.x/2]) for (const y of [0, size.y]) for (const z of [-size.z/2, size.z/2]){
       c.set(x, y, z).applyMatrix4(rot).project(camera);
       const px = (c.x + 1) / 2 * w, py = (1 - c.y) / 2 * h;
-      minX = Math.min(minX, px); maxX = Math.max(maxX, px); maxY = Math.max(maxY, py);
+      minX = Math.min(minX, px); maxX = Math.max(maxX, px); minY = Math.min(minY, py); maxY = Math.max(maxY, py);
     }
-    return { minX, maxX, maxY };
+    return { minX, maxX, minY, maxY };
   }
 
   /* Composition, side by side: the stand's floor sits on the line where the
@@ -485,8 +584,25 @@ function init(){
   const GIVE = 5 * Math.PI / 180;
   const clampYaw = v => Math.min(MAX + GIVE, Math.max(MIN - GIVE, v));
 
+  /* the stand's own area on screen: its box, as it stands now, projected.
+     Drags start only there (and on the hotspots); the rest of the hero
+     belongs to the page. */
+  const _q = new THREE.Vector3();
+  function overStand(x, y){
+    if (!model) return false;
+    const r = canvas.getBoundingClientRect();
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const cx of [whole.min.x, whole.max.x]) for (const cy of [whole.min.y, whole.max.y]) for (const cz of [whole.min.z, whole.max.z]){
+      _q.set(cx, cy, cz); table.localToWorld(_q).project(camera);
+      const sx = r.left + (_q.x + 1) / 2 * r.width, sy = r.top + (1 - _q.y) / 2 * r.height;
+      x0 = Math.min(x0, sx); x1 = Math.max(x1, sx); y0 = Math.min(y0, sy); y1 = Math.max(y1, sy);
+    }
+    return x >= x0 && x <= x1 && y >= y0 && y <= y1;
+  }
   stage.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
+    const onSpot = e.target.closest && e.target.closest('.bh-spot');
+    if (!focus.on && !onSpot && !overStand(e.clientX, e.clientY)) return;   // not on the stand: leave it to the page
     /* capture, so the release is heard even outside the stage or the frame */
     try { stage.setPointerCapture(e.pointerId); } catch (err) {}
     dragging = true; moved = 0;
@@ -499,6 +615,7 @@ function init(){
     kick();
   });
   addEventListener('pointermove', e => {
+    if (!dragging && model) hero.classList.toggle('on-stand', overStand(e.clientX, e.clientY));
     if (dragging){
       const dx = e.clientX - lastX;
       lastX = e.clientX;
@@ -506,8 +623,9 @@ function init(){
       if (focus.on){
         if (e.pointerType === 'touch'){                         // on touch, a drag orbits
           const dy = e.clientY - lastY; lastY = e.clientY;
-          focus.tyaw = THREE.MathUtils.clamp(focus.tyaw - dx * 0.004, -ORBIT_YAW, ORBIT_YAW);
-          focus.tpitch = THREE.MathUtils.clamp(focus.tpitch + dy * 0.004, -ORBIT_PITCH, ORBIT_PITCH);
+          const oy = focus.target.orbitYaw ?? ORBIT_YAW, op = focus.target.orbitPitch ?? ORBIT_PITCH;
+          focus.tyaw = THREE.MathUtils.clamp(focus.tyaw - dx * 0.004, -oy, oy);
+          focus.tpitch = THREE.MathUtils.clamp(focus.tpitch + dy * 0.004, -op, op);
           kick(); return;
         }
       } else {
@@ -523,8 +641,8 @@ function init(){
     if (focus.on && e.pointerType !== 'touch'){
       const r = hero.getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width * 2 - 1, ny = (e.clientY - r.top) / r.height * 2 - 1;
-      focus.tyaw = THREE.MathUtils.clamp(nx, -1, 1) * ORBIT_YAW;
-      focus.tpitch = -THREE.MathUtils.clamp(ny, -1, 1) * ORBIT_PITCH;
+      focus.tyaw = THREE.MathUtils.clamp(nx, -1, 1) * (focus.target.orbitYaw ?? ORBIT_YAW);
+      focus.tpitch = -THREE.MathUtils.clamp(ny, -1, 1) * (focus.target.orbitPitch ?? ORBIT_PITCH);
       kick();
     }
     pointer(e);
@@ -596,47 +714,57 @@ function init(){
     n:new THREE.Vector3(0, 0, 1),                             // it faces into the stand
     W:0.165, H:0.087,
     fillH:0.34, fillW:0.46, tilt:0.06, orbit:true, spread:true,
-    blur:1                                                    // lens strength, 0–1
+    blur:1,                                                   // lens strength, 0–1
+    cap:{ k:'Packaging · Xyline', v:'The Xyline carton, doxycycline 100 mg. The chevron and the teal band carry the whole range; the front is set to read from across the aisle, the sides at arm\u2019s length on the shelf.' }
   };
   /* the green shelving's own close-up carton: the second from the front on
      its second shelf from the top (3DGeom-263), laid on top of its row */
   const SHELF_BOX = Object.assign({}, FOCUS, {
     box:new THREE.Box3(new THREE.Vector3(1.2533, 0.9068, -2.2592), new THREE.Vector3(1.3122, 0.9962, -2.0918)),
-    n:new THREE.Vector3(1, 0, 0)                              // it faces into the stand, across it
+    n:new THREE.Vector3(1, 0, 0),                             // it faces into the stand, across it
+    cap:{ k:'Packaging · Methylab', v:'Methylab, methyldopa 250 mg: the same carton system as Xyline, in its own red, faced out in rows by the entrance so the range reads as one family.' }
   });
   /* the Xyline roll-up: seen straight on, near full height, no orbit; its
      own mesh is the lens mask. Box, normal and size are read at load. */
   const BANNER = {
     box:new THREE.Box3(), n:new THREE.Vector3(), W:1, H:1, mesh:null,
-    fillH:0.8, fillW:0.8, tilt:0, orbit:false, spread:false, blur:1 / 3,
-    clear:0.45                                                // metres kept in front of it; nearer things (a chair) are cut away
+    fillH:0.8, fillW:0.8, tilt:0, orbit:true, spread:false, blur:1 / 3,   // follows the pointer, like the carton
+    orbitYaw:5 * Math.PI / 180, orbitPitch:5 * Math.PI / 180,            // 5° at most, in every direction
+    cap:{ k:'Campaigns · Xyline roll-up', v:'The launch roll-up: the carton, its chevron and the campaign\u2019s key visual carried to two metres of print, beside the Evolab one.' },
+    corridor:'chairs'                                         // the chair in front of it is cut away, nothing else
   };
   /* the screen: straight on, filling most of the stage's width */
   const SCREEN = {
     box:new THREE.Box3(), n:new THREE.Vector3(), W:1, H:1, mesh:null,
     fillH:0.62, fillW:0.72, tilt:0, orbit:false, spread:false,
-    blur:1 / 3
+    cap:{ k:'Campaigns · Film', v:'The launch film on the stand\u2019s screen, shot on Evolab\u2019s own production line: the brand shown where the product is made.' },
+    blur:1 / 3,
+    corridor:'all'                                            // on a phone the camera stands far back; nothing may block the screen
   };
   /* the six flyers on the reception desk, left to right, from the build
      (flyers.json): each stands half open; the close-up faces its cover.
      Model units, before centring. */
-  const DESK_FLYERS = [{"set":"Esoprotect","fold":[4.9293,-1.2571],"y":[0.93,1.14],"panels":[{"c":[5.0032,1.035,-1.2373],"n":[-0.2588,0.9659],"w":0.1531,"h":0.21,"cover":true},{"c":[4.9961,1.035,-1.2827],"n":[-0.3576,-0.9339],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Xyline","fold":[5.0986,-1.3799],"y":[0.93,1.14],"panels":[{"c":[5.1726,1.035,-1.3997],"n":[0.2588,0.9659],"w":0.1531,"h":0.21,"cover":true},{"c":[5.1437,1.035,-1.4354],"n":[-0.7766,-0.63],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Lansoprotect","fold":[5.3211,-1.4715],"y":[0.93,1.14],"panels":[{"c":[5.3594,1.035,-1.4053],"n":[-0.866,0.5],"w":0.1531,"h":0.21,"cover":true},{"c":[5.3864,1.035,-1.4424],"n":[0.4075,-0.9132],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Evofenid","fold":[6.3799,-1.4715],"y":[0.93,1.14],"panels":[{"c":[6.4182,1.035,-1.5378],"n":[0.866,0.5],"w":0.1531,"h":0.21,"cover":true},{"c":[6.3725,1.035,-1.5427],"n":[-0.9946,0.1037],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Evomisil","fold":[6.6024,-1.3799],"y":[0.93,1.14],"panels":[{"c":[6.6763,1.035,-1.3601],"n":[-0.2588,0.9659],"w":0.1531,"h":0.21,"cover":true},{"c":[6.6692,1.035,-1.4054],"n":[-0.3576,-0.9339],"w":0.1431,"h":0.21,"cover":false}]},{"set":"One","fold":[6.7717,-1.2571],"y":[0.93,1.14],"panels":[{"c":[6.8456,1.035,-1.2769],"n":[0.2588,0.9659],"w":0.1531,"h":0.21,"cover":true},{"c":[6.8168,1.035,-1.3127],"n":[-0.7766,-0.63],"w":0.1431,"h":0.21,"cover":false}]}];
+  const DESK_FLYERS = [{"set":"Esoprotect","fold":[4.9522,-1.3121],"face":[-0.2588,0.9659],"y":[0.93,1.14],"panels":[{"c":[4.9846,1.035,-1.2427],"n":[-0.9063,0.4226],"w":0.1531,"h":0.21,"cover":true},{"c":[5.0148,1.035,-1.2773],"n":[0.4856,-0.8742],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Xyline","fold":[5.091,-1.4389],"face":[0.2588,0.9659],"y":[0.93,1.14],"panels":[{"c":[5.1537,1.035,-1.395],"n":[-0.5736,0.8192],"w":0.1531,"h":0.21,"cover":true},{"c":[5.1625,1.035,-1.4401],"n":[-0.0166,-0.9999],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Lansoprotect","fold":[5.3762,-1.4942],"face":[-0.866,0.5],"y":[0.93,1.14],"panels":[{"c":[5.35,1.035,-1.4223],"n":[-0.9397,-0.342],"w":0.1531,"h":0.21,"cover":true},{"c":[5.3958,1.035,-1.4254],"n":[0.9615,-0.2748],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Evofenid","fold":[6.3327,-1.5079],"face":[0.866,0.5],"y":[0.93,1.14],"panels":[{"c":[6.4081,1.035,-1.5212],"n":[0.1736,0.9848],"w":0.1531,"h":0.21,"cover":true},{"c":[6.3825,1.035,-1.5593],"n":[-0.7187,-0.6953],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Evomisil","fold":[6.6253,-1.4348],"face":[-0.2588,0.9659],"y":[0.93,1.14],"panels":[{"c":[6.6576,1.035,-1.3654],"n":[-0.9063,0.4226],"w":0.1531,"h":0.21,"cover":true},{"c":[6.6878,1.035,-1.4001],"n":[0.4856,-0.8742],"w":0.1431,"h":0.21,"cover":false}]},{"set":"Omeprotect","fold":[6.7641,-1.3162],"face":[0.2588,0.9659],"y":[0.93,1.14],"panels":[{"c":[6.8268,1.035,-1.2723],"n":[-0.5736,0.8192],"w":0.1531,"h":0.21,"cover":true},{"c":[6.8356,1.035,-1.3173],"n":[-0.0166,-0.9999],"w":0.1431,"h":0.21,"cover":false}]}];
   const flyers = [];
+  const FLYER_DCI = { Xyline:'doxycycline 100 mg', Esoprotect:'esomeprazole 40 mg and 20 mg', Lansoprotect:'lansoprazole 30 mg',
+                      Evofenid:'ketoprofen 100 mg', Evomisil:'terbinafine 250 mg', Omeprotect:'omeprazole 20 mg' };
   /* the desk: its frosted top and body, with the flyers on it */
   const desk = new THREE.Box3(new THREE.Vector3(4.78, 0.1, -1.72), new THREE.Vector3(6.98, 1.16, -1.1));
   const niche = new THREE.Box3();
   /* in the close-up the cartons part along their shelves, so each stands
      clear of its neighbours: the build stores each carton's step in _SPREAD */
   const SPREAD_STEP = 0.06;                                   // metres between neighbours, fully open
-  const spread = { value:0 };
-  let spreadUnit = 0;                                         // one metre in the carton mesh's own units
+  /* one uniform per carton mesh (Xyline, Methylab): each is quantised on
+     its own scale, so a metre is a different number in each */
+  const spreads = [];                                         // { u:{ value }, unit }
   function buildNiche(){
     model.traverse(o => {
       const m = o.isMesh && (Array.isArray(o.material) ? o.material[0] : o.material);
-      if (!m || m.name !== 'XylineBox' || !o.geometry.attributes._spread) return;
-      spreadUnit = 1 / new THREE.Vector3().setFromMatrixScale(o.matrixWorld).x;
+      if (!m || !['XylineBox', 'MethylabBox'].includes(m.name) || !o.geometry.attributes._spread) return;
+      const sp = { u:{ value:0 }, unit:1 / new THREE.Vector3().setFromMatrixScale(o.matrixWorld).x };
+      spreads.push(sp);
       m.onBeforeCompile = sh => {
-        sh.uniforms.uSpread = spread;
+        sh.uniforms.uSpread = sp.u;
         sh.vertexShader = sh.vertexShader
           .replace('#include <common>', 'attribute vec2 _spread;\nuniform float uSpread;\n#include <common>')
           .replace('#include <begin_vertex>', '#include <begin_vertex>\ntransformed.xz += _spread * uSpread;');
@@ -655,6 +783,21 @@ function init(){
 
     /* the desk flyers as close-up targets; each carries a two-panel mesh
        of its own, never drawn, that masks it in the lens */
+    /* how far in front of a flyer's middle the near plane stands: past its
+       own front, and never through a neighbour, which would leave a sliver
+       with a raw edge; a neighbour is cut away whole or not at all. Depths
+       are along the view, with room for the slight look from above. */
+    const flyerFeet = g => g.panels.flatMap(p => [-1, 1].map(sx =>
+      [p.c[0] + p.n[1] * sx * p.w / 2, p.c[2] - p.n[0] * sx * p.w / 2]));
+    function flyerClear(f, at, view){
+      const d = q => (q[0] - at.x) * view.x + (q[1] - at.z) * view.z, m = 0.015;
+      const own = Math.max(...flyerFeet(f).map(d)) + m;
+      const spans = DESK_FLYERS.filter(g => g !== f).map(g => flyerFeet(g).map(d))
+        .map(ds => [Math.min(...ds) - m, Math.max(...ds) + m]).sort((p, q) => p[0] - q[0]);
+      let c = own;
+      for (const [lo, hi] of spans) if (c > lo && c < hi) c = hi;
+      return c;
+    }
     for (const f of DESK_FLYERS){
       const cov = f.panels.find(p => p.cover);
       const pos = [], idx = [];
@@ -668,12 +811,20 @@ function init(){
       const g = new THREE.BufferGeometry();
       g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx);
       const mesh = new THREE.Mesh(g); mesh.visible = false; table.add(mesh);
-      const at = new THREE.Vector3(...cov.c).add(offset);
+      /* the flyers themselves stand turned on the desk (the build turns
+         them), so the close-up looks straight along the facing they had
+         before: the cover faces the lens and the inside page shows past
+         its edge, both on the lit side */
+      const bk = f.panels.find(p => !p.cover);
+      const view = new THREE.Vector3(f.face[0], 0, f.face[1]).normalize();
+      const at = new THREE.Vector3(...cov.c).add(new THREE.Vector3(...bk.c)).multiplyScalar(.5).add(offset);
       const t = {
-        box:new THREE.Box3(at.clone(), at.clone()), n:new THREE.Vector3(cov.n[0], 0, cov.n[1]),
-        W:cov.w, H:cov.h, mesh, name:f.set, flyer:true,
-        fillH:0.6, fillW:0.6, tilt:0.04, orbit:false, spread:false, blur:1,   // held still, face on
-        clear:0.08                                            // its neighbours on the desk stand close; anything in front is cut away
+        box:new THREE.Box3(at.clone(), at.clone()), n:view,
+        W:cov.w * 1.6, H:cov.h, mesh, name:f.set, flyer:true,
+        cap: AR ? { k:'المطويات · ' + f.set, v:f.set + '، ' + (AR_DCI[f.set] || '') + '. مطوية واحدة لكل منتج: الصورة الرئيسية على الغلاف، والدواعي في الداخل، والنشرة الكاملة على الظهر.' }
+                : { k:'Flyers · ' + f.set, v:f.set + ', ' + (FLYER_DCI[f.set] || '') + '. One folded leaflet per product: the key visual on the cover, the indications inside, the full mention on the back.' },
+        fillH:0.62, fillW:0.62, tilt:0.12, orbit:false, spread:false, blur:1,  // held still, a touch from above
+        clear:flyerClear(f, at.clone().sub(offset), view)    // its neighbours on the desk stand close; what is in front is cut away
       };
       flyers.push(t);
     }
@@ -710,9 +861,17 @@ function init(){
   const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 
   const arrows = hero.querySelector('.bh-arrows'), arrowName = hero.querySelector('.bh-arrows-name');
+  /* each close-up comes with a few words on what is in front of the viewer */
+  const capK = hero.querySelector('.bh-caption-k'), capV = hero.querySelector('.bh-caption-v');
+  function caption(t){
+    const c = t.cap || { k:'', v:'' };
+    if (capK) capK.textContent = tr(c.k);
+    if (capV) capV.textContent = tr(c.v);
+  }
   function enterFocus(t){
     focus.on = true; focus.c = 0; focus.target = t; focus.sw = 1;
     hero.classList.toggle('flyers', !!t.flyer);
+    caption(t);
     if (t.flyer && arrowName) arrowName.textContent = t.name;
     focus.yaw = focus.tyaw = 0; focus.pitch = focus.tpitch = 0;
     vel = 0; target = yaw;
@@ -760,6 +919,7 @@ function init(){
     focus.target = flyers[i]; focus.sw = 0;
     focus.yaw = focus.tyaw = 0; focus.pitch = focus.tpitch = 0;
     if (arrowName) arrowName.textContent = flyers[i].name;
+    caption(flyers[i]);
     kick();
   }
   if (arrows){
@@ -774,6 +934,7 @@ function init(){
   const _look = new THREE.Vector3();
   function applyCamera(){
     const e = focus.c < 0 ? 0 : easeIO(focus.t);
+    corridor(focus.target, e > 0);
     if (e > 0){
       focusPose();
       if (focus.sw < 1){
@@ -782,7 +943,10 @@ function init(){
       }
       camera.position.lerpVectors(rest.pos, fp.eye, e);
       camera.lookAt(_look.lerpVectors(rest.look, fp.at, e));
-      camera.near = focus.target.clear ? 0.1 + (Math.max(0.1, fp.dist - focus.target.clear) - 0.1) * e : 0.1;
+      /* the near plane cuts away what stands in front of the flyer, measured
+         from where the camera is, not where it is going: mid-glide the
+         target is nearer or farther than its resting distance */
+      camera.near = focus.target.clear ? 0.1 + (Math.max(0.1, camera.position.distanceTo(fp.at) - focus.target.clear) - 0.1) * e : 0.1;
     } else {
       camera.position.copy(rest.pos);
       camera.lookAt(rest.look);
@@ -897,8 +1061,15 @@ function init(){
         blur.uniforms.exposure.value = renderer.toneMappingExposure;
         quad.material = blur; renderer.setRenderTarget(blurRT); renderer.render(quadScene, quadCam);
 
+        /* the colour split radiates from the target on screen; mid-glide
+           (the desk's last flyer to its first) the next one can be off
+           screen or behind the camera, which threw the split across the
+           whole frame. Behind: from the middle; off: held to the frame. */
         ctr.applyMatrix4(table.matrixWorld).project(camera);
-        comp.uniforms.center.value.set((ctr.x + 1) / 2, (ctr.y + 1) / 2);
+        const behind = ctr.z > 1 || ctr.z < -1;
+        comp.uniforms.center.value.set(
+          behind ? .5 : THREE.MathUtils.clamp((ctr.x + 1) / 2, 0, 1),
+          behind ? .5 : THREE.MathUtils.clamp((ctr.y + 1) / 2, 0, 1));
         comp.uniforms.mtexel.value.set(1 / hw, 1 / hh);
         comp.uniforms.amount.value = amount;
         comp.uniforms.aspect.value = w / h;
@@ -966,6 +1137,7 @@ function init(){
   function setHover(i){
     if (i === hover) return;
     hover = i;
+    hero.classList.toggle('lit', i !== null);                 // the page shows the stand in colour while it is pointed at
     stage.style.cursor = focus.on ? 'zoom-out' : i === null ? '' : i === CARTON || i === SHELF || i === ROLLUP || i === FILM || i === DESK ? 'zoom-in' : '';
     if (i === null){ tag.classList.remove('on'); kick(); return; }
     const z = ZONES[i];
@@ -1043,11 +1215,13 @@ function init(){
     let busy = false;
 
     /* build */
-    if (clip.constant < size.y + 0.5){
+    if (buildY < size.y + 0.5){
       const t = Math.min((now - buildStart) / BUILD, 1);
       const e = 1 - Math.pow(1 - t, 3);
-      clip.constant = -0.01 + e * (size.y + 0.6);
+      buildY = clip.constant = clipI.constant = -0.01 + e * (size.y + 0.6);
       busy = true;
+    } else if (!built){
+      endBuild(); busy = true;
     } else if (!hotspots.length && !POSTER){                    // the poster is a clean still
       buildSpots();
       hero.classList.add('spots-on');
@@ -1091,7 +1265,7 @@ function init(){
       if (focus.sw < 1){ focus.sw = calm ? 1 : Math.min(1, focus.sw + dt / 0.9); busy = true; }
       if (focus.t !== goal || Math.abs(focus.tyaw - focus.yaw) + Math.abs(focus.tpitch - focus.pitch) > 1e-4) busy = true;
       applyCamera();
-      spread.value = focus.target.spread ? easeIO(focus.t) * SPREAD_STEP * 8 * spreadUnit : 0;
+      for (const sp of spreads) sp.u.value = focus.target.spread ? easeIO(focus.t) * SPREAD_STEP * 8 * sp.unit : 0;
       if (!focus.on && focus.t === 0) focus.c = -1;
     }
 
@@ -1106,7 +1280,9 @@ function init(){
       v.copy(anchor); table.localToWorld(v); v.project(camera);
       const x = (v.x + 1) / 2 * canvas.clientWidth + canvasOffset, y = (1 - v.y) / 2 * stage.clientHeight;
       tag.style.left = Math.max(110, Math.min(stage.clientWidth - 110, x)) + 'px';
-      tag.style.top = Math.max(120, y) + 'px';
+      /* never over the headline and its lede: below them, the label drops onto the stand */
+      const floor = headEl && CENTER ? headEl.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + tag.offsetHeight + 22 : 120;
+      tag.style.top = Math.max(floor, y) + 'px';
     }
 
     if (hotspots.length) placeSpots();

@@ -53,6 +53,7 @@ HEAD = {
   # the stand in the hero: its unkeyed labels, hint and accessible names
   "Drag to turn &#8596;": "اسحب للتدوير &#8596;",
   "Click anywhere to go back": "انقر في أيّ مكان للعودة",
+  "<span>Loading the stand</span>": "<span>جارٍ تحميل الجناح</span>",
   "aria-label=\"Evolab Laboratories exhibition stand — interactive 3D model. Drag to turn.\"":
     "aria-label=\"جناح مختبرات Evolab في المعرض — نموذج ثلاثي الأبعاد تفاعلي. اسحب للتدوير.\"",
   "alt=\"Evolab Laboratories exhibition stand, 3D model\"":
@@ -197,10 +198,11 @@ def build(page, words):
         html = html.replace(pat, rep)
 
     # the Arabic face, alongside the Latin ones the artwork captions still need
-    html = html.replace(
-        "family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500",
-        "family=Poppins:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500"
-        "&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700")
+    # (matched by pattern: the homepage asks Poppins for one more weight)
+    html, n = re.subn(
+        r"(family=Poppins:wght@[\d;]+&family=IBM\+Plex\+Mono:wght@400;500)",
+        r"\1&family=IBM+Plex+Sans+Arabic:wght@300;400;600;700", html, count=1)
+    assert n == 1, page + ": font link not found"
 
     # arrows point the other way in a right-to-left page
     html = html.replace("&#8594;", "&#8592;")

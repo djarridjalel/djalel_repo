@@ -101,6 +101,14 @@
     dot.className = 'dot';
     dot.setAttribute('aria-hidden', 'true');
     dot.appendChild(document.createElement('i'));
+    /* In the homepage hero, off the stand and over nothing to press, the dot
+       carries a quiet word that the page goes on below. */
+    var hero = document.querySelector('.bh');
+    if(hero){
+      var lbl = document.createElement('b');
+      lbl.textContent = document.documentElement.lang === 'ar' ? 'مرّر \u2193' : 'Scroll \u2193';
+      dot.appendChild(lbl);
+    }
     document.body.appendChild(dot);
     document.documentElement.classList.add('has-dot');
 
@@ -116,7 +124,18 @@
 
     addEventListener('mousemove', function(e){
       x = e.clientX; y = e.clientY;
-      dot.classList.toggle('hot', !!(e.target && e.target.closest && e.target.closest(HOT)));
+      var t = e.target, hot;
+      /* The stand's canvas is focusable, but only some of it opens a
+         close-up: over it the ring follows the stage's own cursor, which
+         booth.js sets to zoom-in or zoom-out exactly where a click does
+         something. */
+      if(t && t.tagName === 'CANVAS' && t.closest('.bh-stage')){
+        var c = t.closest('.bh-stage').style.cursor;
+        hot = c === 'zoom-in' || c === 'zoom-out';
+      } else hot = !!(t && t.closest && t.closest(HOT));
+      dot.classList.toggle('hot', hot);
+      if(hero) dot.classList.toggle('scroll', !!(t && t.closest && t.closest('.bh') && !hot &&
+        !hero.classList.contains('on-stand') && !hero.classList.contains('focused')));
       if(!seeded){ seeded = true; draw(); dot.classList.add('on'); return; }
       if(raf === null) raf = requestAnimationFrame(draw);
     }, {passive:true});
