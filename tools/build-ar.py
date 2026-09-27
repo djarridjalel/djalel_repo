@@ -56,8 +56,6 @@ HEAD = {
   "<span>Loading the stand</span>": "<span>جارٍ تحميل الجناح</span>",
   "aria-label=\"Evolab Laboratories exhibition stand — interactive 3D model. Drag to turn.\"":
     "aria-label=\"جناح مختبرات Evolab في المعرض — نموذج ثلاثي الأبعاد تفاعلي. اسحب للتدوير.\"",
-  "alt=\"Evolab Laboratories exhibition stand, 3D model\"":
-    "alt=\"جناح مختبرات Evolab في المعرض، نموذج ثلاثي الأبعاد\"",
   "aria-label=\"Flyers\"": "aria-label=\"المطويات\"",
   "aria-label=\"Previous flyer\"": "aria-label=\"المطوية السابقة\"",
   "aria-label=\"Next flyer\"": "aria-label=\"المطوية التالية\"",

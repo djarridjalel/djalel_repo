@@ -148,7 +148,7 @@
   .bh-bar .bh-name .s{font-weight:300; margin-inline-start:.5em;}
   /* One gap sets the hero's rhythm: the same space above the headline block
      as below it, before the stand (booth.js reads this margin to fit the
-     stand, and so does the poster). Headline and lede stay tight as a pair;
+     stand). Headline and lede stay tight as a pair;
      the base row sits close under the stand, as its caption. It was
      11vh above and 3% below, so the words sat on the stand under a band
      of empty space. */
@@ -210,11 +210,6 @@
   .bh.on-stand .bh-stage{cursor:grab;}
   .bh-stage.dragging{cursor:grabbing;}
   .bh-stage canvas{position:absolute; top:0; left:0; width:100%; height:100%; display:block; outline:none;}  /* width and left set by booth.js */
-  .bh-poster{
-    position:absolute; inset:0; width:100%; height:100%; object-fit:cover;   /* the stand alone, shot at the hero's full size */
-    transition:opacity .6s ease;
-  }
-  .bh.gl-ready .bh-poster{opacity:0; pointer-events:none;}
   /* loading: a label and a thin line, only if the model is still coming
      once the copy is in */
   .bh-load{
@@ -241,15 +236,12 @@
   /* The stand rests in greyscale, so the page's own ink and accent lead and
      Evolab's colours read as the subject of the work, not the page's
      brand. It takes its colour when pointed at, turned or opened. */
-  .bh-stage canvas,
-  .bh-poster{filter:grayscale(1); transition:filter .7s ease;}
+  .bh-stage canvas{filter:grayscale(1);}
   /* the entrance ends with the stand: the canvas stays clear until the
      headline has run (booth.js waits for it) and fades in as it turns.
-     The poster is only the fallback when WebGL cannot run. */
+     There is no still in its place: the fade is the stand's arrival. */
   .bh-stage canvas{opacity:0; transition:filter .7s ease, opacity 1.6s ease;}
   .bh.gl-ready .bh-stage canvas{opacity:1;}
-  .bh[data-layout="center"] .bh-poster{opacity:0;}
-  .bh[data-layout="center"].no-gl .bh-poster{opacity:1;}
   .bh.intro .bh-load{opacity:0; transition:none;}
   .bh.lit .bh-stage canvas,
   .bh.focused .bh-stage canvas,
@@ -388,7 +380,7 @@
     .bh.flyers .bh-caption{bottom:calc(var(--edge) + 60px);}
   }
   @media (prefers-reduced-motion: reduce){
-    .bh-poster, .bh-tag, .bh-back, .bh::before, .bh-arrows, .bh-stage canvas, .bh-caption{transition:none;}
+    .bh-tag, .bh-back, .bh::before, .bh-arrows, .bh-stage canvas, .bh-caption{transition:none;}
   }
 
   /* --- Arabic ----------------------------------------------------
@@ -550,24 +542,15 @@
 <body id="top">
 <div id="boot" aria-hidden="true"><b>Djarri</b><i></i></div>
 <script>
-/* Lift the boot screen when the hero's poster of the stand is in — not on window
-   load, which also waits for every logo and poster below the fold and would
-   hold a blank screen over a page that is ready to read. Three ways out, so
-   a stalled or failed image can never strand a visitor here. */
+/* Lift the boot screen as soon as the page is parsed: the hero is type and
+   a stand that fades in on its own once the headline has run, so there is
+   nothing to wait for - not window load, which would also wait for every
+   logo and poster below the fold. The load event and a timer stay as the
+   ways out if parsing is somehow held up. */
 (function(){
   var h = document.documentElement, done = false;
   function go(){ if(!done){ done = true; h.className += ' booted'; } }
-  function heroIn(){
-    var imgs = [].slice.call(document.querySelectorAll('.bh-poster'));
-    if(!imgs.length) return go();
-    var left = imgs.length;
-    function tick(){ if(--left <= 0) go(); }
-    imgs.forEach(function(i){
-      if(i.complete) return tick();
-      i.addEventListener('load', tick, {once:true});
-      i.addEventListener('error', tick, {once:true});
-    });
-  }
+  var heroIn = go;
   if(document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', heroIn);
   else heroIn();
@@ -603,7 +586,6 @@
   </div>
 
   <div class="bh-stage" id="stage" aria-label="Evolab Laboratories exhibition stand — interactive 3D model. Drag to turn.">
-    <img class="bh-poster" src="assets/booth/evolab-booth-poster.webp" alt="Evolab Laboratories exhibition stand, 3D model" width="2000" height="1200" data-box="222.3,430.1,1777.7,1055.2" fetchpriority="high" decoding="async">
     <div class="bh-load" aria-hidden="true"><span>Loading the stand</span><i></i></div>
     <span class="bh-back" aria-hidden="true">Click anywhere to go back</span>
     <div class="bh-caption" aria-live="polite"><span class="bh-caption-k"></span><p class="bh-caption-v"></p></div>
@@ -625,34 +607,6 @@
   </div>
 </header>
 <script>
-/* The poster is sized the way booth.js fits the model: its recorded stand
-   box (data-box, poster px) goes into the room between the headline block
-   and the base row, so the still and the model land on the same spot. */
-(function(){
-  var hero = document.getElementById('hero'), img = hero && hero.querySelector('.bh-poster');
-  if(!img || hero.dataset.layout !== 'center' || !img.dataset.box) return;
-  var B = img.dataset.box.split(',').map(Number), IW = img.width, IH = img.height;
-  var head = hero.querySelector('.bh-head'), base = hero.querySelector('.bh-base'), stage = document.getElementById('stage');
-  var narrow = matchMedia('(max-width: 860px), (max-aspect-ratio: 4/5)');
-  var GAP_FIT = .7;   // as in booth.js: the stand's box stands clear of its visible top
-  function place(){
-    var sw = stage.clientWidth, h = stage.clientHeight; if(!sw || !h) return;
-    var sr = stage.getBoundingClientRect();
-    var pad = narrow.matches ? 6 : (parseFloat(getComputedStyle(hero).paddingLeft) || 24);
-    var gap = parseFloat(getComputedStyle(head).marginTop) || h * .05;   // the gap above the headline, repeated under it
-    var top = head.getBoundingClientRect().bottom - sr.top + gap * GAP_FIT, bottom = base.getBoundingClientRect().top - sr.top - h * .03;
-    var k = Math.min((sw - 2 * pad) / (B[2] - B[0]), (bottom - top) / (B[3] - B[1]));
-    var s = img.style;
-    s.inset = 'auto'; s.objectFit = 'fill';
-    s.width = IW * k + 'px'; s.height = IH * k + 'px';
-    s.left = sw / 2 - (B[0] + B[2]) / 2 * k + 'px';
-    s.top = (top + bottom) / 2 - (B[1] + B[3]) / 2 * k + 'px';
-  }
-  place();
-  addEventListener('resize', place);
-  if(document.fonts) document.fonts.ready.then(place);
-})();
-
 /* The headline: split into letters (words, in Arabic - a joined script
    cannot be cut between letters), run the entrance through them, then
    light those within --gt-r of the pointer. Boxes are measured once per
