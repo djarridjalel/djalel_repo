@@ -457,18 +457,41 @@ a{color:inherit;}
   position:relative;
   flex:0 0 auto;
   width:clamp(240px,24vw,400px);
-  aspect-ratio:4 / 3;                      /* the packshots are landscape */
+  margin:0;
   margin-right:clamp(16px,2vw,32px);       /* margin not gap: a gap makes the
                                               duplicated half wider than 50%
                                               and the loop drifts each cycle */
-  /* Less tile. The radius comes down and the card carries no ground of its
-     own, so what is on the band is a photograph rather than a thumbnail in
-     a rounded box. */
-  border-radius:3px;
-  overflow:hidden;
-  background:transparent;
 }
-.shelf-card img{width:100%; height:100%; object-fit:cover;}
+/* Each packshot is framed the way the case-study sheets are: rounded
+   corners and a pane of glass over it, with light caught along the top
+   and left edges and a hairline closing the contour (the rim is the one
+   on .reel-sheet::before). The product's name sits underneath, set as the
+   sheets' captions are. */
+.shelf-img{
+  position:relative;
+  aspect-ratio:4 / 3;                      /* the packshots are landscape */
+  border-radius:clamp(12px, 1.5vw, 24px);
+  overflow:hidden;
+}
+.shelf-img::before{
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  border-radius:inherit;
+  box-shadow:
+    inset 0 1.5px 1px -0.5px rgba(255,255,255,.62),
+    inset 1.5px 0 1px -0.5px rgba(255,255,255,.34),
+    inset 0 -1.5px 1px -0.5px rgba(255,255,255,.2),
+    inset -1.5px 0 1px -0.5px rgba(255,255,255,.24),
+    inset 0 0 0 1px rgba(255,255,255,.16),
+    inset 0 0 22px rgba(255,255,255,.1);
+}
+.shelf-img img{display:block; width:100%; height:100%; object-fit:cover;}
+.shelf-name{
+  margin:12px 4px 0;
+  font-weight:500; letter-spacing:-.005em;
+  font-size:clamp(.78rem, .92vw, .95rem); line-height:1.25;
+  color:var(--ink);
+  text-wrap:balance;                     /* the longest names take two lines rather than an ellipsis */
+}
 
 /* The band holds itself back and the pointer brings one pack forward. The
    hold-back is greyscale; hovering restores the colour.
@@ -488,14 +511,14 @@ a{color:inherit;}
    the packshots - which are all shot on white - reading as a row of
    lightboxes; the veil settles them onto the ground, and hover lifts both
    at once, so the pack gains its colour and its light together. */
-.shelf-card::after{
+.shelf-img::after{
   content:"";
   position:absolute; inset:0;
   background:var(--bone);
   opacity:.17;
   transition:opacity .45s ease;
 }
-.shelf-card:hover::after{opacity:0;}
+.shelf-card:hover .shelf-img::after{opacity:0;}
 @media (hover:hover) and (pointer:fine){
   .shelf-card img{
     filter:grayscale(1);
@@ -504,7 +527,7 @@ a{color:inherit;}
   .shelf-card:hover img{filter:grayscale(0);}
 }
 @media (prefers-reduced-motion:reduce){
-  .shelf-card img, .shelf-card::after{transition:none;}
+  .shelf-card img, .shelf-img::after{transition:none;}
 }
 @keyframes shelf-drift{
   from{transform:translateX(-50%);}
