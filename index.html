@@ -146,7 +146,13 @@
   }
   .bh-bar .bh-name .n{font-weight:700;}
   .bh-bar .bh-name .s{font-weight:300; margin-inline-start:.5em;}
-  .bh-head{text-align:center; margin-top:clamp(36px, 11vh, 120px);}   /* the headline sits in the upper third, not against the bar */
+  /* One gap sets the hero's rhythm: the same space above the headline block
+     as below it, before the stand (booth.js reads this margin to fit the
+     stand, and so does the poster). Headline and lede stay tight as a pair;
+     the base row sits close under the stand, as its caption. It was
+     11vh above and 3% below, so the words sat on the stand under a band
+     of empty space. */
+  .bh-head{text-align:center; margin-top:clamp(28px, 6vh, 72px);}
   .bh-h{
     margin:0;
     font-weight:200;                     /* the small words light, the three stages bold */
@@ -628,11 +634,13 @@
   var B = img.dataset.box.split(',').map(Number), IW = img.width, IH = img.height;
   var head = hero.querySelector('.bh-head'), base = hero.querySelector('.bh-base'), stage = document.getElementById('stage');
   var narrow = matchMedia('(max-width: 860px), (max-aspect-ratio: 4/5)');
+  var GAP_FIT = .7;   // as in booth.js: the stand's box stands clear of its visible top
   function place(){
     var sw = stage.clientWidth, h = stage.clientHeight; if(!sw || !h) return;
     var sr = stage.getBoundingClientRect();
     var pad = narrow.matches ? 6 : (parseFloat(getComputedStyle(hero).paddingLeft) || 24);
-    var top = head.getBoundingClientRect().bottom - sr.top + h * .03, bottom = base.getBoundingClientRect().top - sr.top - h * .03;
+    var gap = parseFloat(getComputedStyle(head).marginTop) || h * .05;   // the gap above the headline, repeated under it
+    var top = head.getBoundingClientRect().bottom - sr.top + gap * GAP_FIT, bottom = base.getBoundingClientRect().top - sr.top - h * .03;
     var k = Math.min((sw - 2 * pad) / (B[2] - B[0]), (bottom - top) / (B[3] - B[1]));
     var s = img.style;
     s.inset = 'auto'; s.objectFit = 'fill';
@@ -1342,7 +1350,7 @@
 
 <script src="assets/content.js?v=35cd74ca"></script>
 <script src="assets/site.js?v=dd442321" defer></script>
-<script src="assets/logo3d.js?v=8063aaa9" defer></script>
-<script type="module" src="assets/booth/booth.js?v=b2e18a99"></script>
+<script src="assets/logo3d.js?v=9f1c4f07" defer></script>
+<script type="module" src="assets/booth/booth.js?v=9736c3e4"></script>
 </body>
 </html>

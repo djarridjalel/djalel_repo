@@ -165,7 +165,10 @@
     return TOP * window.innerHeight;
   }
   function place(){
-    if(!hero || calm){ y = navY(); return; }
+    if(!hero){ y = navY(); return; }
+    /* Without motion it does not travel: it sits on the hero bar while the
+       hero is in view and in the nav bar after, and simply changes place. */
+    if(calm){ y = bar && window.pageYOffset < span() * HOLD ? startY() : navY(); return; }
     var p = Math.min(Math.max(window.pageYOffset / Math.max(span(), 1), 0), 1);
     var start = startY();
     y = p < HOLD ? start

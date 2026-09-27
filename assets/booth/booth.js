@@ -477,6 +477,7 @@ function init(){
      stand is fitted into the space between the headline block and the base
      row, and centred in it, so it leads and the type frames it. */
   const CENTER = hero.dataset.layout === 'center';
+  const GAP_FIT = .7;                                         // share of the headline's gap the stand's box keeps clear
   const headEl = hero.querySelector('.bh-head'), baseEl = hero.querySelector('.bh-base');
   let canvasOffset = 0;                                       // canvas left minus stage left, px
   function place(d, look){
@@ -511,7 +512,12 @@ function init(){
     if (model && CENTER){
       const sr = stage.getBoundingClientRect();
       const pad = parseFloat(getComputedStyle(hero).paddingLeft) || 24;
-      const top = (headEl ? headEl.getBoundingClientRect().bottom - sr.top : h * .3) + h * .03;
+      /* the same gap under the headline block as above it (its margin), so
+         the words sit midway between the bar and the stand. The fit is to
+         the stand's bounding box, whose top corners stand clear of what is
+         drawn, so only part of the gap is asked of the box. */
+      const gap = headEl ? parseFloat(getComputedStyle(headEl).marginTop) || h * .05 : h * .05;
+      const top = (headEl ? headEl.getBoundingClientRect().bottom - sr.top : h * .3) + gap * GAP_FIT;
       const bottom = (baseEl ? baseEl.getBoundingClientRect().top - sr.top : h * .9) - h * .03;
       fit = stacked.matches ? { left:6, right:sw - 6, top, bottom }             // narrow: edge to edge
                             : { left:pad, right:sw - pad, top, bottom };
