@@ -153,10 +153,21 @@
   /* It keeps its place in the frame while the hero is on screen — the page
      slides past underneath it rather than carrying it down — and only leaves
      that spot to take up its position in the bar. */
+  /* Where it opens. The homepage hero has a bar across its top - the
+     studio's name on one side, the stats on the other - and the mark sits
+     on that line, between them. Measured with offsets rather than a rect,
+     so the bar's drop-in on arrival does not move it. Anywhere else it
+     opens a little way down the hero. */
+  var bar = document.querySelector('.bh-bar');
+  function startY(){
+    if(bar && hero && bar.offsetParent === hero)
+      return hero.offsetTop + bar.offsetTop + bar.offsetHeight / 2;
+    return TOP * window.innerHeight;
+  }
   function place(){
     if(!hero || calm){ y = navY(); return; }
     var p = Math.min(Math.max(window.pageYOffset / Math.max(span(), 1), 0), 1);
-    var start = TOP * window.innerHeight;
+    var start = startY();
     y = p < HOLD ? start
                  : start + (navY() - start) * ease((p - HOLD) / (1 - HOLD));
   }
