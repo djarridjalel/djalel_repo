@@ -134,18 +134,18 @@
     line-height:1.6; color:var(--mute);
   }
   .bh-bar b, .bh-base b{color:var(--ink); font-weight:500;}
-  /* the studio's name, in the display face and the accent: the one
-     coloured word on the page before the pointer adds more. On the bone
-     ground the accent is its dark stop - the bright one does not read. */
+  /* The name in the hero bar is the nav bar's mark, set the same way -
+     bold DJARRI, light DESIGN STUDIO, capitals at a slight track - but in
+     the accent: the one coloured word on the page before the pointer adds
+     more. On the bone ground the accent is its dark stop. The bar centres
+     it on the stats, which sit in a smaller face. */
+  .bh-bar{align-items:center;}
   .bh-bar .bh-name{
-    font-family:var(--display); font-size:clamp(1.05rem, 1.35vw, 1.3rem); font-weight:700;
-    letter-spacing:-.01em; text-transform:none; color:var(--a-dark); margin-inline-end:.45em;
+    font-family:var(--display); font-size:.95rem; letter-spacing:.06em; text-transform:none;
+    color:var(--a-dark); white-space:nowrap; direction:ltr; unicode-bidi:isolate;
   }
-  /* who runs it reads with the name: same face, a step smaller, in ink */
-  .bh-bar .bh-role{
-    font-family:var(--display); font-size:clamp(.95rem, 1.15vw, 1.1rem); font-weight:500;
-    letter-spacing:-.005em; text-transform:none; color:var(--ink);
-  }
+  .bh-bar .bh-name .n{font-weight:700;}
+  .bh-bar .bh-name .s{font-weight:300; margin-inline-start:.5em;}
   .bh-head{text-align:center; margin-top:clamp(36px, 11vh, 120px);}   /* the headline sits in the upper third, not against the bar */
   .bh-h{
     margin:0;
@@ -370,7 +370,6 @@
     .bh{padding:var(--edge) 20px; height:auto; min-height:100svh;}
     .bh-bar-r, .bh-hint{display:none;}
     .bh-bar{font-size:.62rem;}
-    .bh-role{display:block; margin-top:4px;}
     .bh-base{margin-top:calc(44vw + 36px); flex-direction:column; align-items:flex-start; gap:8px;}
     .bh.focused .bh-bar{opacity:0;}              /* "tap anywhere to go back" takes the top */
     .bh-h{font-size:clamp(2rem, 9.5vw, 3.4rem);}
@@ -586,7 +585,7 @@
 
 <header class="hero bh" id="hero" data-layout="center">
   <div class="bh-bar">
-    <span data-ed="index.t101"><b class="bh-name">Djarri Design Studio</b></span>
+    <span data-ed="index.t101"><b class="bh-name"><span class="n">DJARRI</span><span class="s">DESIGN&nbsp;STUDIO</span></b></span>
     <span class="bh-stats bh-bar-r" data-ed="index.t99"><span><b>9+</b> years</span> <span><b>100+</b> products on shelves</span> <span><b>30+</b> identities</span></span>
   </div>
 
