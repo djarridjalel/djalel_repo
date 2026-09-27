@@ -57,6 +57,8 @@ function init(){
       'الجناح جزء من الإطلاق — من التصاميم ثلاثية الأبعاد إلى التركيب في الموقع.',
     'Evolab exhibition stand. Use the arrow keys to turn it.': 'جناح Evolab في المعرض. استخدم مفاتيح الأسهم لتدويره.',
     'Tap anywhere to go back': 'المس أيّ مكان للعودة',
+    'Play the film': 'شغّل الفيلم',
+    'Pause the film': 'أوقف الفيلم',
     'Packaging · Methylab': 'التغليف · Methylab',
     'Methyldopa 250 mg. The range\u2019s carton system in Methylab\u2019s own colour, faced out on the shelving by the entrance.':
       'ميثيل دوبا 250 ملغ. نظام علب المجموعة بلون Methylab الخاص، مصفوفًا على الرفوف عند المدخل.',
@@ -327,6 +329,7 @@ function init(){
     buildY = size.y + 1;                                      // no build: the canvas fades in as the stand turns
     clip.constant = clipI.constant = buildY;
     buildStart = performance.now();
+    filmStill();
     hero.classList.add('gl-ready');
     hero.classList.remove('loading');
     kick();
@@ -877,6 +880,7 @@ function init(){
   function enterFocus(t){
     focus.on = true; focus.c = 0; focus.target = t; focus.sw = 1;
     hero.classList.toggle('flyers', !!t.flyer);
+    hero.classList.toggle('screen', t === SCREEN);
     caption(t);
     if (t.flyer && arrowName) arrowName.textContent = t.name;
     focus.yaw = focus.tyaw = 0; focus.pitch = focus.tpitch = 0;
@@ -891,7 +895,8 @@ function init(){
   function leaveFocus(now){
     if (!focus.on) return;
     focus.on = false;
-    hero.classList.remove('focused', 'flyers');
+    hero.classList.remove('focused', 'flyers', 'screen');
+    if (film && !film.paused) film.pause();              // leaving the screen stops the film
     stage.style.cursor = '';
     if (back) back.setAttribute('aria-hidden', 'true');
     lastInput = performance.now();
@@ -1088,6 +1093,96 @@ function init(){
   const ray = new THREE.Raycaster(), ndc = new THREE.Vector2();
   const tag = document.getElementById('tag'), tagK = document.getElementById('tagK'), tagV = document.getElementById('tagV');
   const tagGo = document.getElementById('tagGo');
+
+  /* ---- the film on the screen --------------------------------------------
+     The stage names a film (data-film) and, optionally, a still from it
+     (data-film-still) that the screen shows at rest in place of the image
+     baked into the model. In the screen's close-up a play button sits on the
+     screen, and the film plays on the screen itself: a video texture in
+     place of the still, lit and tone-mapped as it was, so it stays part of
+     the stand rather than a player laid over it. It plays with its sound -
+     the viewer asked for it by pressing play. Nothing is fetched until then.
+     Without a film, or if it fails, the screen keeps its picture and there
+     is no button. */
+  const FILM_SRC = stage.dataset.film || '';
+  const FILM_STILL = stage.dataset.filmStill || '';
+  let film = null, filmTex = null, stillTex = null, filmState = 'idle';   // idle | loading | playing | paused | ended | failed
+  const screenMat = () => { const m = SCREEN.mesh && SCREEN.mesh.material; return Array.isArray(m) ? m[0] : m; };
+  /* a replacement texture has to sit on the screen's UVs as the baked one did */
+  function likeScreen(t, from){
+    t.colorSpace = THREE.SRGBColorSpace;
+    if (!from) return t;
+    t.flipY = from.flipY; t.wrapS = from.wrapS; t.wrapT = from.wrapT; t.channel = from.channel;
+    t.offset.copy(from.offset); t.repeat.copy(from.repeat); t.center.copy(from.center); t.rotation = from.rotation;
+    return t;
+  }
+  function filmStill(){
+    const m = screenMat();
+    if (!FILM_STILL || !m || !m.emissiveMap) return;
+    new THREE.TextureLoader().load(FILM_STILL, t => {
+      const old = m.emissiveMap;
+      m.emissiveMap = likeScreen(t, old); m.needsUpdate = true;
+      if (old && old !== t) old.dispose();
+      kick();
+    });
+  }
+  const playBtn = FILM_SRC ? (() => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'bh-play'; b.dataset.state = 'idle';
+    b.setAttribute('aria-label', tr('Play the film'));
+    b.innerHTML = '<i aria-hidden="true"></i>';
+    b.addEventListener('pointerdown', e => e.stopPropagation());      // a press here is not a click on the stand
+    b.addEventListener('click', e => { e.stopPropagation(); toggleFilm(); });
+    stage.append(b);
+    return b;
+  })() : null;
+  function setFilm(st){
+    filmState = st;
+    if (playBtn){
+      playBtn.dataset.state = st;
+      playBtn.setAttribute('aria-label', tr(st === 'playing' || st === 'loading' ? 'Pause the film' : 'Play the film'));
+    }
+    hero.classList.toggle('film-on', st === 'playing' || st === 'loading');
+    kick();
+  }
+  function ensureFilm(){
+    if (film) return film;
+    film = document.createElement('video');
+    film.src = FILM_SRC; film.preload = 'auto'; film.playsInline = true; film.setAttribute('playsinline', '');
+    film.addEventListener('playing', () => setFilm('playing'));
+    film.addEventListener('waiting', () => { if (!film.paused) setFilm('loading'); });
+    film.addEventListener('pause', () => { if (!film.ended) setFilm('paused'); });
+    film.addEventListener('ended', () => setFilm('ended'));
+    film.addEventListener('error', () => {
+      setFilm('failed');
+      const m = screenMat();
+      if (m && stillTex && m.emissiveMap === filmTex){ m.emissiveMap = stillTex; m.needsUpdate = true; }
+      if (playBtn) playBtn.hidden = true;
+    });
+    return film;
+  }
+  function toggleFilm(){
+    const v = ensureFilm();
+    if (filmState === 'playing' || filmState === 'loading'){ v.pause(); return; }
+    if (filmState === 'failed') return;
+    if (filmState === 'ended') v.currentTime = 0;
+    const m = screenMat();
+    if (m && !filmTex){
+      stillTex = m.emissiveMap;
+      filmTex = likeScreen(new THREE.VideoTexture(v), stillTex);
+      m.emissiveMap = filmTex; m.needsUpdate = true;
+    }
+    setFilm('loading');
+    const pr = v.play();
+    if (pr && pr.catch) pr.catch(() => setFilm('paused'));
+  }
+  const _pc = new THREE.Vector3();
+  function placePlay(){
+    if (!playBtn || !SCREEN.mesh || focus.target !== SCREEN || focus.c < 0) return;
+    SCREEN.box.getCenter(_pc); table.localToWorld(_pc); _pc.project(camera);
+    const x = (_pc.x + 1) / 2 * canvas.clientWidth + canvasOffset, y = (1 - _pc.y) / 2 * stage.clientHeight;
+    playBtn.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+  }
   let hover = null, pointerIn = false, px = 0, py = 0;
 
   function pointer(e){
@@ -1292,6 +1387,8 @@ function init(){
     }
 
     if (hotspots.length) placeSpots();
+    placePlay();
+    if (filmState === 'playing') busy = true;                 // every frame of the film has to reach the screen
     draw();
     if (POSTER && !busy) window.__posterReady = true;
     if (busy || dragging) requestAnimationFrame(frame);

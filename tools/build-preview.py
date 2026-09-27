@@ -53,6 +53,17 @@ def modules(base, html):
     html = re.sub(r'\n?<!-- The hero\'s stand is a three\.js module\..*?-->\n', '\n', html, count=1, flags=re.S)
     html = re.sub(r'<script type="importmap">.*?</script>\n?', '', html, count=1, flags=re.S)
     html = re.sub(r'<link rel="(?:modulepreload|preload)" href="(?:\.\./)*assets/(?:vendor|booth)/[^"]+"[^>]*>\n?', '', html)
+    # The screen film: the light copy prepare-film.py leaves in tools/, and the
+    # resting still, both inlined. Without the light copy the attribute goes,
+    # and the stand keeps its picture with no play button.
+    film = ROOT / 'tools' / '.film-preview.mp4'
+    def film_attr(m):
+        if not film.exists():
+            return ''
+        return ' data-film="data:video/mp4;base64,%s"' % base64.b64encode(film.read_bytes()).decode()
+    html = re.sub(r' data-film="[^"]*"', film_attr, html)
+    html = re.sub(r' data-film-still="((?:\.\./)*assets/[^"]+)"',
+                  lambda m: ' data-film-still="%s"' % datauri(local(base, m.group(1))), html)
     return re.sub(r'<script type="module" src="(?:\.\./)*assets/booth/booth\.js[^"]*"></script>',
                   lambda m: '<script type="module">\n' + booth_bundle() + '\n</script>', html)
 

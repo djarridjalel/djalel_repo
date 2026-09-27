@@ -338,6 +338,46 @@
     .bh-spot::after{animation:none; opacity:.35; transform:scale(1.8);}
   }
 
+  /* The film's play button. booth.js pins it to the middle of the screen in
+     the screen's close-up and it arrives once the camera has; the film then
+     plays on the screen itself. While it plays the button steps back to a
+     faint pause, and comes up under the pointer; a ring turns while the
+     film is still arriving. */
+  .bh-play{
+    position:absolute; left:0; top:0; z-index:3;
+    width:68px; height:68px; margin:-34px 0 0 -34px; padding:0;
+    border:0; border-radius:50%; cursor:pointer;
+    background:var(--accent); color:var(--ink);
+    box-shadow:0 0 0 6px rgba(255,206,0,.22), 0 0 26px 6px rgba(255,206,0,.45), 0 10px 30px rgba(10,10,11,.25);
+    opacity:0; pointer-events:none;
+    transition:opacity .4s ease, box-shadow .25s ease;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .bh.focused.screen .bh-play{opacity:1; pointer-events:auto; transition-delay:.9s, 0s;}
+  .bh.focused.screen.film-on .bh-play{opacity:.3; transition-delay:0s;}
+  .bh.focused.screen .bh-play:hover,
+  .bh.focused.screen .bh-play:focus-visible{opacity:1; box-shadow:0 0 0 8px rgba(255,206,0,.28), 0 0 34px 8px rgba(255,206,0,.55), 0 10px 30px rgba(10,10,11,.25);}
+  .bh-play:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
+  .bh-play i{
+    position:absolute; left:50%; top:50%; width:22px; height:24px; margin:-12px 0 0 -9px;
+    background:currentColor; clip-path:polygon(0 0, 100% 50%, 0 100%);     /* play */
+  }
+  .bh-play[data-state="playing"] i,
+  .bh-play[data-state="loading"] i{                                          /* pause */
+    width:20px; height:22px; margin:-11px 0 0 -10px; clip-path:none;
+    background:linear-gradient(90deg, currentColor 0 35%, transparent 35% 65%, currentColor 65% 100%);
+  }
+  .bh-play[data-state="loading"]::after{
+    content:""; position:absolute; inset:-9px; border-radius:50%;
+    border:2px solid rgba(255,206,0,.9); border-right-color:transparent;
+    animation:bh-spin 1s linear infinite;
+  }
+  @keyframes bh-spin{ to{transform:rotate(360deg);} }
+  @media (prefers-reduced-motion: reduce){
+    .bh-play{transition:none;}
+    .bh-play[data-state="loading"]::after{animation:none; border-right-color:rgba(255,206,0,.9); opacity:.6;}
+  }
+
   /* hover label, pinned to a point on the model */
   .bh-tag{
     position:absolute; left:0; top:0; z-index:3;
@@ -1305,6 +1345,6 @@
 <script src="../assets/content.js?v=35cd74ca"></script>
 <script src="../assets/site.js?v=dd442321" defer></script>
 <script src="../assets/logo3d.js?v=9f1c4f07" defer></script>
-<script type="module" src="../assets/booth/booth.js?v=9736c3e4"></script>
+<script type="module" src="../assets/booth/booth.js?v=012e3ca1"></script>
 </body>
 </html>

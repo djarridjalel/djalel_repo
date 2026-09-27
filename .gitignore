@@ -11,3 +11,6 @@ api/data/publish.lock
 assets/versions/
 __pycache__/
 *.pyc
+
+# written by tools/prepare-film.py for the single-file previews only
+tools/.film-preview.mp4
