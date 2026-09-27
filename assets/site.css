@@ -13,7 +13,7 @@
 :root{
   --ink:#0A0A0B;
   --paper:#FFFFFF;
-  --bone:#F2F1EE;      /* dossier ground — warm off-white, biased toward the
+  --bone:#E6E5E2;      /* dossier ground — warm off-white, biased toward the
                           accent's hue so the neutral reads as chosen */
   --rule:rgba(10,10,11,.14);
   --rule-dk:rgba(255,255,255,.14);
@@ -25,7 +25,7 @@
 
   /* Accent — one flat colour, never a ramp, and only ever under the pointer.
      #FFCE00 is 13.27:1 on ink and 1.32:1 on bone, so the light grounds use
-     --a-dark (#6E5400, 6.34:1) instead: same hue, legible on paper. */
+     --a-dark (#6E5400, 5.7:1) instead: same hue, legible on paper. */
   --accent:#FFCE00;
   --a-dark:#6E5400;
 
@@ -94,7 +94,7 @@ a{color:inherit;}
   /* The bar is light because everything it can ever sit over is light: on
      the homepage it does not exist until the hero has been scrolled past,
      and every other page leads with the bar on bone. */
-  background:rgba(242,241,238,.86);
+  background:rgba(230,229,226,.86);
   color:var(--ink);
   backdrop-filter:saturate(140%) blur(14px);
   -webkit-backdrop-filter:saturate(140%) blur(14px);
@@ -237,7 +237,7 @@ a{color:inherit;}
 :root{
   --slate:#14161A;   /* poster ground — near-black pulled cool, so it reads
                         as a different room from the hero's neutral ink */
-  --mute:#5C5C64;   /* 4.47:1 on bone was under the floor; this is 6.0:1 */
+  --mute:#5C5C64;   /* 5.3:1 on bone (#E6E5E2); the grey before it was under the floor */
 }
 
 /* --- the manifest ------------------------------------------- */
