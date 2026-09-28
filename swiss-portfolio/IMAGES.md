@@ -1,29 +1,29 @@
 # Images
 
-Every image slot in the site loads `assets/img/<file>.jpg`. Until the file is there, the page shows a labelled dashed placeholder, so the template works before any image is added.
+Every image slot loads `assets/img/<file>.webp`. If a file is missing, the page shows a labelled dashed placeholder instead.
 
-The 15 images below were generated in Magnific (Nano Banana Pro, 2K) and are in the **Personal** project of the Magnific account. To install one: open its link, download it, convert to JPG around 2000 px wide (quality 80), and save it under the file name shown.
+The 15 images below were generated in Magnific (Nano Banana Pro, 2K). They are downloaded, resized to 1800 px and saved as WebP in `assets/img/`. The originals stay in the Magnific Personal project.
 
-**These are generated visuals, not photographs of printed work.** For a job application, replace them with real photos of the printed cartons as soon as you have them. Generated models also draw logos only approximately, so check each logo before publishing. The real logo files are in `assets/logos/` and are used on the site as they are.
+**These are generated visuals, not photographs of printed work.** The logos and Latin text came out close, but the Arabic text on the packs is not real Arabic. Replace the images with real photos of the printed cartons when you have them, under the same file names. The real logo files are in `assets/logos/`.
 
 | File | Used on | Magnific link |
 |---|---|---|
-| `evolab-hero.jpg` | Home card, Evolab hero | https://www.magnific.com/app/creation/iGBU77F3uK |
-| `evolab-face.jpg` | Evolab gallery | https://www.magnific.com/app/creation/u5Joh6cQLD |
-| `evolab-strengths.jpg` | Evolab gallery | https://www.magnific.com/app/creation/P3DLUmy42C |
-| `evolab-blister.jpg` | Evolab gallery | https://www.magnific.com/app/creation/iGBUPqM3uK |
-| `evolab-stand.jpg` | Evolab gallery | https://www.magnific.com/app/creation/Bh1WMP9oQR |
-| `natural-hero.jpg` | Home card, Natural Solution hero | https://www.magnific.com/app/creation/LwAFK8xswO |
-| `natural-bottle.jpg` | Natural Solution gallery | https://www.magnific.com/app/creation/JNTrlFzOq4 |
-| `natural-print.jpg` | Natural Solution gallery | https://www.magnific.com/app/creation/SyY5xHjUb8 |
-| `nskin-range.jpg` | Natural Solution gallery | https://www.magnific.com/app/creation/4RpswgH9Aa |
-| `laformul-hero.jpg` | Home card, Laformul hero | https://www.magnific.com/app/creation/iGBUy4q3uK |
-| `bioformul-range.jpg` | Laformul gallery | https://www.magnific.com/app/creation/vQgpovWa47 |
-| `laformul-emboss.jpg` | Laformul gallery | https://www.magnific.com/app/creation/dtKnVtlXSL |
-| `film-nskin.jpg` | Home film row, Natural Solution gallery | https://www.magnific.com/app/creation/IfjTdQ4tvE |
-| `film-set.jpg` | Home film row | https://www.magnific.com/app/creation/rgREbN8xtc |
-| `film-reel.jpg` | Home film row | https://www.magnific.com/app/creation/SyY5jYTUb8 |
-| `portrait.jpg` | About | Not generated. Use a real professional photo. |
+| `evolab-hero.webp` | Home card, Evolab hero | https://www.magnific.com/app/creation/iGBU77F3uK |
+| `evolab-face.webp` | Evolab gallery | https://www.magnific.com/app/creation/u5Joh6cQLD |
+| `evolab-strengths.webp` | Evolab gallery | https://www.magnific.com/app/creation/P3DLUmy42C |
+| `evolab-blister.webp` | Evolab gallery | https://www.magnific.com/app/creation/iGBUPqM3uK |
+| `evolab-stand.webp` | Evolab gallery | https://www.magnific.com/app/creation/Bh1WMP9oQR |
+| `natural-hero.webp` | Home card, Natural Solution hero | https://www.magnific.com/app/creation/LwAFK8xswO |
+| `natural-bottle.webp` | Natural Solution gallery | https://www.magnific.com/app/creation/JNTrlFzOq4 |
+| `natural-print.webp` | Natural Solution gallery | https://www.magnific.com/app/creation/SyY5xHjUb8 |
+| `nskin-range.webp` | Natural Solution gallery | https://www.magnific.com/app/creation/4RpswgH9Aa |
+| `laformul-hero.webp` | Home card, Laformul hero | https://www.magnific.com/app/creation/iGBUy4q3uK |
+| `bioformul-range.webp` | Laformul gallery | https://www.magnific.com/app/creation/vQgpovWa47 |
+| `laformul-emboss.webp` | Laformul gallery | https://www.magnific.com/app/creation/dtKnVtlXSL |
+| `film-nskin.webp` | Home film row, Natural Solution gallery | https://www.magnific.com/app/creation/IfjTdQ4tvE |
+| `film-set.webp` | Home film row | https://www.magnific.com/app/creation/rgREbN8xtc |
+| `film-reel.webp` | Home film row | https://www.magnific.com/app/creation/SyY5jYTUb8 |
+| `portrait.webp` | About | Not generated. Add a real professional photo. |
 
 ## Prompts
 

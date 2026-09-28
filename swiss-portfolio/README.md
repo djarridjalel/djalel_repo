@@ -15,7 +15,7 @@ A static site: HTML, one stylesheet and one small script, with no build step. Op
 
 ## Still to add
 
-- **Images:** see `IMAGES.md`. Each file goes in `assets/img/`. Missing files show a labelled placeholder.
+- **Portrait:** add a real photo as `assets/img/portrait.webp`. The other images are in place; see `IMAGES.md`.
 - **CV PDFs:** `assets/cv/djarri-cv-en.pdf` and `assets/cv/djarri-cv-fr.pdf`.
 - **Yellow-highlighted text:** every `class="fill"` span is a fact to supply (dates, language levels, team sizes, results, reference names, LinkedIn URL). Search for `class="fill"` and remove the class once the text is real.
 - **French version:** the language switch is a label for now. Add a `fr/` folder with the same pages.
