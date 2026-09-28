@@ -378,10 +378,10 @@ a{color:inherit;}
      here, as on the other posters, the picture is cropped - to the four
      Laformul packs, Niacinamide to Emulsion. The frame is a fixed ratio
      rather than a share of the poster, so the cut is the same at every
-     phone width: 38% of the picture's width, from .568 - in the gap
-     between the LipOmega carton (ends .563) and the serum (starts .585) -
-     to .948, past the Emulsion carton (ends .919). */
-  .poster-pano .poster-photo{aspect-ratio:.896; max-height:none; object-position:91.6% 100%;}
+     phone width: 32% of the picture's width, from .645 - in the gap
+     between the LipOmega carton (ends .637) and the serum (starts .654) -
+     to .965, past the Emulsion carton (ends .933). */
+  .poster-pano .poster-photo{aspect-ratio:.755; max-height:none; object-position:94.85% 100%;}
 }
 
 /* the client's own mark, oversized and cropped — the hero's device,
