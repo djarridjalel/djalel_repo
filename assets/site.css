@@ -1623,7 +1623,10 @@ a{color:inherit;}
 .plate-wide img{aspect-ratio:16/9; object-fit:cover;}
 .plate-pair{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:clamp(16px,2.2vw,30px);}
 .plate-pair img{aspect-ratio:4/3; object-fit:cover;}
-@media (max-width:700px){ .plate-pair{grid-template-columns:1fr;} }
+/* A landscape and a portrait side by side, at one height and uncropped:
+   3:2 beside 2:3 are level when the columns are 9:4. */
+.plate-duo{display:grid; grid-template-columns:minmax(0,9fr) minmax(0,4fr); gap:clamp(16px,2.2vw,30px); align-items:start;}
+@media (max-width:700px){ .plate-pair, .plate-duo{grid-template-columns:1fr;} }
 .plates figcaption{
   margin-top:12px;
   font-family:var(--mono); font-size:.62rem; letter-spacing:.14em;
@@ -2161,6 +2164,7 @@ html[lang="ar"]{
 [lang="ar"] .idx-sector,
 [lang="ar"] .lineage figcaption,
 [lang="ar"] .plate-pair figcaption,
+[lang="ar"] .plate-duo figcaption,
 [lang="ar"] .plate-wide figcaption,
 [lang="ar"] .range figcaption,
 [lang="ar"] .facts .k,
