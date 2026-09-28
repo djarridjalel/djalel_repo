@@ -238,3 +238,15 @@ figcaption.lbl { margin-top: 10px; color: var(--muted); }
 @media (max-width: 900px) { .contact-grid .pitch, .contact-grid .contact-list { grid-column: 1 / -1; } .status-row { grid-template-columns: 1fr 1fr; } }
 
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* Shelf strip: product renders on a light ground */
+.shelf { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 16px; }
+.shelf .shot { background: #fff; }
+.shelf .shot img { object-fit: contain; }
+@media (max-width: 1000px) { .shelf { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .shelf { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* Portrait-format sources placed in landscape slots */
+.shot img[src*="evolab-face"] { object-fit: contain; background: #ecebe7; }
+.shot img[src*="film-nskin"] { object-position: 50% 25%; }
+.shot img[src*="film-set"], .shot img[src*="film-reel"] { object-position: 50% 40%; }

@@ -1,14 +1,40 @@
 # Images
 
-Every image slot in the site loads `assets/img/<file>.jpg`. Until the file is there, the page shows a labelled dashed placeholder, so the template works before any image is added.
+Every image slot loads `assets/img/<file>.webp`. If a file is missing, the page shows a labelled dashed placeholder instead.
 
-The 15 images below were generated in Magnific (Nano Banana Pro, 2K) and are in the **Personal** project of the Magnific account. To install one: open its link, download it, convert to JPG around 2000 px wide (quality 80), and save it under the file name shown.
+## In use now
 
-**These are generated visuals, not photographs of printed work.** For a job application, replace them with real photos of the printed cartons as soon as you have them. Generated models also draw logos only approximately, so check each logo before publishing. The real logo files are in `assets/logos/` and are used on the site as they are.
+The images come from the existing portfolio branch (`claude/file-review-x8u3gi`, folders `assets/work`, `assets/archive` and `assets/shelf`):
+
+| Slot | Source |
+|---|---|
+| evolab-hero | work/evolab-poster |
+| evolab-face | work/comm-production (Xyline dieline) |
+| evolab-strengths | work/evolab-range |
+| evolab-blister | work/evolab-detail |
+| evolab-stand | work/evolab-booth |
+| natural-hero | work/natural-range |
+| natural-bottle | work/natural-detail |
+| natural-print | work/natural-catalogue |
+| nskin-range | work/nskin-range |
+| laformul-hero | work/laformul-range |
+| bioformul-range | work/laformul-system |
+| laformul-emboss | work/laformul-detail |
+| film-nskin | work/comm-sub-brand |
+| film-set | archive/film |
+| film-reel | work/comm-campaign |
+| shelf-p05 … shelf-p30 | shelf/p05, p09, p10, p22, p18, p30 |
+| portrait | none yet: add a real professional photo as `portrait.webp` |
+
+To swap one, save the new file under the same slot name.
+
+## Alternative set generated on 2026-09-28
+
+These 15 were generated but are not used on the site. They are kept in the Magnific Personal project.
 
 | File | Used on | Magnific link |
 |---|---|---|
-| `evolab-hero.jpg` | Home card, Evolab hero | https://www.magnific.com/app/creation/iGBU77F3uK |
+| `evolab-hero` | Home card, Evolab hero | https://www.magnific.com/app/creation/iGBU77F3uK |
 | `evolab-face.jpg` | Evolab gallery | https://www.magnific.com/app/creation/u5Joh6cQLD |
 | `evolab-strengths.jpg` | Evolab gallery | https://www.magnific.com/app/creation/P3DLUmy42C |
 | `evolab-blister.jpg` | Evolab gallery | https://www.magnific.com/app/creation/iGBUPqM3uK |
