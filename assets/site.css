@@ -348,6 +348,42 @@ a{color:inherit;}
   }
 }
 
+/* A panorama opener (Laformul). The photograph is 3.4:1, and cover would
+   fill a 1.9:1 poster by cutting nearly half its width away, both ranges'
+   end packs with it. So it runs whole, edge to edge along the foot of the
+   poster, and the type sits above it on the photograph's own backdrop:
+   the image's top edge is one flat grey, and the poster is painted that
+   grey, so the join does not show and the type still reads as set on the
+   picture. The tallest pack, the Emulsion carton, stands at the right
+   end, under the Arabic column, and needs clearance. No scrim - flat
+   grey under ink needs none (eyebrow 6.3:1, tension 7.5:1, headline 11:1;
+   the headline's gold hover 4:1, above the 3:1 its size needs). */
+.poster-pano{
+  background:#C1C1C1;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  align-items:flex-start;     /* the poster's align-items:end is right, here */
+  padding-bottom:0;
+}
+.poster-pano::after{display:none;}
+.poster-pano .poster-photo{
+  position:relative; inset:auto; order:1;
+  width:calc(100% + 2 * var(--edge)); max-width:none; height:auto;
+  margin:clamp(20px, 2.4vw, 40px) calc(-1 * var(--edge)) 0;
+  aspect-ratio:2400 / 703; object-fit:fill;
+}
+/* Left to right, the column stands over the BioFormul end, whose packs
+   start a third of the way down the frame: the strip can rise under the
+   type there. The Arabic column stands over the Emulsion carton, so it
+   keeps the gap. */
+@media (min-width:861px){
+  html:not([dir="rtl"]) .poster-pano .poster-photo{margin-top:-4vw;}
+}
+@media (max-width:860px){
+  /* A strip this wide is short on a phone; the poster shrinks to it
+     rather than padding it out with grey. */
+  .poster-pano{min-height:0;}
+}
+
 /* the client's own mark, oversized and cropped — the hero's device,
    applied to someone else's identity */
 .poster-mark{
