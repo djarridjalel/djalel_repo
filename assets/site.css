@@ -348,40 +348,40 @@ a{color:inherit;}
   }
 }
 
-/* A panorama opener (Laformul). The photograph is 3.4:1, and cover would
-   fill a 1.9:1 poster by cutting nearly half its width away, both ranges'
-   end packs with it. So it runs whole, edge to edge along the foot of the
-   poster, and the type sits above it on the photograph's own backdrop:
-   the image's top edge is one flat grey, and the poster is painted that
-   grey, so the join does not show and the type still reads as set on the
-   picture. The tallest pack, the Emulsion carton, stands at the right
-   end, under the Arabic column, and needs clearance. No scrim - flat
-   grey under ink needs none (eyebrow 6.3:1, tension 7.5:1, headline 11:1;
-   the headline's gold hover 4:1, above the 3:1 its size needs). */
-.poster-pano{
-  background:#C1C1C1;
-  display:flex; flex-direction:column; justify-content:flex-end;
-  align-items:flex-start;     /* the poster's align-items:end is right, here */
-  padding-bottom:0;
-}
+/* The Laformul opener: a panorama of both ranges on a plinth, brought to
+   the posters' 2.36:1 by extending its own backdrop upward rather than by
+   cutting its sides - the top of the photograph is one flat #C1C1C1, and
+   so is this poster, so the join does not show anywhere.
+
+   It still fills the poster as the others do, but it is anchored to the
+   bottom and never wider than the poster: where the poster is narrower
+   than 2.36:1 the picture runs edge to edge and the poster's own grey
+   carries on above it, so no pack is ever cut off at the sides. Where it
+   is wider, cover trims backdrop off the top, nothing else.
+
+   The type goes where the photograph is empty - top left, over the
+   backdrop above the BioFormul end, whose packs stand lowest. In Arabic as
+   well: the Laformul end, where the mirror would put it, has the tallest
+   packs, and the headline would land on them. No scrim - flat grey under
+   ink needs none (eyebrow 6.3:1, tension 7.5:1, headline 11:1; the
+   headline's gold hover 4:1, above the 3:1 its size needs). */
+.poster-pano{background:#C1C1C1; align-items:start;}
 .poster-pano::after{display:none;}
 .poster-pano .poster-photo{
-  position:relative; inset:auto; order:1;
-  width:calc(100% + 2 * var(--edge)); max-width:none; height:auto;
-  margin:clamp(20px, 2.4vw, 40px) calc(-1 * var(--edge)) 0;
-  aspect-ratio:2400 / 703; object-fit:fill;
+  inset:auto 0 0 0; height:auto;
+  aspect-ratio:1584 / 672; max-height:100%;
+  object-position:50% 100%;
 }
-/* Left to right, the column stands over the BioFormul end, whose packs
-   start a third of the way down the frame: the strip can rise under the
-   type there. The Arabic column stands over the Emulsion carton, so it
-   keeps the gap. */
-@media (min-width:861px){
-  html:not([dir="rtl"]) .poster-pano .poster-photo{margin-top:-4vw;}
-}
+[dir="rtl"] .poster-pano .poster-body{justify-self:end;}
 @media (max-width:860px){
-  /* A strip this wide is short on a phone; the poster shrinks to it
-     rather than padding it out with grey. */
-  .poster-pano{min-height:0;}
+  /* A phone cannot hold the whole range at a size worth looking at, so
+     here, as on the other posters, the picture is cropped - to the four
+     Laformul packs, Niacinamide to Emulsion. The frame is a fixed ratio
+     rather than a share of the poster, so the cut is the same at every
+     phone width: 38% of the picture's width, from .568 - in the gap
+     between the LipOmega carton (ends .563) and the serum (starts .585) -
+     to .948, past the Emulsion carton (ends .919). */
+  .poster-pano .poster-photo{aspect-ratio:.896; max-height:none; object-position:91.6% 100%;}
 }
 
 /* the client's own mark, oversized and cropped — the hero's device,
