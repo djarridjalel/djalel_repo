@@ -348,40 +348,46 @@ a{color:inherit;}
   }
 }
 
-/* The Laformul opener: a panorama of both ranges on a plinth, brought to
-   the posters' 2.36:1 by extending its own backdrop upward rather than by
-   cutting its sides - the top of the photograph is one flat #C1C1C1, and
-   so is this poster, so the join does not show anywhere.
+/* The Laformul opener: a 4.1:1 panorama of both ranges on a plinth, shot
+   with its left third left empty for the type. It runs whole, full width,
+   along the foot of the poster, and the poster is only as tall as the
+   picture - or as the type, where that is taller, and then the poster's
+   #C1C1C1, the picture's own flat backdrop, continues above it without a
+   join. Cover would have cut the range's ends off; stretching the poster
+   to the other openers' height would have put a band of empty grey over
+   the packs.
 
-   It still fills the poster as the others do, but it is anchored to the
-   bottom and never wider than the poster: where the poster is narrower
-   than 2.36:1 the picture runs edge to edge and the poster's own grey
-   carries on above it, so no pack is ever cut off at the sides. Where it
-   is wider, cover trims backdrop off the top, nothing else.
-
-   The type goes where the photograph is empty - top left, over the
-   backdrop above the BioFormul end, whose packs stand lowest. In Arabic as
-   well: the Laformul end, where the mirror would put it, has the tallest
-   packs, and the headline would land on them. No scrim - flat grey under
-   ink needs none (eyebrow 6.3:1, tension 7.5:1, headline 11:1; the
-   headline's gold hover 4:1, above the 3:1 its size needs). */
-.poster-pano{background:#C1C1C1; align-items:start;}
-.poster-pano::after{display:none;}
-.poster-pano .poster-photo{
-  inset:auto 0 0 0; height:auto;
-  aspect-ratio:1584 / 672; max-height:100%;
-  object-position:50% 100%;
+   The type sits top left, over that empty third, in Arabic as well: the
+   mirrored position is over the Laformul end, the tallest packs. No scrim -
+   flat grey under ink needs none (eyebrow 6.3:1, tension 7.5:1, headline
+   11:1; the headline's gold hover 4:1, above the 3:1 its size needs). */
+.poster-pano{
+  background:#C1C1C1; align-items:start;
+  min-height:calc(100vw * 586 / 2400);
 }
+.poster-pano::after{display:none;}
+.poster-pano .poster-photo{inset:auto 0 0 0; height:auto; aspect-ratio:2400 / 586;}
 [dir="rtl"] .poster-pano .poster-body{justify-self:end;}
+/* The empty third ends where the plinth's first pack starts, at .368 of
+   the width: the column stops short of it, with a gap. */
+.poster-pano .poster-body{max-width:min(44ch, calc(34vw - var(--edge)));}
+/* Below 1200px that third is too narrow for the type, so the type stands
+   above the picture instead of on it, and the poster grows to hold both. */
+@media (min-width:861px) and (max-width:1199px){
+  .poster-pano{min-height:0; padding-bottom:calc(100% * 586 / 2400 * .866 + 16px);}  /* the picture's top 13.4% is flat backdrop */
+  .poster-pano .poster-body{max-width:min(100%, 44ch);}
+}
 @media (max-width:860px){
   /* A phone cannot hold the whole range at a size worth looking at, so
      here, as on the other posters, the picture is cropped - to the four
-     Laformul packs, Niacinamide to Emulsion. The frame is a fixed ratio
-     rather than a share of the poster, so the cut is the same at every
-     phone width: 32% of the picture's width, from .645 - in the gap
-     between the LipOmega carton (ends .637) and the serum (starts .654) -
-     to .965, past the Emulsion carton (ends .933). */
-  .poster-pano .poster-photo{aspect-ratio:.755; max-height:none; object-position:94.85% 100%;}
+     Laformul packs, Niacinamide to Emulsion - and set below the type.
+     The frame is a fixed ratio, so the cut is the same at every phone
+     width: 32% of the picture's width, from .645 - in the gap between the
+     LipOmega carton (ends .637) and the serum (starts .654) - to .965,
+     past the Emulsion carton (ends .933). */
+  .poster-pano{min-height:0; padding-bottom:calc(100% / 1.311 + 24px);}
+  .poster-pano .poster-body{max-width:min(100%, 44ch);}
+  .poster-pano .poster-photo{aspect-ratio:1.311; object-position:94.85% 100%;}
 }
 
 /* the client's own mark, oversized and cropped — the hero's device,
