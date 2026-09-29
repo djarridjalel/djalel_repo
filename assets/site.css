@@ -348,8 +348,8 @@ a{color:inherit;}
   }
 }
 
-/* The Laformul opener: a 4.1:1 panorama of both ranges on a plinth, shot
-   with its left third left empty for the type. It runs whole, full width,
+/* The Laformul and Natural Solution openers: 4.1:1 panoramas of each
+   range on a plinth, shot with the left third left empty for the type. It runs whole, full width,
    along the foot of the poster, and the poster is only as tall as the
    picture - or as the type, where that is taller, and then the poster's
    #C1C1C1, the picture's own flat backdrop, continues above it without a
@@ -358,7 +358,7 @@ a{color:inherit;}
    the packs.
 
    The type sits top left, over that empty third, in Arabic as well: the
-   mirrored position is over the Laformul end, the tallest packs. No scrim -
+   mirrored position is over the packs. No scrim -
    flat grey under ink needs none (eyebrow 6.3:1, tension 7.5:1, headline
    11:1; the headline's gold hover 4:1, above the 3:1 its size needs). */
 .poster-pano{
@@ -368,8 +368,9 @@ a{color:inherit;}
 .poster-pano::after{display:none;}
 .poster-pano .poster-photo{inset:auto 0 0 0; height:auto; aspect-ratio:2400 / 586;}
 [dir="rtl"] .poster-pano .poster-body{justify-self:end;}
-/* The empty third ends where the plinth's first pack starts, at .368 of
-   the width: the column stops short of it, with a gap. */
+/* The empty third ends where the plinth's first pack starts - .368 of
+   the width on Laformul, .373 on Natural Solution: the column stops short
+   of it, with a gap. */
 .poster-pano .poster-body{max-width:min(44ch, calc(34vw - var(--edge)));}
 /* Below 1200px that third is too narrow for the type, so the type stands
    above the picture instead of on it, and the poster grows to hold both. */
@@ -379,15 +380,20 @@ a{color:inherit;}
 }
 @media (max-width:860px){
   /* A phone cannot hold the whole range at a size worth looking at, so
-     here, as on the other posters, the picture is cropped - to the four
-     Laformul packs, Niacinamide to Emulsion - and set below the type.
-     The frame is a fixed ratio, so the cut is the same at every phone
-     width: 32% of the picture's width, from .645 - in the gap between the
-     LipOmega carton (ends .637) and the serum (starts .654) - to .965,
-     past the Emulsion carton (ends .933). */
-  .poster-pano{min-height:0; padding-bottom:calc(100% / 1.311 + 24px);}
+     here, as on the other posters, the picture is cropped, and set below
+     the type. The frame is a fixed ratio, so the cut is the same at every
+     phone width, and both cuts fall in gaps measured on the photograph:
+       Laformul - the four Laformul packs, Niacinamide to Emulsion: 32% of
+         the width, from .645 (LipOmega ends .637, the serum starts .654)
+         to .965 (the Emulsion carton ends .933).
+       Natural Solution - HyaluCare, the PodoCare stack and Heat/Freeze:
+         29%, from .365 (HyaluCare starts .373) to .655 (Heat/Freeze ends
+         .651, HyaluAphtes starts .660). */
+  .pano-laformul{--crop-ratio:1.311; --crop-at:94.85%;}
+  .pano-natural{--crop-ratio:1.188; --crop-at:51.4%;}
+  .poster-pano{min-height:0; padding-bottom:calc(100% / var(--crop-ratio) + 24px);}
   .poster-pano .poster-body{max-width:min(100%, 44ch);}
-  .poster-pano .poster-photo{aspect-ratio:1.311; object-position:94.85% 100%;}
+  .poster-pano .poster-photo{aspect-ratio:var(--crop-ratio); object-position:var(--crop-at) 100%;}
 }
 
 /* the client's own mark, oversized and cropped — the hero's device,
