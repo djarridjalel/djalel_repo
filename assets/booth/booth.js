@@ -69,8 +69,8 @@ function init(){
     'Campaigns · Xyline roll-up': 'الحملات · لافتة Xyline',
     'The launch roll-up: the carton, its chevron and the campaign\u2019s key visual carried to two metres of print, beside the Evolab one.':
       'لافتة الإطلاق: العلبة وشيفرونها والصورة الرئيسية للحملة منقولةً إلى مترين من الطباعة، بجانب لافتة Evolab.',
-    'The launch film on the stand\u2019s screen, shot on Evolab\u2019s own production line: the brand shown where the product is made.':
-      'فيلم الإطلاق على شاشة الجناح، مصوَّر على خط إنتاج Evolab نفسه: العلامة معروضةً حيث يُصنع المنتج.'
+    'The studio\u2019s showreel on the stand\u2019s screen: identity, packaging, campaigns, web and film, in one minute.':
+      'عرض أعمال الاستوديو على شاشة الجناح: الهوية والتغليف والحملات والويب والأفلام، في دقيقة واحدة.'
   } : null;
   /* the desk's captions are built per flyer, so they are built per language */
   const AR_DCI = { Xyline:'دوكسيسيكلين 100 ملغ', Esoprotect:'إيزوميبرازول 40 ملغ و20 ملغ', Lansoprotect:'لانسوبرازول 30 ملغ',
@@ -746,7 +746,7 @@ function init(){
   const SCREEN = {
     box:new THREE.Box3(), n:new THREE.Vector3(), W:1, H:1, mesh:null,
     fillH:0.62, fillW:0.72, tilt:0, orbit:false, spread:false,
-    cap:{ k:'Campaigns · Film', v:'The launch film on the stand\u2019s screen, shot on Evolab\u2019s own production line: the brand shown where the product is made.' },
+    cap:{ k:'Campaigns · Film', v:'The studio\u2019s showreel on the stand\u2019s screen: identity, packaging, campaigns, web and film, in one minute.' },
     blur:1 / 3,
     corridor:'all'                                            // on a phone the camera stands far back; nothing may block the screen
   };

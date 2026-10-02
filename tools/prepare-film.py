@@ -16,6 +16,10 @@ what the page needs from one source file:
 The screen is 1.79:1, a hair wider than 16:9, so a 16:9 source fills it with
 a sliver cropped top and bottom rather than being stretched.
 
+Frames go out at 30 a second: an even divisor of 60, the rate showreels are
+usually cut at, so every second frame is kept and motion graphics do not
+judder the way 60 -> 25 makes them.
+
 Needs ffmpeg: on PATH, or `pip install imageio-ffmpeg`.
 
 Usage:  python3 tools/prepare-film.py SOURCE [--still SECONDS]
@@ -52,7 +56,7 @@ def main():
     fill = 'scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setsar=1'
 
     film = OUT / 'screen-film.mp4'
-    run('-i', src, '-vf', fill.format(w=1280, h=720), '-r', '25',
+    run('-i', src, '-vf', fill.format(w=1280, h=720), '-r', '30',
         '-c:v', 'libx264', '-profile:v', 'high', '-preset', 'slow', '-crf', '24', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '128k', '-ac', '2', '-movflags', '+faststart', str(film))
 
@@ -61,7 +65,7 @@ def main():
         '-c:v', 'libwebp', '-quality', '82', str(still))
 
     preview = ROOT / 'tools' / '.film-preview.mp4'
-    run('-i', src, '-vf', fill.format(w=640, h=360), '-r', '24',
+    run('-i', src, '-vf', fill.format(w=640, h=360), '-r', '30',
         '-c:v', 'libx264', '-preset', 'slow', '-crf', '32', '-pix_fmt', 'yuv420p',
         '-c:a', 'aac', '-b:a', '64k', '-ac', '1', '-movflags', '+faststart', str(preview))
 
