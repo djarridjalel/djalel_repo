@@ -16,7 +16,11 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 PAGES = ['index.html', 'about.html', 'archive.html', 'contact.html', 'editor.html',
          'work/evolab.html', 'work/natural-solution.html', 'work/laformul.html']
 ASSETS = ['assets/site.css', 'assets/site.js', 'assets/content.js', 'assets/logo3d.js',
-          'assets/booth/booth.js']
+          'assets/booth/booth.js',
+          # the stand's screen film keeps its name when it is replaced, and
+          # nothing tells a browser how long to keep a video - so it is
+          # stamped too, still and all
+          'assets/booth/screen-film.mp4', 'assets/booth/screen-film-still.webp']
 
 def short(rel):
     return hashlib.sha256((ROOT / rel).read_bytes()).hexdigest()[:8]
