@@ -608,8 +608,14 @@ function init(){
     }
     return x >= x0 && x <= x1 && y >= y0 && y <= y1;
   }
+  /* A press made while the film's controls are hidden only brings them back,
+     as on any video player: on a touch screen there is no hover to do it,
+     and the tap would otherwise fall through to the screen, where it means
+     "go back", and end the close-up the viewer was watching. */
+  let pressWoke = false;
   stage.addEventListener('pointerdown', e => {
     if (e.button !== 0) return;
+    pressWoke = hero.classList.contains('film-idle');
     const onSpot = e.target.closest && e.target.closest('.bh-spot');
     if (!focus.on && !onSpot && !overStand(e.clientX, e.clientY)) return;   // not on the stand: leave it to the page
     /* capture, so the release is heard even outside the stage or the frame */
@@ -661,7 +667,7 @@ function init(){
     dragging = false;
     stage.classList.remove('dragging');
     if (click && moved < 6){
-      if (focus.on) leaveFocus();
+      if (focus.on){ if (!pressWoke) leaveFocus(); }
       else {
         if (downSpot) spotHover(+downSpot.dataset.zone);       // a dot answers for its zone
         else if (e.pointerType === 'touch') hitTest(e.clientX, e.clientY);
@@ -1143,7 +1149,24 @@ function init(){
       playBtn.setAttribute('aria-label', tr(st === 'playing' || st === 'loading' ? 'Pause the film' : 'Play the film'));
     }
     hero.classList.toggle('film-on', st === 'playing' || st === 'loading');
+    wake();
     kick();
+  }
+  /* While the film plays the button keeps out of the picture: it moves to
+     the screen's bottom corner (placePlay) and, once the pointer has been
+     still for two seconds, fades out altogether. Any movement brings it
+     back. Pressing play leaves the pointer resting on the button, so
+     without this the pause sat lit in the middle of the film. */
+  let idleTimer = 0;
+  function wake(){
+    clearTimeout(idleTimer);
+    hero.classList.remove('film-idle');
+    if (filmState === 'playing')
+      idleTimer = setTimeout(() => { if (filmState === 'playing') hero.classList.add('film-idle'); }, 2000);
+  }
+  if (FILM_SRC){
+    stage.addEventListener('pointermove', wake);
+    stage.addEventListener('pointerdown', wake);
   }
   function ensureFilm(){
     if (film) return film;
@@ -1179,8 +1202,27 @@ function init(){
   const _pc = new THREE.Vector3();
   function placePlay(){
     if (!playBtn || !SCREEN.mesh || focus.target !== SCREEN || focus.c < 0) return;
-    SCREEN.box.getCenter(_pc); table.localToWorld(_pc); _pc.project(camera);
-    const x = (_pc.x + 1) / 2 * canvas.clientWidth + canvasOffset, y = (1 - _pc.y) / 2 * stage.clientHeight;
+    /* in the middle of the screen until the film has started; from then on
+       in its bottom-left corner, clear of the picture */
+    const corner = filmState === 'playing' || filmState === 'loading' || filmState === 'paused';
+    playBtn.classList.toggle('corner', corner);
+    let x, y;
+    if (corner){
+      const b = SCREEN.box;
+      let x0 = Infinity, x1 = -Infinity, y0 = Infinity;
+      for (const cx of [b.min.x, b.max.x]) for (const cy of [b.min.y, b.max.y]) for (const cz of [b.min.z, b.max.z]){
+        _pc.set(cx, cy, cz); table.localToWorld(_pc); _pc.project(camera);
+        x0 = Math.min(x0, _pc.x); x1 = Math.max(x1, _pc.x); y0 = Math.min(y0, _pc.y);
+      }
+      /* the inset follows the screen's size on the page: 44px on a desktop,
+         tucked further in on a phone, where the screen is a fifth as wide */
+      const inset = THREE.MathUtils.clamp((x1 - x0) / 2 * canvas.clientWidth * 0.045, 24, 44);
+      x = (x0 + 1) / 2 * canvas.clientWidth + canvasOffset + inset;
+      y = (1 - y0) / 2 * stage.clientHeight - inset;
+    } else {
+      SCREEN.box.getCenter(_pc); table.localToWorld(_pc); _pc.project(camera);
+      x = (_pc.x + 1) / 2 * canvas.clientWidth + canvasOffset; y = (1 - _pc.y) / 2 * stage.clientHeight;
+    }
     playBtn.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
   }
   let hover = null, pointerIn = false, px = 0, py = 0;

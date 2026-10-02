@@ -340,9 +340,10 @@
 
   /* The film's play button. booth.js pins it to the middle of the screen in
      the screen's close-up and it arrives once the camera has; the film then
-     plays on the screen itself. While it plays the button steps back to a
-     faint pause, and comes up under the pointer; a ring turns while the
-     film is still arriving. */
+     plays on the screen itself. Once the film has started the button is
+     small and in the screen's bottom-left corner, out of the picture, and
+     while it plays it fades out after two seconds without the pointer
+     moving (.film-idle); a ring turns while the film is still arriving. */
   .bh-play{
     position:absolute; left:0; top:0; z-index:3;
     width:68px; height:68px; margin:-34px 0 0 -34px; padding:0;
@@ -350,11 +351,21 @@
     background:var(--accent); color:var(--ink);
     box-shadow:0 0 0 6px rgba(255,206,0,.22), 0 0 26px 6px rgba(255,206,0,.45), 0 10px 30px rgba(10,10,11,.25);
     opacity:0; pointer-events:none;
-    transition:opacity .4s ease, box-shadow .25s ease;
+    transition:opacity .4s ease, box-shadow .25s ease, width .3s ease, height .3s ease, margin .3s ease;
     -webkit-tap-highlight-color:transparent;
   }
   .bh.focused.screen .bh-play{opacity:1; pointer-events:auto; transition-delay:.9s, 0s;}
-  .bh.focused.screen.film-on .bh-play{opacity:.3; transition-delay:0s;}
+  .bh-play.corner{
+    width:44px; height:44px; margin:-22px 0 0 -22px;
+    box-shadow:0 0 0 4px rgba(255,206,0,.2), 0 6px 18px rgba(10,10,11,.25);
+  }
+  .bh-play.corner i{transform:scale(.68);}
+  @media (max-width:600px){
+    .bh-play.corner{width:34px; height:34px; margin:-17px 0 0 -17px;}
+    .bh-play.corner i{transform:scale(.52);}
+  }
+  .bh.focused.screen.film-on .bh-play{opacity:.85; transition-delay:0s;}
+  .bh.focused.screen.film-idle .bh-play:not(:focus-visible){opacity:0; pointer-events:none; transition-duration:.8s;}
   .bh.focused.screen .bh-play:hover,
   .bh.focused.screen .bh-play:focus-visible{opacity:1; box-shadow:0 0 0 8px rgba(255,206,0,.28), 0 0 34px 8px rgba(255,206,0,.55), 0 10px 30px rgba(10,10,11,.25);}
   .bh-play:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
@@ -367,6 +378,7 @@
     width:20px; height:22px; margin:-11px 0 0 -10px; clip-path:none;
     background:linear-gradient(90deg, currentColor 0 35%, transparent 35% 65%, currentColor 65% 100%);
   }
+  .bh-play.corner[data-state="loading"]::after{inset:-6px;}
   .bh-play[data-state="loading"]::after{
     content:""; position:absolute; inset:-9px; border-radius:50%;
     border:2px solid rgba(255,206,0,.9); border-right-color:transparent;
@@ -1345,6 +1357,6 @@
 <script src="assets/content.js?v=35cd74ca"></script>
 <script src="assets/site.js?v=dd442321" defer></script>
 <script src="assets/logo3d.js?v=9f1c4f07" defer></script>
-<script type="module" src="assets/booth/booth.js?v=cd8dd620"></script>
+<script type="module" src="assets/booth/booth.js?v=9aeabd6c"></script>
 </body>
 </html>
