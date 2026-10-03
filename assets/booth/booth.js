@@ -227,11 +227,11 @@ function init(){
   hero.classList.add('loading');
   /* The model is fetched at page load and set up the moment it arrives -
      parsed, lit, its shaders compiled - but the stand is only shown once
-     the headline's entrance is over (the page sets hero.introEnd): an early
-     model waits, ready, and comes in the instant the headline finishes; a
-     late one comes in as soon as it is here. */
+     two thirds of the headline's entrance has played (the page sets
+     hero.introShow): an early model waits, ready, and comes in at that
+     moment; a late one comes in as soon as it is here. */
   let shown = false;
-  const whenIntroDone = f => setTimeout(f, POSTER ? 0 : Math.max(0, (hero.introEnd || 0) - performance.now()));
+  const whenIntroDone = f => setTimeout(f, POSTER ? 0 : Math.max(0, (hero.introShow || hero.introEnd || 0) - performance.now()));
   loader.load(new URL('evolab-booth.glb', import.meta.url).href, onLoad, progress, () => {
     canvas.remove();                                          // keep the poster
     hero.classList.remove('loading');

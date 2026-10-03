@@ -63,7 +63,7 @@
   }
 }
 </script>
-<link rel="modulepreload" href="../assets/booth/booth.js?v=6d71ab11">
+<link rel="modulepreload" href="../assets/booth/booth.js?v=f3eac8bc">
 <link rel="modulepreload" href="../assets/vendor/three/three.module.min.js">
 <link rel="modulepreload" href="../assets/vendor/three/addons/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="../assets/vendor/three/addons/utils/BufferGeometryUtils.js">
@@ -690,6 +690,11 @@
   var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
   hero.classList.add('intro');
   hero.introEnd = performance.now() + (still ? 0 : 3000);
+  /* the stand comes in two thirds of the way through the headline's run:
+     from the first letter's start (850ms) to the last one settling
+     (its delay, 48ms a step, plus its own 850ms) */
+  var chs = h.querySelectorAll('.ch'), lastI = chs.length ? (AR ? (chs.length - 1) * 4 : chs.length - 1) : 0;
+  hero.introShow = performance.now() + (still ? 0 : 850 + (lastI * 48 + 850) * 2 / 3);
   setTimeout(function(){ hero.classList.remove('intro'); }, still ? 0 : 4100);   // done: the pointer's accent and the close-ups take over
   if(!matchMedia('(hover: hover) and (pointer: fine)').matches) return;
   var cache = null, frame = null, last = null;
@@ -1377,6 +1382,6 @@
 <script src="../assets/content.js?v=35cd74ca"></script>
 <script src="../assets/site.js?v=e366cbee" defer></script>
 <script src="../assets/logo3d.js?v=9f1c4f07" defer></script>
-<script type="module" src="../assets/booth/booth.js?v=6d71ab11"></script>
+<script type="module" src="../assets/booth/booth.js?v=f3eac8bc"></script>
 </body>
 </html>
