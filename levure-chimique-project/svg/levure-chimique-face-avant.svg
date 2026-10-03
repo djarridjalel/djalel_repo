@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+     width="146mm" height="218mm" viewBox="0 0 1460 2180">
+<title>Levure Chimique – Face avant</title>
+<!-- Pillow-pack face 140 x 212 mm (trim) + 3 mm bleed. 1 unit = 0.1 mm. Seal zones 12 mm top/bottom. -->
+<defs>
+  <radialGradient id="bg" gradientUnits="userSpaceOnUse" cx="730" cy="1300" r="1350">
+    <stop offset="0" stop-color="#FFC866"/>
+    <stop offset="0.12" stop-color="#F7A43F"/>
+    <stop offset="0.32" stop-color="#E06C28"/>
+    <stop offset="0.58" stop-color="#B43B20"/>
+    <stop offset="0.85" stop-color="#8A2618"/>
+    <stop offset="1" stop-color="#6E1C13"/>
+  </radialGradient>
+  <radialGradient id="rayGrad" gradientUnits="userSpaceOnUse" cx="730" cy="1300" r="1050">
+    <stop offset="0" stop-color="#FFF1C2" stop-opacity="0.38"/>
+    <stop offset="0.45" stop-color="#FFE3A0" stop-opacity="0.1"/>
+    <stop offset="1" stop-color="#FFE3A0" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="patternFade" gradientUnits="userSpaceOnUse" cx="730" cy="1300" r="1150">
+    <stop offset="0" stop-color="#000"/>
+    <stop offset="0.3" stop-color="#222"/>
+    <stop offset="0.75" stop-color="#fff"/>
+  </radialGradient>
+  <mask id="patternMask" maskUnits="userSpaceOnUse" x="0" y="0" width="1460" height="2180">
+    <rect width="1460" height="2180" fill="url(#patternFade)"/>
+  </mask>
+  <linearGradient id="goldText" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFF2BE"/>
+    <stop offset="0.3" stop-color="#F1D07C"/>
+    <stop offset="0.55" stop-color="#C9993E"/>
+    <stop offset="0.78" stop-color="#F6DE96"/>
+    <stop offset="1" stop-color="#AE812E"/>
+  </linearGradient>
+  <linearGradient id="goldStroke" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#F9E3A1"/>
+    <stop offset="0.5" stop-color="#C79A44"/>
+    <stop offset="1" stop-color="#F3D88E"/>
+  </linearGradient>
+  <radialGradient id="goldSeal" cx="0.4" cy="0.35" r="0.75">
+    <stop offset="0" stop-color="#FFF6CF"/>
+    <stop offset="0.5" stop-color="#EDCF88"/>
+    <stop offset="0.85" stop-color="#C69A45"/>
+    <stop offset="1" stop-color="#9C7230"/>
+  </radialGradient>
+  <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#EAD6A8"/>
+    <stop offset="0.5" stop-color="#FBF3DE"/>
+    <stop offset="1" stop-color="#E5CF9C"/>
+  </linearGradient>
+  <linearGradient id="creamBase" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#ECDDC3" stop-opacity="0"/>
+    <stop offset="0.25" stop-color="#ECDDC3" stop-opacity="1"/>
+    <stop offset="1" stop-color="#D8C19B" stop-opacity="1"/>
+  </linearGradient>
+  <pattern id="bakingPattern" patternUnits="userSpaceOnUse" width="480" height="480">
+    <g fill="none" stroke="#4A0F0A" stroke-opacity="0.3" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
+    <g transform="translate(80 80) rotate(-15) scale(0.9) translate(-50 -50)"><path d="M50 62 C30 42 31 12 50 6 C69 12 70 42 50 62 Z M50 62 C41 42 41 15 50 6 C59 15 59 42 50 62"/><rect x="44" y="62" width="12" height="34" rx="6"/></g>
+    <g transform="translate(240 70) rotate(10) scale(0.9) translate(-50 -50)"><path d="M50 96 V18"/><ellipse cx="41" cy="28" rx="6" ry="11" transform="rotate(-30 41 28)"/><ellipse cx="59" cy="28" rx="6" ry="11" transform="rotate(30 59 28)"/><ellipse cx="41" cy="44" rx="6" ry="11" transform="rotate(-30 41 44)"/><ellipse cx="59" cy="44" rx="6" ry="11" transform="rotate(30 59 44)"/><ellipse cx="41" cy="60" rx="6" ry="11" transform="rotate(-30 41 60)"/><ellipse cx="59" cy="60" rx="6" ry="11" transform="rotate(30 59 60)"/><ellipse cx="41" cy="76" rx="6" ry="11" transform="rotate(-30 41 76)"/><ellipse cx="59" cy="76" rx="6" ry="11" transform="rotate(30 59 76)"/><ellipse cx="50" cy="13" rx="5.5" ry="10"/></g>
+    <g transform="translate(400 90) rotate(-25) scale(0.9) translate(-50 -50)"><rect x="22" y="38" width="56" height="24" rx="10"/><path d="M22 50 H6 M78 50 H94"/><path d="M34 44 V56 M66 44 V56"/></g>
+    <g transform="translate(160 240) rotate(12) scale(0.9) translate(-50 -50)"><path d="M50 8 C74 8 86 58 80 74 C75 92 25 92 20 74 C14 58 26 8 50 8 Z"/></g>
+    <g transform="translate(320 245) rotate(-8) scale(0.9) translate(-50 -50)"><path d="M30 32 Q22 88 34 93 H66 Q78 88 70 32 Z"/><path d="M30 32 Q50 24 70 32"/><path d="M36 30 L31 14 M64 30 L69 14 M44 27 L46 12 M56 27 L54 12"/><path d="M50 78 V52 M50 58 l-6 -6 M50 58 l6 -6 M50 68 l-6 -6 M50 68 l6 -6"/></g>
+    <g transform="translate(0 235) rotate(6) scale(0.9) translate(-50 -50)"><path d="M8 44 H92 Q88 90 50 90 Q12 90 8 44 Z"/><path d="M14 58 H86"/><path d="M60 44 L78 10"/></g>
+    <g transform="translate(480 235) rotate(6) scale(0.9) translate(-50 -50)"><path d="M8 44 H92 Q88 90 50 90 Q12 90 8 44 Z"/><path d="M14 58 H86"/><path d="M60 44 L78 10"/></g>
+    <g transform="translate(80 400) rotate(-12) scale(0.9) translate(-50 -50)"><path d="M30 90 V46 Q30 14 55 14 Q76 14 76 40 V90 Z"/><path d="M30 58 Q12 54 14 38 Q18 26 30 36"/><path d="M27 78 H79"/></g>
+    <g transform="translate(240 405) rotate(25) scale(0.9) translate(-50 -50)"><circle cx="30" cy="50" r="16"/><path d="M46 50 H90"/><circle cx="90" cy="50" r="4"/></g>
+    <g transform="translate(400 395) rotate(-6) scale(0.9) translate(-50 -50)"><path d="M14 70 Q8 34 50 30 Q92 34 86 70 Z"/><path d="M14 70 H86"/><path d="M34 44 L41 60 M49 41 L56 58 M64 44 L71 60"/></g>
+    </g>
+  </pattern>
+</defs>
+<g id="Background" inkscape:groupmode="layer" inkscape:label="Background">
+<rect width="1460" height="2180" fill="url(#bg)"/>
+</g>
+<g id="Pattern_baking" inkscape:groupmode="layer" inkscape:label="Pattern_baking">
+<rect width="1460" height="2180" fill="url(#bakingPattern)" mask="url(#patternMask)"/>
+</g>
+<g id="Sun_rays" inkscape:groupmode="layer" inkscape:label="Sun_rays">
+<path d="M730 1300 L2529.2 1246.6 L2529.2 1353.4 Z M730 1300 L2521.3 1476.5 L2515.7 1526.5 Z M730 1300 L2496.0 1648.3 L2472.2 1752.4 Z M730 1300 L2437.1 1870.7 L2420.5 1918.2 Z M730 1300 L2374.2 2032.5 L2327.9 2128.8 Z M730 1300 L2267.3 2236.3 L2240.6 2278.8 Z M730 1300 L2170.0 2380.0 L2103.4 2463.5 Z M730 1300 L2020.4 2554.9 L1984.9 2590.4 Z M730 1300 L1893.5 2673.4 L1810.0 2740.0 Z M730 1300 L1708.8 2810.6 L1666.3 2837.3 Z M730 1300 L1558.8 2897.9 L1462.5 2944.2 Z M730 1300 L1348.2 2990.5 L1300.7 3007.1 Z M730 1300 L1182.4 3042.2 L1078.3 3066.0 Z M730 1300 L956.5 3085.7 L906.5 3091.3 Z M730 1300 L783.4 3099.2 L676.6 3099.2 Z M730 1300 L553.5 3091.3 L503.5 3085.7 Z M730 1300 L381.7 3066.0 L277.6 3042.2 Z M730 1300 L159.3 3007.1 L111.8 2990.5 Z M730 1300 L-2.5 2944.2 L-98.8 2897.9 Z M730 1300 L-206.3 2837.3 L-248.8 2810.6 Z M730 1300 L-350.0 2740.0 L-433.5 2673.4 Z M730 1300 L-524.9 2590.4 L-560.4 2554.9 Z M730 1300 L-643.4 2463.5 L-710.0 2380.0 Z M730 1300 L-780.6 2278.8 L-807.3 2236.3 Z M730 1300 L-867.9 2128.8 L-914.2 2032.5 Z M730 1300 L-960.5 1918.2 L-977.1 1870.7 Z M730 1300 L-1012.2 1752.4 L-1036.0 1648.3 Z M730 1300 L-1055.7 1526.5 L-1061.3 1476.5 Z M730 1300 L-1069.2 1353.4 L-1069.2 1246.6 Z M730 1300 L-1061.3 1123.5 L-1055.7 1073.5 Z M730 1300 L-1036.0 951.7 L-1012.2 847.6 Z M730 1300 L-977.1 729.3 L-960.5 681.8 Z M730 1300 L-914.2 567.5 L-867.9 471.2 Z M730 1300 L-807.3 363.7 L-780.6 321.2 Z M730 1300 L-710.0 220.0 L-643.4 136.5 Z M730 1300 L-560.4 45.1 L-524.9 9.6 Z M730 1300 L-433.5 -73.4 L-350.0 -140.0 Z M730 1300 L-248.8 -210.6 L-206.3 -237.3 Z M730 1300 L-98.8 -297.9 L-2.5 -344.2 Z M730 1300 L111.8 -390.5 L159.3 -407.1 Z M730 1300 L277.6 -442.2 L381.7 -466.0 Z M730 1300 L503.5 -485.7 L553.5 -491.3 Z M730 1300 L676.6 -499.2 L783.4 -499.2 Z M730 1300 L906.5 -491.3 L956.5 -485.7 Z M730 1300 L1078.3 -466.0 L1182.4 -442.2 Z M730 1300 L1300.7 -407.1 L1348.2 -390.5 Z M730 1300 L1462.5 -344.2 L1558.8 -297.9 Z M730 1300 L1666.3 -237.3 L1708.8 -210.6 Z M730 1300 L1810.0 -140.0 L1893.5 -73.4 Z M730 1300 L1984.9 9.6 L2020.4 45.1 Z M730 1300 L2103.4 136.5 L2170.0 220.0 Z M730 1300 L2240.6 321.2 L2267.3 363.7 Z M730 1300 L2327.9 471.2 L2374.2 567.5 Z M730 1300 L2420.5 681.8 L2437.1 729.3 Z M730 1300 L2472.2 847.6 L2496.0 951.7 Z M730 1300 L2515.7 1073.5 L2521.3 1123.5 Z" fill="url(#rayGrad)"/>
+</g>
+<g id="Cream_base" inkscape:groupmode="layer" inkscape:label="Cream_base">
+<rect x="0" y="1560" width="1460" height="620" fill="url(#creamBase)"/>
+</g>
+<g id="Cake_image_placeholder" inkscape:groupmode="layer" inkscape:label="Cake_image_placeholder">
+<rect x="230" y="1290" width="1000" height="720" rx="40" fill="#FFFFFF" fill-opacity="0.08" stroke="#FFF4DC" stroke-width="4" stroke-dasharray="20 14"/><text x="730" y="1660" font-family="Montserrat, Arial, sans-serif" font-size="46" font-weight="700" fill="#7A4A2A" text-anchor="middle">IMAGE DU GÂTEAU</text><text x="730" y="1712" font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="400" fill="#7A4A2A" text-anchor="middle">(gâteau + plateau, à placer ici)</text>
+</g>
+<g id="Logo_placeholder" inkscape:groupmode="layer" inkscape:label="Logo_placeholder">
+<rect x="545" y="190" width="370" height="270" rx="16" fill="#FFFFFF" fill-opacity="0.06" stroke="#E9C77A" stroke-width="4" stroke-dasharray="18 12"/><text x="730.0" y="335.0" font-family="Montserrat, Arial, sans-serif" font-size="64" font-weight="700" fill="#E9C77A" text-anchor="middle">LOGO</text><text x="730.0" y="377.0" font-family="Montserrat, Arial, sans-serif" font-size="24" font-weight="400" fill="#E9C77A" text-anchor="middle">Placer le logo ici</text>
+</g>
+<g id="Badge_Sans_Gluten" inkscape:groupmode="layer" inkscape:label="Badge_Sans_Gluten">
+<path d="M1150 0 H1320 V470 L1235 528 L1150 470 Z" fill="url(#ribbon)" stroke="url(#goldStroke)" stroke-width="5"/><path d="M1164 0 V462 L1235 512 L1306 462 V0" fill="none" stroke="#C79A44" stroke-width="2.5"/><g fill="none" stroke="#5A1A10" stroke-width="6" stroke-linecap="round"><circle cx="1235" cy="300" r="54"/><path d="M1235 338 V270"/></g><g fill="#5A1A10"><ellipse cx="1226" cy="278" rx="6" ry="11" transform="rotate(-30 1226 278)"/><ellipse cx="1244" cy="278" rx="6" ry="11" transform="rotate(30 1244 278)"/><ellipse cx="1226" cy="294" rx="6" ry="11" transform="rotate(-30 1226 294)"/><ellipse cx="1244" cy="294" rx="6" ry="11" transform="rotate(30 1244 294)"/><ellipse cx="1226" cy="310" rx="6" ry="11" transform="rotate(-30 1226 310)"/><ellipse cx="1244" cy="310" rx="6" ry="11" transform="rotate(30 1244 310)"/><ellipse cx="1235" cy="264" rx="5.5" ry="10"/></g><path d="M1197 338 L1273 262" stroke="#5A1A10" stroke-width="7" stroke-linecap="round"/><text x="1235" y="405" font-family="Montserrat, Arial, sans-serif" font-size="32" font-weight="800" fill="#5A1A10" text-anchor="middle">SANS</text><text x="1235" y="442" font-family="Montserrat, Arial, sans-serif" font-size="32" font-weight="800" fill="#5A1A10" text-anchor="middle">GLUTEN</text>
+</g>
+<g id="Title_FR" inkscape:groupmode="layer" inkscape:label="Title_FR">
+<text x="735" y="707" font-family="'Kaushan Script', cursive" font-size="250" fill="#3A0C06" text-anchor="middle" opacity="0.45">Levure</text><text x="736" y="939" font-family="'Kaushan Script', cursive" font-size="300" fill="#3A0C06" text-anchor="middle" opacity="0.45">Chimique</text><text x="730" y="700" font-family="'Kaushan Script', cursive" font-size="250" fill="url(#goldText)" text-anchor="middle">Levure</text><text x="730" y="930" font-family="'Kaushan Script', cursive" font-size="300" fill="url(#goldText)" text-anchor="middle">Chimique</text>
+</g>
+<g id="Title_AR" inkscape:groupmode="layer" inkscape:label="Title_AR">
+<text x="733" y="1080" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="124" font-weight="800" fill="#3A0C06" text-anchor="middle" opacity="0.4">‏خميرة كيميائية‏</text><text x="730" y="1075" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="124" font-weight="800" fill="#FFF4DC" text-anchor="middle">‏خميرة كيميائية‏</text>
+</g>
+<g id="Tagline" inkscape:groupmode="layer" inkscape:label="Tagline">
+<text x="733" y="1163" font-family="Montserrat, Arial, sans-serif" font-size="54" font-weight="600" fill="#3A0C06" text-anchor="middle" opacity="0.35">Pour des pâtisseries bien levées</text><text x="730" y="1160" font-family="Montserrat, Arial, sans-serif" font-size="54" font-weight="600" fill="#FFF4DC" text-anchor="middle">Pour des pâtisseries bien levées</text><text x="733" y="1241" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="60" font-weight="700" fill="#3A0C06" text-anchor="middle" opacity="0.35">‏لحلويات خفيفة ومنتفخة‏</text><text x="730" y="1238" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="60" font-weight="700" fill="#FFF4DC" text-anchor="middle">‏لحلويات خفيفة ومنتفخة‏</text>
+</g>
+<g id="Seal_Qualite_Premium" inkscape:groupmode="layer" inkscape:label="Seal_Qualite_Premium">
+<path d="M1231.0 1395.0 Q1248.5 1407.5 1229.3 1417.1 Q1244.6 1432.1 1224.1 1438.6 Q1236.9 1455.8 1215.6 1459.0 Q1225.6 1478.1 1204.1 1477.9 Q1210.9 1498.3 1189.7 1494.7 Q1193.3 1515.9 1172.9 1509.1 Q1173.1 1530.6 1154.0 1520.6 Q1150.8 1541.9 1133.6 1529.1 Q1127.1 1549.6 1112.1 1534.3 Q1102.5 1553.5 1090.0 1536.0 Q1077.5 1553.5 1067.9 1534.3 Q1052.9 1549.6 1046.4 1529.1 Q1029.2 1541.9 1026.0 1520.6 Q1006.9 1530.6 1007.1 1509.1 Q986.7 1515.9 990.3 1494.7 Q969.1 1498.3 975.9 1477.9 Q954.4 1478.1 964.4 1459.0 Q943.1 1455.8 955.9 1438.6 Q935.4 1432.1 950.7 1417.1 Q931.5 1407.5 949.0 1395.0 Q931.5 1382.5 950.7 1372.9 Q935.4 1357.9 955.9 1351.4 Q943.1 1334.2 964.4 1331.0 Q954.4 1311.9 975.9 1312.1 Q969.1 1291.7 990.3 1295.3 Q986.7 1274.1 1007.1 1280.9 Q1006.9 1259.4 1026.0 1269.4 Q1029.2 1248.1 1046.4 1260.9 Q1052.9 1240.4 1067.9 1255.7 Q1077.5 1236.5 1090.0 1254.0 Q1102.5 1236.5 1112.1 1255.7 Q1127.1 1240.4 1133.6 1260.9 Q1150.8 1248.1 1154.0 1269.4 Q1173.1 1259.4 1172.9 1280.9 Q1193.3 1274.1 1189.7 1295.3 Q1210.9 1291.7 1204.1 1312.1 Q1225.6 1311.9 1215.6 1331.0 Q1236.9 1334.2 1224.1 1351.4 Q1244.6 1357.9 1229.3 1372.9 Q1248.5 1382.5 1231.0 1395.0 Z" fill="url(#goldSeal)" stroke="#9C7230" stroke-width="2.0"/><circle cx="1090" cy="1395" r="120.0" fill="none" stroke="#9C7230" stroke-width="3.0" opacity="0.7"/><text x="1090" y="1363.0" font-family="Montserrat, Arial, sans-serif" font-size="40" font-weight="800" fill="#5A1A10" text-anchor="middle">QUALITÉ</text><text x="1090" y="1409.0" font-family="Montserrat, Arial, sans-serif" font-size="40" font-weight="800" fill="#5A1A10" text-anchor="middle">PREMIUM</text><text x="1090" y="1461.0" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="44" font-weight="700" fill="#5A1A10" text-anchor="middle">‏نوعية ممتازة‏</text>
+</g>
+<g id="Badge_Poids_net" inkscape:groupmode="layer" inkscape:label="Badge_Poids_net">
+<path d="M165 1390 H345 V1680 L255 1752 L165 1680 Z" fill="#7A1E16" stroke="url(#goldStroke)" stroke-width="7"/><path d="M177 1402 H333 V1673 L255 1737 L177 1673 Z" fill="none" stroke="#C79A44" stroke-width="2.5"/><text x="255" y="1442" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="30" font-weight="700" fill="#FFF4DC" text-anchor="middle">‏الوزن الصافي‏</text><text x="255" y="1482" font-family="Montserrat, Arial, sans-serif" font-size="28" font-weight="600" fill="#FFF4DC" text-anchor="middle">Poids net</text><text x="255" y="1576" font-family="Montserrat, Arial, sans-serif" font-size="92" font-weight="800" fill="url(#goldText)" text-anchor="middle">250</text><text x="255" y="1640" font-family="Montserrat, Arial, sans-serif" font-size="64" font-weight="800" fill="url(#goldText)" text-anchor="middle">g</text><text x="255" y="1700" font-family="Cairo, 'Noto Kufi Arabic', Tahoma, sans-serif" font-size="26" font-weight="700" fill="#FFF4DC" text-anchor="middle">‏250 غ‏</text>
+</g>
+<g id="GUIDES_do_not_print" inkscape:groupmode="layer" inkscape:label="GUIDES_do_not_print">
+<rect x="30" y="30" width="1400" height="2120" fill="none" stroke="#FF00FF" stroke-width="2" stroke-dasharray="14 8"/><path d="M30 150 H1430 M30 2030 H1430" stroke="#FF00FF" stroke-width="2" stroke-dasharray="6 6"/><text x="42" y="138" font-family="Montserrat, Arial, sans-serif" font-size="20" font-weight="600" fill="#FF00FF" text-anchor="start">Zone de soudure / seal</text><text x="42" y="2060" font-family="Montserrat, Arial, sans-serif" font-size="20" font-weight="600" fill="#FF00FF" text-anchor="start">Zone de soudure / seal</text>
+</g>
+
+</svg>
