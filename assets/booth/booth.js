@@ -225,10 +225,11 @@ function init(){
     hero.style.setProperty('--load', Math.min(1, e.loaded / e.total).toFixed(3));
   }
   hero.classList.add('loading');
-  /* the stand comes in last: after the headline has run (the page sets
-     hero.introEnd), whenever the model arrives before that */
-  const whenIntroDone = f => setTimeout(f, POSTER ? 0 : Math.max(0, (hero.introEnd || 0) - performance.now()));
-  loader.load(new URL('evolab-booth.glb', import.meta.url).href, gltf => whenIntroDone(() => onLoad(gltf)), progress, () => {
+  /* the stand builds in the moment its model is here - alongside the
+     headline's entrance, not after it. It used to wait for the headline
+     (hero.introEnd), which put three seconds under every visit however fast
+     the model had arrived. */
+  loader.load(new URL('evolab-booth.glb', import.meta.url).href, onLoad, progress, () => {
     canvas.remove();                                          // keep the poster
     hero.classList.remove('loading');
     hero.classList.add('no-gl');
