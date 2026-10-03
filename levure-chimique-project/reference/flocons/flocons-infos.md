@@ -1,4 +1,4 @@
-# "Flocons" Levure Chimique 250 g – reference bag (batch 1)
+# "Flocons" Levure Chimique 250 g – reference bag
 
 Copied word for word from the photos in this folder. Errors in the original are kept and marked [sic]. Corrections are listed at the end. Nothing has been applied to the design yet.
 
@@ -9,10 +9,12 @@ Copied word for word from the photos in this folder. Errors in the original are 
 | `03-dos-ar-bas.jpg` | Back, Arabic column: ingredients down to the QR code |
 | `04-dos-ar.jpg` | Back, Arabic column: description down to the icon row |
 | `05-dos-fr.jpg` | Back, French column: description down to the nutrition table (cut off) |
+| `06-dos-fr-tableau.jpg` | Back, French column: storage, ingredients, full nutrition table, lot and date box |
+| `07-dos-fr-bas.jpg` | Back, French column bottom: storage and disclaimer, pictograms, recycling banners, back seam |
 
 ## Format
-- Glossy plastic pillow bag, 250 g, with crimped heat seals at the top and bottom.
-- A vertical crimped seam runs down the back, just right of the Arabic column (photos 02–04). Its position and width depend on the dimensions, which haven't arrived yet.
+- Glossy plastic pillow bag, 250 g, **11.5 × 19 cm**, with crimped heat seals at the top and bottom.
+- A vertical crimped seam runs down the middle of the back. Seen from the back, the Arabic column is on its left and the French column on its right (photos 02–04 and 07).
 - The front logo runs into the top seal and is partly lost in the crimp.
 - The back text sits on white rounded panels with an orange outline. The barcode sits in its own white box below the Arabic panel.
 
@@ -38,7 +40,7 @@ Copied word for word from the photos in this folder. Errors in the original are 
    > بصفة عامة: 10 غرام من مسحوق خميرة كميائية، تتطابق مع 500غ من الدقيق.
 4. Ingredients:
    > المكونات:
-   > عامل التخمير: بيكربونات الصوديوم (SIN500i)، مستحلب: بيروفوسفات الصوديوم (SIN450)، نشاء الذرة، حافظ حمض الليمون (SIN330).
+   > عامل التخمير: بيكربونات الصوديوم (SIN500I)، مستحلب: بيروفوسفات الصوديوم (SIN450)، نشاء الذرة، حافظ حمض الليمون (SIN330).
 5. Manufacturer, Arabic:
    > صنع من طرف: شركة أجي دي فروتس كومباني
    > حي مواسية قسم 03 مجموعة ملكية 280 و 281
@@ -79,28 +81,52 @@ There is no Arabic storage line. The only storage instruction is the French one.
    |---|---|
    | Energie kj / الطاقة كج | 2324,66 |
    | Energie en Kcal / الطاقة كح | 342 |
-   | (label covered by a thumb) / البروتينات | 12 g |
-   | (label covered by a thumb) / الكربوهيدرات | 76 g |
-   | (label covered by a thumb) / السكريات | 18 g |
-   | (photo cut off here) | |
+   | Protéine / البروتينات | 12 g |
+   | Glucide / الكربوهيدرات | 76 g |
+   | - Dont sucres / السكريات | 18 g |
+   | Lipides / الدسم | 1,3 g |
+   | - Dont acide gras saturés / الدسم المشبعة | 0,2 g |
+   | Fibres / الالياف | 18 g |
+   | Sodium / الصوديوم | 17 g |
+   | Soit l’équivalent en sel / الملح | 00,40g |
+7. Lot and date box (white, black outline, inside the panel; filled at packing):
+   > Date de Fab.: … تاريخ الإنتاج:
+   > Date d’Exp.: … تاريخ نهاية الحصة: [sic]
+   > N° de Lot: … رقم الحصة:
 
-## Still missing (expected in batch 2)
-- The rest of the nutrition table, and the French row labels hidden by the thumb.
-- The lot number, production date and best-before date: where they are printed and how they are worded.
-- The overall dimensions, the seam position and width, and the seal widths.
+Below the panel, on the coloured background:
+
+8. Storage and disclaimer:
+   > يحفظ في مكان بارد وجاف بعيدا عن أشعة الشمس
+   > CONSERVER DANS UN ENDROIT FRAIS ET SEC À L'ABRI DES RAYONS DU SOLEIL
+   > المنتج غير مسؤول عن سوء التخزين
+   > Le producteur n’est pas responsable du mauvais stockage
+9. Three hexagon pictograms in a row:
+   - glass and fork, labelled غذائي / "Alimentaire"
+   - tidy man putting rubbish in a bin, labelled "Merci"
+   - recycling arrows, labelled "Recyclé"
+10. Two banners side by side:
+    - red: "PENSEZ AU TRI !" with the green recycling dot
+    - black: "EMBALLAGE PLASTIQUE À JETER" with a red bag icon
+
+## Still unknown
+- The width of the back seam and of the top and bottom seals.
 
 ## Errors in the source
 1. **Energy figures don't match:** 2324,66 kJ is not 342 kcal (342 kcal = 1431 kJ).
-2. **Values don't fit baking powder:** 12 g protein and 18 g sugars can't come from these ingredients (bicarbonate, pyrophosphate, corn starch, citric acid). They look copied from another product.
-3. **Wrong ingredient roles:**
+2. **The table adds up to more than 100 g:** protein, carbohydrates, fat, fibre and sodium alone come to 124 g per 100 g.
+3. **Sodium and salt contradict each other:** 17 g of sodium equals 42,5 g of salt, not 00,40 g. The 17 g sodium is the only value that fits baking powder.
+4. **Values don't fit baking powder:** 12 g protein, 18 g sugars and 18 g fibre can't come from these ingredients (bicarbonate, pyrophosphate, corn starch, citric acid). They look copied from another product.
+5. **Wrong ingredient roles:**
    - SIN 450 is the acid part of the raising agent, not an *émulsifiant* / مستحلب.
    - SIN 330 is an acidifier, not a *conservateur* / حافظ.
    - "SIN450" should probably read SIN 450(i) (disodium diphosphate).
    - "(330)" is missing its "SIN" prefix.
-4. **Tartaric acid:** both descriptions mention *acide tartrique* / حمض الطرطريك, but it isn't in the ingredients.
-5. **Typos:**
+6. **Tartaric acid:** both descriptions mention *acide tartrique* / حمض الطرطريك, but it isn't in the ingredients.
+7. **Typos:**
    - French: "les gâteau pâtisseries", "A conserver" (should be À), "Energie kj" (should be Énergie kJ).
    - Arabic: كميائية should be كيميائية, زورو should be زوروا, and "حافظ حمض الليمون" is missing a colon.
+   - Arabic: تاريخ نهاية الحصة means "end of batch date". The expiry date is تاريخ انتهاء الصلاحية.
    - The Arabic description reads like a broken machine translation, e.g. "ثم يأخذ كوك على الفور".
-6. **Unit:** "GRS" is not a unit symbol. It should be g.
-7. **QR code:** the bag invites readers to its social pages, but the QR code only holds text, including a third phone number (0559 13 44 12).
+8. **Unit:** "GRS" is not a unit symbol. It should be g.
+9. **QR code:** the bag invites readers to its social pages, but the QR code only holds text, including a third phone number (0559 13 44 12).
