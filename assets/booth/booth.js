@@ -225,10 +225,13 @@ function init(){
     hero.style.setProperty('--load', Math.min(1, e.loaded / e.total).toFixed(3));
   }
   hero.classList.add('loading');
-  /* the stand builds in the moment its model is here - alongside the
-     headline's entrance, not after it. It used to wait for the headline
-     (hero.introEnd), which put three seconds under every visit however fast
-     the model had arrived. */
+  /* The model is fetched at page load and set up the moment it arrives -
+     parsed, lit, its shaders compiled - but the stand is only shown once
+     the headline's entrance is over (the page sets hero.introEnd): an early
+     model waits, ready, and comes in the instant the headline finishes; a
+     late one comes in as soon as it is here. */
+  let shown = false;
+  const whenIntroDone = f => setTimeout(f, POSTER ? 0 : Math.max(0, (hero.introEnd || 0) - performance.now()));
   loader.load(new URL('evolab-booth.glb', import.meta.url).href, onLoad, progress, () => {
     canvas.remove();                                          // keep the poster
     hero.classList.remove('loading');
@@ -329,10 +332,15 @@ function init(){
     resize();
     buildY = size.y + 1;                                      // no build: the canvas fades in as the stand turns
     clip.constant = clipI.constant = buildY;
-    buildStart = performance.now();
     filmStill();
+    hero.classList.remove('loading');                         // loaded: the bar goes, whatever the headline is doing
+    try { renderer.compile(scene, camera); } catch (e) {}     // the first frame's cost, paid while hidden
+    whenIntroDone(show);
+  }
+  function show(){
+    shown = true;
+    buildStart = performance.now();
     hero.classList.add('gl-ready');
-    hero.classList.remove('loading');
     kick();
   }
 
@@ -1372,7 +1380,7 @@ function init(){
     visible = es[0].isIntersecting;
     if (visible) kick(); else leaveFocus(true);               // scrolled away: back to the stand
   }).observe(stage);
-  function kick(){ if (!running && visible && model){ running = true; last = performance.now(); requestAnimationFrame(frame); } }
+  function kick(){ if (!running && visible && model && shown){ running = true; last = performance.now(); requestAnimationFrame(frame); } }
 
   const v = new THREE.Vector3();
   function frame(now){
