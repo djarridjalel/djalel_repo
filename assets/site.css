@@ -1529,6 +1529,19 @@ a{color:inherit;}
 }
 @media (max-width:860px){ .split{grid-template-columns:1fr;} }
 
+/* About: the studio's links sit side by side, and the film section carries
+   four frames from the launch film - a sheet, so it takes the case-study
+   plates' radius. */
+.about-links{display:flex; flex-wrap:wrap; gap:14px 30px; margin:0;}
+.about-film{
+  margin:0; justify-self:end; align-self:start;
+  width:min(100%, 420px);
+  border-radius:clamp(12px,1.5vw,24px); overflow:hidden;
+  background:rgba(10,10,11,.06);
+}
+.about-film img{display:block; width:100%; height:auto;}
+@media (max-width:860px){ .about-film{justify-self:start;} }
+
 .facts{list-style:none; margin:0; padding:0; border-top:1px solid var(--rule);}
 .band-ink .facts{border-top-color:var(--rule-dk);}
 .facts li{

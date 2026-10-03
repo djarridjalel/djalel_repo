@@ -25,8 +25,6 @@ _HEAD_UNUSED = set()
 HEAD = {
   "<title>Djarri Design Studio — From identity to packaging to campaigns</title>":
     "<title>Djarri Design Studio — من الهوية إلى التغليف إلى الحملات</title>",
-  "<title>About Abdeldjalil Djarri — Djarri Design Studio</title>":
-    "<title>عن عبد الجليل جرّي — Djarri Design Studio</title>",
   "<title>Selected Archive — Djarri Design Studio</title>":
     "<title>مختارات من الأرشيف — Djarri Design Studio</title>",
   # brand names stay in Latin, as they do throughout the Arabic body copy
@@ -36,8 +34,6 @@ HEAD = {
     "<title>Natural Solution + Natural Skin — Djarri Design Studio</title>",
   "<title>Laformul + BioFormul — Djarri Design Studio</title>":
     "<title>Laformul + BioFormul — Djarri Design Studio</title>",
-  "Creative Director and packaging designer for pharmaceutical, parapharmaceutical and consumer-health brands. Director of the filmmaking department at Revolution Agency.":
-    "مدير إبداعي ومصمّم تغليف لعلامات الأدوية وشبه الصيدلانيات والصحة الاستهلاكية. مدير قسم الإنتاج السينمائي في Revolution Agency.",
   "Identities, campaigns, catalogues, brand systems and film work beyond the three featured case studies.":
     "هويات وحملات وكتالوجات وأنظمة علامات وأعمال فيلمية، إلى جانب دراسات الحالة الثلاث المعروضة.",
   "A full rebrand for a pharmaceutical laboratory: identity, a five-SKU packaging system, an exhibition build and a bilingual site.":
@@ -76,12 +72,6 @@ HEAD = {
   "https://wa.me/213556956452?text=Hello%20%E2%80%94%20I%27d%20like%20to%20book%20a%20call%20about%20a%20project.":
     "https://wa.me/213556956452?text=%D9%85%D8%B1%D8%AD%D8%A8%D9%8B%D8%A7%20%E2%80%94%20%D8%A3%D9%88%D8%AF%D9%91%20%D8%AD%D8%AC%D8%B2%20%D9%85%D9%83%D8%A7%D9%84%D9%85%D8%A9%20%D8%A8%D8%AE%D8%B5%D9%88%D8%B5%20%D9%85%D8%B4%D8%B1%D9%88%D8%B9.",
   # the credentials list on About carries no data-ed keys either
-  "<span class=\"k\">Position</span><span>Creative Director · Packaging &amp; Brand Designer</span>":
-    "<span class=\"k\">المنصب</span><span>مدير إبداعي · مصمّم تغليف وعلامات</span>",
-  "<span class=\"k\">Leadership</span><span>Director of the filmmaking department, Revolution Agency — product films, brand films and motion work</span>":
-    "<span class=\"k\">القيادة</span><span>مدير قسم الإنتاج السينمائي، Revolution Agency — أفلام منتجات وأفلام علامات وأعمال حركة</span>",
-  "<span class=\"k\">Experience</span><span>9+ years · 100+ products on shelves · 30+ brand identities · 100+ client projects</span>":
-    "<span class=\"k\">الخبرة</span><span><span dir=\"ltr\">9+</span> سنوات · <span dir=\"ltr\">100+</span> منتج على الرفوف · <span dir=\"ltr\">30+</span> هوية علامة · <span dir=\"ltr\">100+</span> مشروع عميل</span>",
   "<span class=\"k\">Sectors</span><span>Pharmaceutical · Parapharmaceutical · Dermo-cosmetic · Consumer health</span>":
     "<span class=\"k\">القطاعات</span><span>أدوية · شبه صيدلانيات · تجميل جلدي · صحّة استهلاكية</span>",
   "<span class=\"k\">Education</span><span>Master\'s degree, Software Engineering — University of Constantine 2, 2018</span>":
@@ -89,8 +79,38 @@ HEAD = {
   "<span class=\"k\">Languages</span><span>Arabic · French · English</span>":
     "<span class=\"k\">اللغات</span><span>العربية · الفرنسية · الإنجليزية</span>",
 
+  # About, studio first: its head, and the fact rows and links that carry no
+  # data-ed keys (the same rows appear on the homepage's About band)
+  "<title>About the studio — Djarri Design Studio</title>":
+    "<title>عن الاستوديو — Djarri Design Studio</title>",
+  "DJARRI Design Studio — identity, packaging, campaigns and film for pharmaceutical, parapharmaceutical, skincare and consumer-health brands, since 2016.":
+    "DJARRI Design Studio — هوية وتغليف وحملات وأفلام لعلامات الأدوية وشبه الصيدلانيات والعناية بالبشرة والصحة الاستهلاكية، منذ 2016.",
+  "<meta property=\"og:title\" content=\"About Djarri Design Studio\">":
+    "<meta property=\"og:title\" content=\"عن Djarri Design Studio\">",
+  "Identity, packaging, campaigns and film for regulated health categories.":
+    "هوية وتغليف وحملات وأفلام لفئات الصحة المقنّنة.",
+  "<span class=\"k\">Studio</span><span>DJARRI Design Studio · since 2016</span>":
+    "<span class=\"k\">الاستوديو</span><span>DJARRI Design Studio · منذ <span dir=\"ltr\">2016</span></span>",
+  "<span class=\"k\">Practice</span><span>Brand identity · Packaging · Campaigns · Film</span>":
+    "<span class=\"k\">الممارسة</span><span>هوية العلامة · التغليف · الحملات · الأفلام</span>",
+  "<span class=\"k\">Film</span><span>In-house: brand films, product films, social reels and motion — shot on set, in the lab, on the production line</span>":
+    "<span class=\"k\">الأفلام</span><span>داخل الاستوديو: أفلام علامات وأفلام منتجات ومقاطع للشبكات الاجتماعية وأعمال حركة — تُصوَّر في موقع التصوير، وفي المختبر، وعلى خط الإنتاج</span>",
+  "<span class=\"k\">Film</span><span>In-house: brand films, product films, social reels and motion</span>":
+    "<span class=\"k\">الأفلام</span><span>داخل الاستوديو: أفلام علامات وأفلام منتجات ومقاطع للشبكات الاجتماعية وأعمال حركة</span>",
+  "<span class=\"k\">Method</span><span>Systems first: the rules of a range are designed before its products</span>":
+    "<span class=\"k\">المنهج</span><span>الأنظمة أولًا: تُصمَّم قواعد التشكيلة قبل منتجاتها</span>",
+  "<span class=\"k\">Direction</span><span>Abdeldjalil Djarri, founder and creative director</span>":
+    "<span class=\"k\">الإدارة</span><span>عبد الجليل جرّي، المؤسّس والمدير الإبداعي</span>",
+  "<span class=\"k\">Record</span><span>9+ years · 100+ products on shelves · 30+ brand identities · 100+ client projects</span>":
+    "<span class=\"k\">السجلّ</span><span><span dir=\"ltr\">9+</span> سنوات · <span dir=\"ltr\">100+</span> منتج على الرفوف · <span dir=\"ltr\">30+</span> هوية علامة · <span dir=\"ltr\">100+</span> مشروع عميل</span>",
+  "<span class=\"k\">Leadership</span><span>Director of the filmmaking department, Revolution Agency</span>":
+    "<span class=\"k\">القيادة</span><span>مدير قسم الإنتاج السينمائي، Revolution Agency</span>",
+  ">About the studio ": ">عن الاستوديو ",
+  ">Watch the showreel ": ">شاهد عرض الأعمال ",
+  "alt=\"Four frames from the Evolab launch film — the clean room, the production floor and the team\"":
+    "alt=\"أربع لقطات من فيلم إطلاق Evolab — الغرفة النظيفة وأرضية الإنتاج والفريق\"",
+
   # --- strings with no data-ed key: links, row keys, tally labels ---
-  ">Read the full background ": ">اقرأ الخلفية كاملة ",
   ">Browse the archive ": ">تصفّح الأرشيف ",
   ">Start with a case study ": ">ابدأ بدراسة حالة ",
   ">Email</a>": ">البريد</a>",

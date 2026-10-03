@@ -1199,6 +1199,27 @@ function init(){
     const pr = v.play();
     if (pr && pr.catch) pr.catch(() => setFilm('paused'));
   }
+  /* "Watch the showreel" (#showreel): bring the stand into view and open
+     the screen's close-up, with the play button waiting - the film itself
+     starts on the viewer's own press, sound and all. From another page the
+     link arrives as index.html#showreel and is honoured once the stand is
+     built; on this page it is a click, answered at once if the stand is
+     ready and as soon as it is if not. */
+  let wantReel = location.hash === '#showreel';
+  function openReel(){
+    if (!SCREEN.mesh || !hotspots.length){ wantReel = true; return; }
+    if (focus.on && focus.target === SCREEN) return;
+    if (focus.on) leaveFocus(true);
+    enterFocus(SCREEN);
+  }
+  if (FILM_SRC) document.addEventListener('click', e => {
+    const a = e.target.closest && e.target.closest('a[href="#showreel"]');
+    if (!a) return;
+    e.preventDefault();
+    const top = hero.getBoundingClientRect().top + scrollY;
+    scrollTo({ top, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    openReel();
+  });
   const _pc = new THREE.Vector3();
   function placePlay(){
     if (!playBtn || !SCREEN.mesh || focus.target !== SCREEN || focus.c < 0) return;
@@ -1368,6 +1389,7 @@ function init(){
     } else if (!hotspots.length && !POSTER){                    // the poster is a clean still
       buildSpots();
       hero.classList.add('spots-on');
+      if (wantReel){ wantReel = false; openReel(); }
     }
 
     /* idle sway once nobody has touched it for a while */
