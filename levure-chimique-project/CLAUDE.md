@@ -2,6 +2,8 @@
 
 Flat, editable SVG artwork for the "Levure Chimique" (baking powder) bag. It is the sister product of the brand's "Poudre de Chantilly" pouch (see `reference/`).
 
+**Start with `HANDOFF.md`:** it covers the previous conversation, what is unverified in Illustrator, and the open questions.
+
 ## Working preferences (user)
 - Do not explain what you have done unless asked.
 - Ask the questions you need before giving detailed answers.
