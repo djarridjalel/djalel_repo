@@ -535,6 +535,223 @@
     [].forEach.call(targets, function(el){ io.observe(el); });
   })();
 
+  /* ---- sections arrive one at a time --------------------------------------
+     Each section waits until the scroll reaches it, and they come in one
+     after another, never together: a queue opens the next only once the one
+     before has had its moment. A section's headline runs the hero's own
+     entrance - every letter (every word, in Arabic, which cannot be cut
+     between letters) comes up in the accent, cools to the dark stop and
+     settles in ink - and once two thirds of that has played, the rest of
+     the section rises in, quietly, a beat apart.
+
+     Long sections are not one block: the case-study dossier, the archive,
+     the showcases are taken apart into their pieces, and a piece that is
+     still below the fold arrives when the scroll reaches it.
+
+     The rise uses `translate`, not `transform`, so it never fights a piece
+     that moves itself (the shelf's drift, a selected commission row). Script
+     off, or motion reduced, and nothing is ever hidden. */
+  (function(){
+    if(!('IntersectionObserver' in window) ||
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var html = document.documentElement;
+    var AR = /[؀-ۿݐ-ݿࢠ-ࣿﭐ-﷿ﹰ-﻿]/;
+    var SECTIONS = 'section, .poster, .dossier, footer.foot';
+    var HEADS = 'h1, h2, .shelf-line, .quote-lead';   // and the two lines set as headlines
+    /* containers taken apart into their items, and pieces never taken apart */
+    var SPLIT = '.wrap, .split, .dossier-grid, .showcases, .arch-grid, .arch-projects, .shelf-rows, .plates, ' +
+                '.proof, .disciplines, .facts, .comm, .comm-rows, .tally, .sys, .spec > dl, .foot-links';
+    var WHOLE = '.marquee, .comm-panel, .bh, canvas, video, figure, .plate-pair, .plate-duo, .outcome, ' +
+                '.reel, .showcase-text, .shelf-row, .arch-item, .arch-proj';   // carousels and cards move as one
+
+    var secs = [].filter.call(document.querySelectorAll(SECTIONS), function(s){
+      return !s.closest('#hero, .bh, nav, #boot');
+    });
+    if(!secs.length) return;
+    html.classList.add('sx');
+    function owner(el){                       // the nearest managed section
+      var p = el.parentElement;
+      while(p && secs.indexOf(p) < 0) p = p.parentElement;
+      return p;
+    }
+
+    /* the hero's split: a span per letter, per word for Arabic text. The
+       pointer-light splits the same way; whichever runs first, the other
+       finds the spans already there and uses them. */
+    function letters(h){
+      if(!h.querySelector('.ch')){
+        var w = document.createTreeWalker(h, NodeFilter.SHOW_TEXT, null), n, nodes = [];
+        while((n = w.nextNode())) nodes.push(n);
+        nodes.forEach(function(node){
+          var t = node.nodeValue;
+          if(!/\S/.test(t)) return;
+          var f = document.createDocumentFragment();
+          (AR.test(t) ? t.split(/(\s+)/) : t.split('')).forEach(function(u){
+            if(!u) return;
+            if(/^\s+$/.test(u)){ f.appendChild(document.createTextNode(u)); return; }
+            var sp = document.createElement('span'); sp.className = 'ch'; sp.textContent = u; f.appendChild(sp);
+          });
+          node.parentNode.replaceChild(f, node);
+        });
+      }
+      var chs = h.querySelectorAll('.ch'), n = chs.length;
+      var word = AR.test(h.textContent);
+      /* the hero gives a letter 48ms; a long headline gets less, so no
+         entrance runs past about two seconds */
+      var st = Math.min(word ? 190 : 48, 1150 / Math.max(1, n - 1));
+      [].forEach.call(chs, function(c, i){ c.style.setProperty('--i', i); });
+      h.style.setProperty('--st', st.toFixed(1) + 'ms');
+      return 850 + st * Math.max(0, n - 1);
+    }
+
+    function framed(el){
+      var cs = getComputedStyle(el), bg = cs.backgroundColor;
+      return parseFloat(cs.borderTopWidth) > 0 || parseFloat(cs.borderBottomWidth) > 0 ||
+             (bg && bg !== 'transparent' && !/rgba\(.*,\s*0\)$/.test(bg));
+    }
+    function pieces(sec, head){
+      var out = [];
+      function add(el){
+        if(el.matches('script, style, template, br') || secs.indexOf(el) >= 0) return;
+        if(el === head) return;                           // the headline runs on its own
+        if(head && el.contains(head)){
+          [].forEach.call(el.children, add);              // around the headline, not over it
+          return;
+        }
+        var kids = [].filter.call(el.children, function(k){ return !k.matches('script, style, template, br'); });
+        var big = el.offsetHeight > innerHeight * 0.7;
+        if(kids.length && !el.matches(WHOLE) && (el.matches(SPLIT) || big)){
+          /* a container with a rule or a ground of its own would show it
+             before its rows: it fades in with them instead (without the
+             rise, which its rows already make) */
+          if(framed(el)){ el._sxc = true; out.push(el); }
+          kids.forEach(add);
+        }
+        else out.push(el);
+      }
+      [].forEach.call(sec.children, add);
+      return out;
+    }
+
+    var state = new Map();                    // section -> {open, head, T, waiting:[]}
+    var blockIO = new IntersectionObserver(function(es){
+      var now = [];
+      es.forEach(function(e){
+        if(!e.isIntersecting) return;
+        blockIO.unobserve(e.target);
+        var st = state.get(e.target._sx);
+        if(st.open) now.push(e.target); else st.waiting.push(e.target);
+      });
+      reveal(now);
+    });
+
+    function reveal(list, step){
+      list.sort(function(a, b){ return a.compareDocumentPosition(b) & 4 ? -1 : 1; });
+      list.forEach(function(el, k){
+        el.style.setProperty('--d', (k * (step || 70)) + 'ms');
+        el.classList.add('sx-in');
+      });
+    }
+
+    secs.forEach(function(sec){
+      var head = null;
+      [].some.call(sec.querySelectorAll(HEADS), function(h){
+        if(owner(h) === sec && !h.closest('.sx-h') && h.textContent.trim()){ head = h; return true; }
+      });
+      var st = {open:false, head:head, T:0, waiting:[], blocks:[]};
+      state.set(sec, st);
+      if(head){ st.T = letters(head); head.classList.add('sx-h'); }
+      st.blocks = pieces(sec, head);
+      st.blocks.forEach(function(el){
+        el._sx = sec; el.classList.add('sx-b'); if(el._sxc) el.classList.add('sx-c');
+        blockIO.observe(el);
+      });
+    });
+
+    /* the queue */
+    var queue = [], next = 0, timer = null;
+    function open(sec){
+      var st = state.get(sec), r = sec.getBoundingClientRect();
+      if(r.bottom < 0){                      // already scrolled past: no show for it
+        if(st.head) st.head.classList.add('sx-done');
+        st.open = true;
+        st.blocks.forEach(function(el){ blockIO.unobserve(el); el.classList.add('sx-now'); });
+        return 0;
+      }
+      if(!st.head){ st.open = true; reveal(st.waiting); st.waiting = []; sweep(); return 260; }
+      var h = st.head, T = st.T;
+      h.classList.add('sx-run');
+      setTimeout(function(){ st.open = true; reveal(st.waiting); st.waiting = []; sweep(); }, T * 2 / 3);
+      setTimeout(function(){ h.classList.add('sx-done'); h.classList.remove('sx-run'); }, T + 60);
+      return T * 2 / 3;
+    }
+    function pump(){
+      if(timer) return;
+      var wait = next - performance.now();
+      if(wait > 0){ timer = setTimeout(function(){ timer = null; pump(); }, wait); return; }
+      var sec = queue.shift();
+      if(!sec) return;
+      var gap = open(sec);
+      /* one at a time, but a fast scroll is not made to wait for a row of
+         entrances: with two or more still waiting the next comes sooner */
+      next = performance.now() + (queue.length >= 2 ? Math.min(gap, 450) : gap);
+      if(queue.length) pump();
+    }
+    function enqueue(sec){
+      var st = state.get(sec);
+      if(st.queued) return false;
+      st.queued = true; secIO.unobserve(sec); queue.push(sec);
+      return true;
+    }
+    function settle(){
+      queue.sort(function(a, b){ return a.compareDocumentPosition(b) & 4 ? -1 : 1; });
+      pump();
+    }
+    var secIO = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting) enqueue(e.target); });
+      settle();
+    }, {rootMargin:'0px 0px -12% 0px'});
+    /* the foot of a page can never travel 12% up the screen: once the
+       scroll bottoms out, whatever is showing joins the queue */
+    function atEnd(){
+      if(innerHeight + scrollY < document.documentElement.scrollHeight - 4) return;
+      var added = false;
+      secs.forEach(function(sec){
+        if(sec.getBoundingClientRect().top < innerHeight && enqueue(sec)) added = true;
+      });
+      if(added) settle();
+    }
+    addEventListener('scroll', atEnd, {passive:true});
+    /* the safety net: a piece of an opened section that is on screen, or
+       already above it, is never left waiting - whatever the observer saw
+       or missed on a fast scroll */
+    var sweepT = 0;
+    function sweep(){
+      sweepT = 0;
+      var now = [];
+      state.forEach(function(st){
+        if(!st.open) return;
+        st.blocks.forEach(function(el){
+          if(/\bsx-(in|now)\b/.test(el.className)) return;
+          var r = el.getBoundingClientRect();
+          if(r.bottom < 0){ blockIO.unobserve(el); el.classList.add('sx-now'); }
+          else if(r.top < innerHeight){ blockIO.unobserve(el); now.push(el); }
+        });
+      });
+      if(now.length) reveal(now);
+    }
+    addEventListener('scroll', function(){ if(!sweepT) sweepT = setTimeout(sweep, 180); }, {passive:true});
+
+    /* start once the boot screen has gone, or the first entrance would play
+       under it */
+    function go(){ secs.forEach(function(s){ secIO.observe(s); }); }
+    if(/\bbooted\b/.test(html.className)) setTimeout(go, 120);
+    else new MutationObserver(function(m, o){
+      if(!/\bbooted\b/.test(html.className)) return;
+      o.disconnect(); setTimeout(go, 480);
+    }).observe(html, {attributes:true, attributeFilter:['class']});
+  })();
+
   /* ---- the accent -------------------------------------------------------
      Every character is its own switch: a letter is either inside the pool and
      fully the accent, or outside it and untouched. Nothing is ever half a
@@ -553,6 +770,7 @@
 
   var ARABIC = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
   function split(root){
+    if(root.querySelector('.ch')) return;          // the entrance split it already
     var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), n, nodes = [];
     while((n = w.nextNode())) nodes.push(n);
     nodes.forEach(function(node){

@@ -28,6 +28,7 @@
      --a-dark (#6E5400, 5.7:1) instead: same hue, legible on paper. */
   --accent:#FFCE00;
   --a-dark:#6E5400;
+  --a-mid:#C29A00;                    /* between the two stops: the headline entrances pass through it */
 
   /* Ground tokens. A component asks for "second-level text on whatever
      ground I am on" rather than for a particular white or black, so a
@@ -2303,3 +2304,35 @@ html[lang="ar"]{
 }
 .showcase-client:hover, .showcase-client:focus-visible{color:var(--a-dark);}
 .showcase-client:focus-visible{outline:2px solid var(--a-dark); outline-offset:3px;}
+
+/* ==========================================================================
+   SECTIONS ARRIVE ONE AT A TIME (site.js, "sections arrive one at a time")
+   A headline runs the hero's entrance - each letter up in the accent,
+   cooling to the dark stop, settling in ink - and the rest of the section
+   rises in at two thirds of it. Only ever set by script, and never with
+   motion reduced, so without either nothing is hidden.
+   ========================================================================== */
+.sx .rv{opacity:1; transform:none; transition:none;}     /* the queue does this now */
+.sx-h .ch{opacity:0;}
+.sx-h.sx-run .ch{
+  animation:sxCh .85s cubic-bezier(.25,.6,.3,1) both;
+  animation-delay:calc(var(--i) * var(--st, 48ms));
+}
+.sx-h.sx-done .ch{opacity:1; animation:none;}
+@keyframes sxCh{
+  0%{opacity:0; color:var(--accent);}
+  22%{opacity:1; color:var(--accent);}
+  55%{color:var(--a-mid);}
+  100%{opacity:1;}
+}
+.sx-b{opacity:0; translate:0 14px;}
+.sx-b.sx-in{
+  opacity:1; translate:none;
+  transition:opacity .8s ease var(--d, 0ms), translate 1s cubic-bezier(.2,.7,.3,1) var(--d, 0ms);
+}
+.sx-b.sx-now{opacity:1; translate:none; transition:none;}
+.sx-b.sx-c{translate:none;}                   /* a framed container only fades */
+@media print{
+  .sx-b, .sx-h .ch{opacity:1 !important; translate:none !important; animation:none !important;}
+}
+
