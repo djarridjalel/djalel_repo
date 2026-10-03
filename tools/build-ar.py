@@ -30,20 +30,20 @@ HEAD = {
   # brand names stay in Latin, as they do throughout the Arabic body copy
   "<title>Evolab Laboratories — Djarri Design Studio</title>":
     "<title>Evolab Laboratories — Djarri Design Studio</title>",
-  "<title>Natural Solution + Natural Skin — Djarri Design Studio</title>":
-    "<title>Natural Solution + Natural Skin — Djarri Design Studio</title>",
+  "<title>Natural Solutions + Natural Skin — Djarri Design Studio</title>":
+    "<title>Natural Solutions + Natural Skin — Djarri Design Studio</title>",
   "<title>Laformul + BioFormul — Djarri Design Studio</title>":
     "<title>Laformul + BioFormul — Djarri Design Studio</title>",
   "Identities, campaigns, catalogues, brand systems and film work beyond the three featured case studies.":
     "هويات وحملات وكتالوجات وأنظمة علامات وأعمال فيلمية، إلى جانب دراسات الحالة الثلاث المعروضة.",
-  "A full rebrand for a pharmaceutical laboratory: identity, a five-SKU packaging system, an exhibition build and a bilingual site.":
-    "إعادة بناء كاملة لعلامة مخبر أدوية: هوية، ونظام تغليف لخمسة منتجات، وجناح معرض، وموقع بلغتين.",
+  "A full rebrand for a pharmaceutical laboratory: identity, a packaging system rolling out across the catalogue, an exhibition build and a bilingual site.":
+    "إعادة بناء كاملة لعلامة مخبر أدوية: هوية، ونظام تغليف يُعمَّم عبر الكتالوج، وجناح معرض، وموقع بلغتين.",
   "A three-year parapharmaceutical partnership that scaled past thirty products without being redrawn, and the skincare sub-brand it produced — which kept the name, the typeface and almost nothing else.":
     "شراكة شبه صيدلانية امتدّت ثلاث سنوات وتجاوزت ثلاثين منتجًا دون إعادة رسم النظام، والعلامة الفرعية للعناية بالبشرة التي نتجت عنها — واحتفظت بالاسم والخط، ولا شيء آخر تقريبًا.",
   "A dermo-cosmetic brand built from zero, then extended into a science-led sibling once the first one had proved the market.":
     "علامة تجميل طبّي بُنيت من الصفر، ثم امتدّت إلى علامة شقيقة ذات منحى علمي بعد أن أثبتت الأولى السوق.",
-  "Djarri Design Studio — brand identity and packaging systems for pharmaceutical and parapharmaceutical companies. Creative direction by Abdeldjalil Djarri.":
-    "Djarri Design Studio — هوية علامات وأنظمة تغليف لشركات الأدوية وشبه الصيدلانيات. إدارة إبداعية: عبد الجليل جرّي.",
+  "DJARRI Design Studio — brand identity, packaging, campaigns and film for pharmaceutical, parapharmaceutical and skincare brands, since 2017.":
+    "DJARRI Design Studio — هوية علامات وتغليف وحملات وأفلام لعلامات الأدوية وشبه الصيدلانيات والعناية بالبشرة، منذ 2017.",
   "From identity to packaging to campaigns — brand systems for healthcare brands, on the carton, on screen and on the show floor.":
     "من الهوية إلى التغليف إلى الحملات — أنظمة علامات لعلامات الرعاية الصحية، على العلبة وعلى الشاشة وفي أجنحة المعارض.",
   # the stand in the hero: its unkeyed labels, hint and accessible names
@@ -83,8 +83,8 @@ HEAD = {
   # data-ed keys (the same rows appear on the homepage's About band)
   "<title>About the studio — Djarri Design Studio</title>":
     "<title>عن الاستوديو — Djarri Design Studio</title>",
-  "DJARRI Design Studio — identity, packaging, campaigns and film for pharmaceutical, parapharmaceutical, skincare and consumer-health brands, since 2016.":
-    "DJARRI Design Studio — هوية وتغليف وحملات وأفلام لعلامات الأدوية وشبه الصيدلانيات والعناية بالبشرة والصحة الاستهلاكية، منذ 2016.",
+  "DJARRI Design Studio — identity, packaging, campaigns and film for pharmaceutical, parapharmaceutical, skincare and consumer-health brands, since 2017.":
+    "DJARRI Design Studio — هوية وتغليف وحملات وأفلام لعلامات الأدوية وشبه الصيدلانيات والعناية بالبشرة والصحة الاستهلاكية، منذ 2017.",
   "<meta property=\"og:title\" content=\"Selected Archive\">":
     "<meta property=\"og:title\" content=\"مختارات من الأرشيف\">",
   "A three-year partnership that scaled past thirty products, and the skincare sub-brand it produced in a deliberately different voice.":
@@ -94,8 +94,8 @@ HEAD = {
     "<meta property=\"og:title\" content=\"عن Djarri Design Studio\">",
   "Identity, packaging, campaigns and film for regulated health categories.":
     "هوية وتغليف وحملات وأفلام لفئات الصحة المقنّنة.",
-  "<span class=\"k\">Studio</span><span>DJARRI Design Studio · since 2016</span>":
-    "<span class=\"k\">الاستوديو</span><span>DJARRI Design Studio · منذ <span dir=\"ltr\">2016</span></span>",
+  "<span class=\"k\">Studio</span><span>DJARRI Design Studio · since 2017</span>":
+    "<span class=\"k\">الاستوديو</span><span>DJARRI Design Studio · منذ <span dir=\"ltr\">2017</span></span>",
   "<span class=\"k\">Practice</span><span>Brand identity · Packaging · Campaigns · Film</span>":
     "<span class=\"k\">الممارسة</span><span>هوية العلامة · التغليف · الحملات · الأفلام</span>",
   "<span class=\"k\">Film</span><span>In-house: brand films, product films, social reels and motion — shot on set, in the lab, on the production line</span>":
@@ -136,7 +136,7 @@ HEAD = {
   "<div class=\"l\">Years apart</div>": "<div class=\"l\">سنوات بينهما</div>",
   "<div class=\"l\">Product categories</div>": "<div class=\"l\">فئات منتجات</div>",
   "<div class=\"l\">Outcome</div>": "<div class=\"l\">النتيجة</div>",
-  "<div class=\"l\">SKUs on shelf</div>": "<div class=\"l\">منتجات على الرفّ</div>",
+  "<div class=\"l\">SKUs in the new system</div>": "<div class=\"l\">منتجات في النظام الجديد</div>",
   "<div class=\"l\">Logo modes</div>": "<div class=\"l\">صيغ الشعار</div>",
   "<div class=\"l\">Languages</div>": "<div class=\"l\">لغات</div>",
   "<div class=\"l\">Products</div>": "<div class=\"l\">منتجات</div>",
@@ -145,7 +145,15 @@ HEAD = {
   "<div class=\"l\">Brands in the family</div>": "<div class=\"l\">علامات في العائلة</div>",
 
   "Yellow-green → deep blue": "أخضر مصفرّ ← أزرق عميق",
-  "60 / 30 / 10 — grey, grey, gold": "<span dir=\"ltr\">60 / 30 / 10</span> — رماديّ، رماديّ، ذهبيّ",
+  # the attribute copy takes no markup, so it is matched apart from the visible note
+  "aria-label=\"60 / 30 / 10 — grey, grey, gold\"": "aria-label=\"60 / 30 / 10 — رماديّ، رماديّ، ذهبيّ\"",
+  "swatch-note\">60 / 30 / 10 — grey, grey, gold<": "swatch-note\"><span dir=\"ltr\">60 / 30 / 10</span> — رماديّ، رماديّ، ذهبيّ<",
+  "aria-label=\"Footer\"": "aria-label=\"التذييل\"",
+  "aria-label=\"Primary\"": "aria-label=\"التنقّل الرئيسي\"",
+  "aria-label=\"Previous sheet\"": "aria-label=\"الورقة السابقة\"",
+  "aria-label=\"Next sheet\"": "aria-label=\"الورقة التالية\"",
+  "aria-label=\"Selected clients\"": "aria-label=\"عملاء مختارون\"",
+  "aria-label=\"Coffee, skintone, sand and olive\"": "aria-label=\"قهوة، لون البشرة، رمليّ، زيتونيّ\"",
   "Deep ocean blue / yellow-green": "أزرق محيطيّ عميق / أخضر مصفرّ",
   "Coffee / skintone / sand / olive": "بُنّي / لون البشرة / رمليّ / زيتونيّ",
 

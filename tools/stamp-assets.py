@@ -20,12 +20,25 @@ ASSETS = ['assets/site.css', 'assets/site.js', 'assets/content.js', 'assets/logo
           # the stand's screen film keeps its name when it is replaced, and
           # nothing tells a browser how long to keep a video - so it is
           # stamped too, still and all
-          'assets/booth/screen-film.mp4', 'assets/booth/screen-film-still.webp']
+          'assets/booth/screen-film.mp4', 'assets/booth/screen-film-still.webp',
+          # the stand model too: booth.js fetches it by a URL of its own, so
+          # that URL is stamped inside booth.js first, before booth.js is hashed
+          'assets/booth/evolab-booth.glb']
+GLB = 'assets/booth/evolab-booth.glb'
 
 def short(rel):
     return hashlib.sha256((ROOT / rel).read_bytes()).hexdigest()[:8]
 
+def stamp_model():
+    js = ROOT / 'assets/booth/booth.js'
+    s = orig = js.read_text()
+    s = re.sub(r"'evolab-booth\.glb(\?v=[0-9a-f]+)?'", "'evolab-booth.glb?v=%s'" % short(GLB), s)
+    if s != orig:
+        js.write_text(s)
+        print('  stamped booth.js')
+
 def main():
+    stamp_model()
     ver = {a: short(a) for a in ASSETS}
     changed = 0
     for page in PAGES:

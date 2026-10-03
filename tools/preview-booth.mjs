@@ -58,7 +58,7 @@ await build({
         let s = readFileSync(a.path, 'utf8');
         s = patch(s, "loader.setMeshoptDecoder(MeshoptDecoder);\n", '', 'booth.js');
         /* load(url, onLoad, onProgress, onError) -> parse(data, path, onLoad, onError) */
-        const m = s.match(/loader\.load\(new URL\('evolab-booth\.glb', import\.meta\.url\)\.href, (.+?), (?:\w+), (\(\) => \{)/);
+        const m = s.match(/loader\.load\(new URL\('evolab-booth\.glb(?:\?v=[0-9a-f]+)?', import\.meta\.url\)\.href, (.+?), (?:\w+), (\(\) => \{)/);
         if (!m) throw new Error('booth.js: model load call not found');
         s = s.replace(m[0], `loader.parse(Uint8Array.from(atob(__GLB), c => c.charCodeAt(0)).buffer, '', ${m[1]}, ${m[2]}`);
         s = patch(s, "import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';\n", '', 'booth.js');

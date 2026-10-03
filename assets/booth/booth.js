@@ -232,7 +232,7 @@ function init(){
      moment; a late one comes in as soon as it is here. */
   let shown = false;
   const whenIntroDone = f => setTimeout(f, POSTER ? 0 : Math.max(0, (hero.introShow || hero.introEnd || 0) - performance.now()));
-  loader.load(new URL('evolab-booth.glb', import.meta.url).href, onLoad, progress, () => {
+  loader.load(new URL('evolab-booth.glb?v=e6394fda', import.meta.url).href, onLoad, progress, () => {
     canvas.remove();                                          // keep the poster
     hero.classList.remove('loading');
     hero.classList.add('no-gl');
