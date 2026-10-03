@@ -12,6 +12,8 @@ Flat, editable SVG artwork for the "Levure Chimique" (baking powder) bag. It is 
 - `build.py` generates both faces into `svg/`. Edit the script, then run `python3 build.py`. The back paragraphs are pre-wrapped lists of lines, so re-break the lines by hand when the text changes.
 - `svg/levure-chimique-face-avant.svg` is the front.
 - `svg/levure-chimique-face-arriere.svg` is the back.
+- `svg/outlined/` holds copies of both faces with all text turned into shapes. They display correctly in Illustrator without the fonts; use them for viewing and print, and the editable files for text changes. Regenerate them with `python3 outline.py` (needs Inkscape 1.x and the fonts installed).
+- `fonts/` holds the three Google Fonts (SIL Open Font License) for the editable files. Install them before opening those files.
 - `illustrator/svg-groups-to-layers.jsx` turns the top-level groups of an opened SVG into real Illustrator layers and makes the guides layer non-printing. Run it with File > Scripts > Other Script…
 - `previews/` holds PNG renders. Regenerate them with `rsvg-convert -w 1200 svg/<file>.svg -o previews/<name>.png`.
 - `reference/poudre-de-chantilly-reference.png` is the original brand reference (Chantilly pouch, navy and gold).
@@ -50,6 +52,7 @@ Flat, editable SVG artwork for the "Levure Chimique" (baking powder) bag. It is 
 - Kaushan Script for the "Levure Chimique" script.
 - Montserrat for French copy.
 - Cairo for Arabic.
+- In Illustrator without these fonts, the title shows as symbols and the Arabic falls apart. The user works in Illustrator, and the fonts weren't installed there.
 - Arabic strings are wrapped in RLE … PDF (U+202B … U+202C) so each line is laid out right to left, including lines that start or end with Latin text such as "(SIN500I)". Bold Arabic labels are separate text objects, because renderers lose the right-to-left order across tspans. In Illustrator, use the Middle Eastern & South Asian composer for Arabic text.
 - The ℮ sign is drawn as a path, because the fonts lack U+212E.
 
