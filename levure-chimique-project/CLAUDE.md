@@ -14,6 +14,7 @@ Flat, editable SVG artwork for the "Levure Chimique" (baking powder) bag. It is 
 - `svg/levure-chimique-face-arriere.svg` is the back.
 - `previews/` holds PNG renders. Regenerate them with `rsvg-convert -w 1200 svg/<file>.svg -o previews/<name>.png`.
 - `reference/poudre-de-chantilly-reference.png` is the original brand reference (Chantilly pouch, navy and gold).
+- `reference/flocons/` holds photos of the "Flocons" 250 g levure bag (SARL AGD Fruits), the content and format reference. `flocons-infos.md` has its copy transcribed word for word, plus the errors found in it.
 
 ## Approved design direction: "Rising Sun"
 - Format: flexible glossy plastic pillow-pack bag, crimped heat seals top and bottom. Not the stand-up zip pouch.
