@@ -85,6 +85,11 @@ HEAD = {
     "<title>عن الاستوديو — Djarri Design Studio</title>",
   "DJARRI Design Studio — identity, packaging, campaigns and film for pharmaceutical, parapharmaceutical, skincare and consumer-health brands, since 2016.":
     "DJARRI Design Studio — هوية وتغليف وحملات وأفلام لعلامات الأدوية وشبه الصيدلانيات والعناية بالبشرة والصحة الاستهلاكية، منذ 2016.",
+  "<meta property=\"og:title\" content=\"Selected Archive\">":
+    "<meta property=\"og:title\" content=\"مختارات من الأرشيف\">",
+  "A three-year partnership that scaled past thirty products, and the skincare sub-brand it produced in a deliberately different voice.":
+    "شراكة امتدّت ثلاث سنوات وتجاوزت ثلاثين منتجًا، والعلامة الفرعية للعناية بالبشرة التي نتجت عنها بصوت مختلف عن قصد.",
+  "aria-label=\"Work on shelves\"": "aria-label=\"أعمال على الرفوف\"",
   "<meta property=\"og:title\" content=\"About Djarri Design Studio\">":
     "<meta property=\"og:title\" content=\"عن Djarri Design Studio\">",
   "Identity, packaging, campaigns and film for regulated health categories.":
