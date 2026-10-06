@@ -74,6 +74,8 @@ HEAD = {
   # the credentials list on About carries no data-ed keys either
   "<span class=\"k\">Sectors</span><span>Pharmaceutical · Parapharmaceutical · Dermo-cosmetic · Consumer health</span>":
     "<span class=\"k\">القطاعات</span><span>أدوية · شبه صيدلانيات · تجميل جلدي · صحّة استهلاكية</span>",
+  "<span class=\"k\">Direction</span><span>Director of DJARRI Design Studio, since 2020</span>":
+    "<span class=\"k\">الإدارة</span><span>مدير DJARRI Design Studio، منذ <span dir=\"ltr\">2020</span></span>",
   "<span class=\"k\">Education</span><span>Master\'s degree, Software Engineering — University of Constantine 2, 2018</span>":
     "<span class=\"k\">التكوين</span><span>ماجستير في هندسة البرمجيات — جامعة قسنطينة <span dir=\"ltr\">2</span>، <span dir=\"ltr\">2018</span></span>",
   "<span class=\"k\">Languages</span><span>Arabic · French · English</span>":
