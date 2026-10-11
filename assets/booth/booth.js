@@ -71,14 +71,16 @@ function init(){
       'لافتة الإطلاق: العلبة وشيفرونها والصورة الرئيسية للحملة منقولةً إلى مترين من الطباعة، بجانب لافتة Evolab.',
     'The studio\u2019s showreel on the stand\u2019s screen: identity, packaging, campaigns, web and film, in one minute.':
       'عرض أعمال الاستوديو على شاشة الجناح: الهوية والتغليف والحملات والويب والأفلام، في دقيقة واحدة.',
-    'Look around with your camera': 'انظر حول الجناح بكاميرتك',
-    'Starting the camera…': 'جارٍ تشغيل الكاميرا…',
-    'Camera on · Stop': 'الكاميرا تعمل · إيقاف',
-    'Camera blocked': 'الكاميرا محجوبة',
-    'Camera unavailable': 'الكاميرا غير متاحة',
-    'Tilt to look around': 'أمِل الهاتف للنظر حول الجناح',
-    'Move your head to look around the stand. The camera image stays on this device: nothing is recorded or sent.':
-      'حرّك رأسك للنظر حول الجناح. تبقى صورة الكاميرا على هذا الجهاز: لا يُسجَّل شيء ولا يُرسَل.'
+    'Immersive view': 'العرض الغامر',
+    'Step inside the stand.': 'ادخل إلى الجناح.',
+    'For the full experience, the stand follows your head: lean in, look left and right, and it moves with you. It works through your camera; the image stays on this device and nothing is recorded or sent.':
+      'لتجربة كاملة، يتبع الجناح حركة رأسك: اقترب، انظر يمينًا ويسارًا، فيتحرّك معك. يعمل ذلك عبر كاميرتك؛ تبقى الصورة على هذا الجهاز ولا يُسجَّل شيء ولا يُرسَل.',
+    'Enter the immersive view': 'ادخل العرض الغامر',
+    'Standard view': 'العرض العادي',
+    'Opening the immersive view\u2026': 'جارٍ فتح العرض الغامر\u2026',
+    'The immersive view needs the camera. Here is the standard view.': 'يحتاج العرض الغامر إلى الكاميرا. إليك العرض العادي.',
+    'Immersive view \u00b7 Exit': 'العرض الغامر \u00b7 خروج',
+    'Tilt to look around': 'أمِل الهاتف للنظر حول الجناح'
   } : null;
   /* the desk's captions are built per flyer, so they are built per language */
   const AR_DCI = { Xyline:'دوكسيسيكلين 100 ملغ', Esoprotect:'إيزوميبرازول 40 ملغ و20 ملغ', Lansoprotect:'لانسوبرازول 30 ملغ',
@@ -564,6 +566,29 @@ function init(){
       rest.ox = (r.minX + r.maxX) / 2 - (fit.left + fit.right) / 2;
       rest.oy = (r.minY + r.maxY) / 2 - (fit.top + fit.bottom) / 2;
     } else compose(w, h, edge(bleed, sw));                    // into the gap before the copy
+    /* the immersive pose: nearer, until the stand spans the hero (the part
+       of it the canvas covers), then centred in it */
+    imm.ok = false;
+    if (model){
+      const hr = hero.getBoundingClientRect(), cr = canvas.getBoundingClientRect();
+      const T = { l:Math.max(0, hr.left - cr.left), r:Math.min(w, hr.right - cr.left),
+                  t:Math.max(0, hr.top - cr.top), b:Math.min(h, hr.bottom - cr.top) };
+      const tw = T.r - T.l, th = T.b - T.t;
+      if (tw > 0 && th > 0){
+        let di = rest.pos.z;
+        for (let n = 0; n < 4; n++){                           // perspective again: settle in a few passes
+          place(di, look);
+          const r = extent(w, h);
+          di /= Math.min(tw * IMM_FILL / (r.maxX - r.minX), th * 0.94 / (r.maxY - r.minY));
+        }
+        place(di, look);
+        const r = extent(w, h);
+        imm.pos.copy(camera.position); imm.look.copy(look);
+        imm.ox = (r.minX + r.maxX) / 2 - (T.l + T.r) / 2;
+        imm.oy = (r.minY + r.maxY) / 2 - (T.t + T.b) / 2;
+        imm.ok = true;
+      }
+    }
     applyCamera();
     kick();
   }
@@ -617,20 +642,30 @@ function init(){
      stand's open front holds still - the opening stays where the page put
      it and the inside moves behind it, as a room does through a window.
      look.x and look.y run -1 to 1 (right, up). */
-  const LOOK_X = 9 * Math.PI / 180, LOOK_Y = 5 * Math.PI / 180;   // the eye's swing at full reach
-  const look = { x:0, y:0, tx:0, ty:0, src:null };                // src: 'cam' | 'tilt' | 'sim' | null
+  const LOOK_X = 9 * Math.PI / 180, LOOK_Y = 5 * Math.PI / 180;   // the eye's swing at full reach (tilt)
+  const IMM_X = 20 * Math.PI / 180, IMM_Y = 10 * Math.PI / 180;   // …and in the immersive view
+  const LEAN = 0.3;                                           // leaning in at full reach: this share of the way closer
+  const look = { x:0, y:0, z:0, tx:0, ty:0, tz:0, src:null };     // src: 'cam' | 'tilt' | 'sim' | null
+  /* The immersive view: with the camera on, the copy steps aside and the
+     stand comes forward to fill the hero edge to edge, so the head moves
+     around inside it rather than in front of a picture of it. Its pose is
+     worked out with the rest pose, on every resize. */
+  const IMM_FILL = 1.08;                                      // the stand's width, against the hero's
+  const imm = { on:false, t:0, ok:false, pos:new THREE.Vector3(), look:new THREE.Vector3(), ox:0, oy:0 };
   const Y_UP = new THREE.Vector3(0, 1, 0);
   const _hf = new THREE.Vector3(), _hr = new THREE.Vector3(), _hu = new THREE.Vector3();
   const _hp = new THREE.Vector3(), _rp = new THREE.Vector3(), _rl = new THREE.Vector3();
+  const _bp = new THREE.Vector3(), _bl = new THREE.Vector3();  // the pose the head moves from
   let shiftX = 0, shiftY = 0;
-  function lookOffset(s){                                     // s: how much applies (1 at rest, 0 in a close-up)
+  function lookOffset(s, ti){                                 // s: how much applies (0 in a close-up); ti: how immersive
     _hp.set(0, 0, 0); shiftX = shiftY = 0;
-    if (!s || (!look.x && !look.y)) return;
-    _hf.subVectors(rest.look, rest.pos);
+    if (!s || (!look.x && !look.y && !look.z)) return;
+    _hf.subVectors(_bl, _bp);
     const D = _hf.length(); _hf.divideScalar(D);
     _hr.crossVectors(_hf, Y_UP).normalize(); _hu.crossVectors(_hr, _hf);
-    const dx = look.x * s * D * Math.tan(LOOK_X), dy = look.y * s * D * Math.tan(LOOK_Y);
-    _hp.copy(_hr).multiplyScalar(dx).addScaledVector(_hu, dy);
+    const ax = THREE.MathUtils.lerp(LOOK_X, IMM_X, ti), ay = THREE.MathUtils.lerp(LOOK_Y, IMM_Y, ti);
+    const dx = look.x * s * D * Math.tan(ax), dy = look.y * s * D * Math.tan(ay);
+    _hp.copy(_hr).multiplyScalar(dx).addScaledVector(_hu, dy).addScaledVector(_hf, look.z * s * ti * LEAN * D);
     const front = Math.max(D * 0.5, D - size.z * 0.45);       // the open front, a little in from the box's edge
     const f = rest.h / (2 * front * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));   // px per metre there
     shiftX = -dx * f; shiftY = dy * f;
@@ -995,8 +1030,11 @@ function init(){
   function applyCamera(){
     const e = focus.c < 0 ? 0 : easeIO(focus.t);
     corridor(focus.target, e > 0);
-    lookOffset(1 - e);                                        // the head's say fades out as a close-up flies in
-    _rp.copy(rest.pos).add(_hp); _rl.copy(rest.look).add(_hp);
+    const ti = imm.ok ? easeIO(imm.t) : 0;
+    _bp.lerpVectors(rest.pos, imm.pos, ti); _bl.lerpVectors(rest.look, imm.look, ti);
+    const bx = rest.ox + (imm.ox - rest.ox) * ti, by = rest.oy + (imm.oy - rest.oy) * ti;
+    lookOffset(1 - e, ti);                                    // the head's say fades out as a close-up flies in
+    _rp.copy(_bp).add(_hp); _rl.copy(_bl).add(_hp);
     if (e > 0){
       focusPose();
       if (focus.sw < 1){
@@ -1015,7 +1053,7 @@ function init(){
       camera.near = 0.1;
     }
     /* the carton lands in the middle of the stage, not of the wider canvas */
-    const ox = rest.ox + (rest.cx - rest.ox) * e + shiftX, oy = rest.oy * (1 - e) + shiftY;
+    const ox = bx + (rest.cx - bx) * e + shiftX, oy = by * (1 - e) + shiftY;
     if (ox || oy) camera.setViewOffset(rest.w, rest.h, ox, oy, rest.w, rest.h);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
@@ -1406,26 +1444,37 @@ function init(){
     }
   }
 
-  /* ---- looking around: the webcam, the tilt, and the button ---------------
-     A computer offers the webcam, and only on request: a button in the base
-     row starts it, and nothing - not even the face detector - loads before
-     that. The image never leaves the page: frames go to a small face
-     detector running here (MediaPipe's BlazeFace), and only the point
-     between the eyes is kept. The camera stops on the button, when the
-     page is hidden, or a few seconds after the stand leaves the screen.
-     A phone uses its tilt instead: on Android it simply runs, on iOS
-     the button asks once for the motion sensor. */
+  /* ---- the immersive view: the invitation, the webcam, the tilt ------------
+     On a computer the stand is offered first as an immersive view: once it
+     has built, an invitation asks the visitor in. Accepting starts the
+     webcam (the browser asks for it then); the copy steps aside and the
+     stand comes forward to fill the hero, and the head moves the eye
+     around inside it - left and right, up and down, and closer when the
+     visitor leans in. "Standard view" leaves the page as it was, and is
+     remembered for a month; a quiet button in the base row offers the
+     immersive view again. Nothing - not even the face detector - loads
+     before the visitor accepts.
+     The image never leaves the page: frames go to a small face detector
+     running here (MediaPipe's BlazeFace), and only the eyes' position and
+     spacing are kept. The camera stops on Exit or Esc, when the page is
+     hidden, or a few seconds after the stand leaves the screen.
+     A phone uses its tilt instead: on Android it simply runs, on iOS a
+     button asks once for the motion sensor. */
   const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0';
   const faceModel = () => ({ modelAssetPath: new URL('face-detector.tflite', import.meta.url).href, delegate:'CPU' });
   const GAIN = 2.4;                                           // head travel, as a share of the camera frame, to full reach
+  const LEAN_GAIN = 3;                                        // the eyes' spacing growing by a third: fully leant in
+  const DECLINED = 'djarri.immersive.declined', MONTH = 30 * 864e5;
   const clamp1 = v => Math.max(-1, Math.min(1, v));
   const lookRow = hero.querySelector('.bh-tools') || baseEl;
-  let lookBtn = null, lookReset = 0;
+  const T_STARTING = 'Opening the immersive view…';
+  const T_FAILED = 'The immersive view needs the camera. Here is the standard view.';
+  let lookBtn = null, lookReset = 0, invite = null, exitBtn = null;
+
   function lookState(state, text){
     if (!lookBtn) return;
     lookBtn.dataset.state = state;
     lookBtn.querySelector('span').textContent = tr(text);
-    lookBtn.setAttribute('aria-pressed', state === 'on' ? 'true' : 'false');
     clearTimeout(lookReset);
   }
   function makeLookBtn(text, onClick){
@@ -1441,18 +1490,72 @@ function init(){
     return b;
   }
 
-  const cam = { on:false, busy:false, stream:null, video:null, detector:null, raf:0, seen:0, last:0, vt:-1, n:0, cx:0, cy:0, away:0 };
+  /* the invitation, over the hero once the stand has built */
+  function declined(){
+    try{ const t = +localStorage.getItem(DECLINED); return t > 0 && Date.now() - t < MONTH; }catch(e){ return false; }
+  }
+  function buildInvite(){
+    const el = document.createElement('div');
+    el.className = 'bh-invite';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-labelledby', 'bhInviteH');
+    el.innerHTML =
+      '<div class="bh-invite-card">' +
+        '<p class="bh-invite-k"></p>' +
+        '<p class="bh-invite-h" id="bhInviteH"></p>' +
+        '<p class="bh-invite-v"></p>' +
+        '<div class="bh-invite-a">' +
+          '<button type="button" class="bh-invite-yes"><span></span><i aria-hidden="true">&#8594;</i></button>' +
+          '<button type="button" class="bh-invite-no"></button>' +
+        '</div>' +
+      '</div>';
+    el.querySelector('.bh-invite-k').textContent = tr('Immersive view');
+    el.querySelector('.bh-invite-h').textContent = tr('Step inside the stand.');
+    el.querySelector('.bh-invite-v').textContent = tr('For the full experience, the stand follows your head: lean in, look left and right, and it moves with you. It works through your camera; the image stays on this device and nothing is recorded or sent.');
+    el.querySelector('.bh-invite-yes span').textContent = tr('Enter the immersive view');
+    el.querySelector('.bh-invite-no').textContent = tr('Standard view');
+    el.querySelector('.bh-invite-yes').addEventListener('click', () => camStart(true));
+    el.querySelector('.bh-invite-no').addEventListener('click', () => {
+      try{ localStorage.setItem(DECLINED, String(Date.now())); }catch(e){}
+      closeInvite();
+    });
+    el.addEventListener('pointerdown', e => e.stopPropagation());   // a press on the card is not a click on the stand
+    hero.append(el);
+    return el;
+  }
+  let invited = false;
+  function offerInvite(){                                     // called once, when the stand has built
+    if (invited || !invite) return;
+    invited = true;
+    if (declined() || cam.on) return;
+    hero.classList.add('inviting');
+    requestAnimationFrame(() => invite.classList.add('open'));
+  }
+  function closeInvite(){
+    if (!invite) return;
+    invite.classList.remove('open');
+    hero.classList.remove('inviting');
+  }
+  function inviteSays(text, busy){
+    if (!invite) return;
+    const y = invite.querySelector('.bh-invite-yes');
+    y.querySelector('span').textContent = tr(text);
+    y.disabled = !!busy;
+    invite.classList.toggle('busy', !!busy);
+  }
+
+  const cam = { on:false, busy:false, stream:null, video:null, detector:null, raf:0, seen:0, last:0, vt:-1, n:0, cx:0, cy:0, cs:0, away:0 };
   async function loadDetector(){
     const lib = MP + '/vision_bundle.mjs';                    // a variable, so no bundler tries to fetch it
     const { FilesetResolver, FaceDetector } = await import(lib);
     const files = await FilesetResolver.forVisionTasks(MP + '/wasm');
     return FaceDetector.createFromOptions(files, { baseOptions:faceModel(), runningMode:'VIDEO', minDetectionConfidence:0.5 });
   }
-  async function camToggle(){
-    if (cam.busy) return;
-    if (cam.on){ camStop(); return; }
+  async function camStart(fromInvite){
+    if (cam.busy || cam.on) return;
     cam.busy = true;
-    lookState('starting', 'Starting the camera…');
+    lookState('starting', T_STARTING);
+    inviteSays(T_STARTING, true);
     try{
       const media = navigator.mediaDevices.getUserMedia({ audio:false,
         video:{ facingMode:'user', width:{ ideal:320 }, height:{ ideal:240 }, frameRate:{ ideal:30 } } });
@@ -1468,19 +1571,22 @@ function init(){
       await cam.video.play();
       cam.on = true; cam.n = 0; cam.vt = -1; cam.seen = cam.last = performance.now();
       look.src = 'cam';
-      lookState('on', 'Camera on · Stop');
-      hero.classList.add('looking');
+      closeInvite();
+      enterImmersive();
       cam.raf = requestAnimationFrame(camTick);
-      kick();
     }catch(err){
       if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
       cam.stream = null;
-      const blocked = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
-      lookState(blocked ? 'blocked' : 'failed', blocked ? 'Camera blocked' : 'Camera unavailable');
+      const none = err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError');   // no camera at all
+      lookState('failed', T_FAILED);
       lookReset = setTimeout(() => {
-        if (err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError')) lookBtn.hidden = true;   // no camera at all
-        else lookState('idle', 'Look around with your camera');
-      }, 2800);
+        if (none) lookBtn.hidden = true;
+        else lookState('idle', 'Immersive view');
+      }, 3200);
+      if (fromInvite){
+        inviteSays(T_FAILED, true);
+        setTimeout(() => { closeInvite(); inviteSays('Enter the immersive view', false); }, 2600);
+      }
     }
     cam.busy = false;
   }
@@ -1491,11 +1597,28 @@ function init(){
     cam.stream = null;
     if (cam.video) cam.video.srcObject = null;
     if (look.src === 'cam') look.src = null;
-    look.tx = look.ty = 0;
-    hero.classList.remove('looking');
-    lookState('idle', 'Look around with your camera');
+    look.tx = look.ty = look.tz = 0;
+    leaveImmersive();
+    lookState('idle', 'Immersive view');
+  }
+  function enterImmersive(){
+    imm.on = true;
+    hero.classList.add('looking');
+    lookState('on', 'Immersive view');
+    /* the whole hero in view, so the stand can fill it */
+    const top = hero.getBoundingClientRect().top;
+    if (Math.abs(top) > 2) scrollTo({ top: scrollY + top, behavior: calm ? 'auto' : 'smooth' });
     kick();
   }
+  function leaveImmersive(){
+    imm.on = false;
+    hero.classList.remove('looking');
+    kick();
+  }
+  addEventListener('keydown', e => {                          // Esc: out of a close-up first, then out of the view
+    if (e.key === 'Escape' && cam.on && !focus.on && focus.t === 0) camStop();
+  });
+
   function camTick(now){
     if (!cam.on) return;
     cam.raf = requestAnimationFrame(camTick);
@@ -1511,24 +1634,33 @@ function init(){
       if (a > area){ area = a; best = d; }
     }
     if (!best){                                                // looked away, or left: ease back to the middle
-      if (now - cam.seen > 800 && (look.tx || look.ty)){ look.tx = look.ty = 0; kick(); }
+      if (now - cam.seen > 800 && (look.tx || look.ty || look.tz)){ look.tx = look.ty = look.tz = 0; kick(); }
       return;
     }
     cam.seen = now;
-    const k = best.keypoints, W = vid.videoWidth || 320, H = vid.videoHeight || 240;
-    let px, py;
-    if (k && k.length >= 2){ px = (k[0].x + k[1].x) / 2; py = (k[0].y + k[1].y) / 2; }   // between the eyes
-    else { const b = best.boundingBox; px = (b.originX + b.width / 2) / W; py = (b.originY + b.height * 0.4) / H; }
+    const k = best.keypoints, W = vid.videoWidth || 320, H = vid.videoHeight || 240, b = best.boundingBox;
+    let px, py, span;
+    if (k && k.length >= 2){                                   // between the eyes, and how far apart they look
+      px = (k[0].x + k[1].x) / 2; py = (k[0].y + k[1].y) / 2;
+      span = Math.hypot((k[0].x - k[1].x) * W, (k[0].y - k[1].y) * H) / W;
+    } else { px = (b.originX + b.width / 2) / W; py = (b.originY + b.height * 0.4) / H; span = b.width / W / 2.6; }
     /* the camera's image is not mirrored: a step to the viewer's right
        moves the face to the left of the frame */
     const hx = (0.5 - px) * 2, hy = (0.5 - py) * 2;
     /* the middle is wherever the face first sits, and it drifts, slowly,
        to wherever it settles - nobody sits square to their webcam */
-    if (cam.n < 8){ cam.cx = (cam.cx * cam.n + hx) / (cam.n + 1); cam.cy = (cam.cy * cam.n + hy) / (cam.n + 1); cam.n++; return; }
+    if (cam.n < 8){
+      cam.cx = (cam.cx * cam.n + hx) / (cam.n + 1); cam.cy = (cam.cy * cam.n + hy) / (cam.n + 1);
+      cam.cs = (cam.cs * cam.n + span) / (cam.n + 1); cam.n++;
+      return;
+    }
     const drift = 1 - Math.exp(-gap / 25);
-    cam.cx += (hx - cam.cx) * drift; cam.cy += (hy - cam.cy) * drift;
+    cam.cx += (hx - cam.cx) * drift; cam.cy += (hy - cam.cy) * drift; cam.cs += (span - cam.cs) * drift;
     const tx = clamp1((hx - cam.cx) * GAIN), ty = clamp1((hy - cam.cy) * GAIN);
-    if (Math.abs(tx - look.tx) + Math.abs(ty - look.ty) > 0.004){ look.tx = tx; look.ty = ty; kick(); }
+    const tz = cam.cs > 0 ? clamp1((span / cam.cs - 1) * LEAN_GAIN) : 0;
+    if (Math.abs(tx - look.tx) + Math.abs(ty - look.ty) + Math.abs(tz - look.tz) > 0.004){
+      look.tx = tx; look.ty = ty; look.tz = tz; kick();
+    }
   }
   addEventListener('pagehide', () => { if (cam.on) camStop(); });
 
@@ -1554,27 +1686,38 @@ function init(){
   if (!calm && !POSTER){
     const md = navigator.mediaDevices;
     if (!LITE && window.isSecureContext && md && md.getUserMedia){
-      makeLookBtn('Look around with your camera', camToggle);
-      lookBtn.title = tr('Move your head to look around the stand. The camera image stays on this device: nothing is recorded or sent.');
+      makeLookBtn('Immersive view', () => { if (cam.on) camStop(); else camStart(false); });
+      lookBtn.title = tr('For the full experience, the stand follows your head: lean in, look left and right, and it moves with you. It works through your camera; the image stays on this device and nothing is recorded or sent.');
+      invite = buildInvite();
+      exitBtn = document.createElement('button');
+      exitBtn.type = 'button';
+      exitBtn.className = 'bh-exit';
+      exitBtn.innerHTML = '<i aria-hidden="true"></i><span></span>';
+      exitBtn.querySelector('span').textContent = tr('Immersive view · Exit');
+      exitBtn.addEventListener('pointerdown', e => e.stopPropagation());
+      exitBtn.addEventListener('click', camStop);
+      hero.append(exitBtn);
     } else if (LITE && 'DeviceOrientationEvent' in window){
       const ask = DeviceOrientationEvent.requestPermission;
       if (typeof ask === 'function'){                         // iOS: one tap, once
         makeLookBtn('Tilt to look around', () => {
           ask.call(DeviceOrientationEvent).then(p => {
             if (p === 'granted'){ addEventListener('deviceorientation', onTilt); lookBtn.hidden = true; }
-            else lookState('blocked', 'Tilt to look around');
+            else lookState('failed', 'Tilt to look around');
           }).catch(() => { lookBtn.hidden = true; });
         });
       } else addEventListener('deviceorientation', onTilt);
     }
   }
-  /* for tests: a head at (x, y), or null to let go */
-  hero.booth.look = (x, y) => {
-    if (x == null){ if (look.src === 'sim') look.src = null; look.tx = look.ty = 0; }
-    else { look.src = 'sim'; look.tx = clamp1(x); look.ty = clamp1(y || 0); }
+  /* for tests: a head at (x, y, z), or null to let go; the immersive view without a camera */
+  hero.booth.look = (x, y, z) => {
+    if (x == null){ if (look.src === 'sim') look.src = null; look.tx = look.ty = look.tz = 0; }
+    else { look.src = 'sim'; look.tx = clamp1(x); look.ty = clamp1(y || 0); look.tz = clamp1(z || 0); }
     kick();
   };
-  hero.booth.looking = () => ({ src:look.src, x:+look.x.toFixed(3), y:+look.y.toFixed(3), tx:+look.tx.toFixed(3), ty:+look.ty.toFixed(3) });
+  hero.booth.immerse = on => { closeInvite(); if (on) enterImmersive(); else leaveImmersive(); };
+  hero.booth.looking = () => ({ src:look.src, imm:+imm.t.toFixed(2), x:+look.x.toFixed(3), y:+look.y.toFixed(3), z:+look.z.toFixed(3),
+                                tx:+look.tx.toFixed(3), ty:+look.ty.toFixed(3), tz:+look.tz.toFixed(3) });
 
   /* ---- loop --------------------------------------------------------------
      Runs only while something is moving and the stage is on screen. */
@@ -1606,6 +1749,7 @@ function init(){
     } else if (!hotspots.length && !POSTER){                    // the poster is a clean still
       buildSpots();
       hero.classList.add('spots-on');
+      offerInvite();
       if (wantReel){ wantReel = false; openReel(); }
     }
 
@@ -1637,14 +1781,22 @@ function init(){
     if (Math.abs(target - yaw) > 1e-4) busy = true;
     table.rotation.y = yaw;
 
-    /* looking around: the eye follows the head, or the tilt, softly */
-    if (look.src || look.x || look.y){
+    /* looking around: the eye follows the head, or the tilt, softly; the
+       immersive view comes forward, or steps back, over a second or so */
+    let moveEye = false;
+    if (look.src || look.x || look.y || look.z){
       const kl = calm ? 1 : 1 - Math.pow(0.02, dt);
-      look.x += (look.tx - look.x) * kl; look.y += (look.ty - look.y) * kl;
-      if (Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) > 1e-3) busy = true;
-      else if (!look.src) look.x = look.y = 0;
-      if (focus.c < 0) applyCamera();
+      look.x += (look.tx - look.x) * kl; look.y += (look.ty - look.y) * kl; look.z += (look.tz - look.z) * kl;
+      if (Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) + Math.abs(look.tz - look.z) > 1e-3) busy = true;
+      else if (!look.src) look.x = look.y = look.z = 0;
+      moveEye = true;
     }
+    const immGoal = imm.on ? 1 : 0;
+    if (imm.t !== immGoal){
+      imm.t = calm ? immGoal : THREE.MathUtils.clamp(imm.t + (imm.on ? dt : -dt) / 1.4, 0, 1);
+      busy = moveEye = true;
+    }
+    if (moveEye && focus.c < 0) applyCamera();
 
     /* the close-up: fly in or out, and follow the orbit */
     if (focus.c >= 0){
@@ -1672,7 +1824,7 @@ function init(){
       const x = (v.x + 1) / 2 * canvas.clientWidth + canvasOffset, y = (1 - v.y) / 2 * stage.clientHeight;
       tag.style.left = Math.max(110, Math.min(stage.clientWidth - 110, x)) + 'px';
       /* never over the headline and its lede: below them, the label drops onto the stand */
-      const floor = headEl && CENTER ? headEl.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + tag.offsetHeight + 22 : 120;
+      const floor = headEl && CENTER && !imm.on ? headEl.getBoundingClientRect().bottom - stage.getBoundingClientRect().top + tag.offsetHeight + 22 : 120;
       tag.style.top = Math.max(floor, y) + 'px';
     }
 

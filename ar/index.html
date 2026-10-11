@@ -63,7 +63,7 @@
   }
 }
 </script>
-<link rel="modulepreload" href="../assets/booth/booth.js?v=f94b241f">
+<link rel="modulepreload" href="../assets/booth/booth.js?v=97f5e33c">
 <link rel="modulepreload" href="../assets/vendor/three/three.module.min.js">
 <link rel="modulepreload" href="../assets/vendor/three/addons/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="../assets/vendor/three/addons/utils/BufferGeometryUtils.js">
@@ -257,27 +257,88 @@
   .bh-hint{transition:opacity .5s ease;}
   .bh.touched .bh-hint,
   .bh.focused .bh-hint{opacity:0;}
-  /* looking around with the webcam (or, on an iPhone, asking for the tilt):
-     a quiet switch beside the hint, there once the stand is */
-  .bh-tools{display:inline-flex; align-items:baseline; gap:12px 28px; flex-wrap:wrap;}
+  /* The immersive view. A pill in the base row offers it (on an iPhone it
+     asks for the tilt instead); once the stand has built, an invitation
+     over the hero offers it first. In it, the copy steps aside and the
+     stand fills the hero, with a way out at the top right. */
+  .bh-tools{display:inline-flex; align-items:center; gap:12px 28px; flex-wrap:wrap;}
   .bh-look{
-    display:inline-flex; align-items:center; gap:.75em; padding:0; border:0; background:none;
+    display:inline-flex; align-items:center; gap:.7em; padding:.5em 1em .5em .85em;
+    border:1px solid var(--ink); border-radius:999px; background:transparent;
     font:inherit; letter-spacing:inherit; text-transform:inherit; color:var(--ink); cursor:pointer;
-    opacity:0; visibility:hidden; transition:opacity .6s ease, visibility 0s linear .6s;
+    opacity:0; visibility:hidden; transition:opacity .6s ease, visibility 0s linear .6s, background-color .25s ease, color .25s ease;
   }
   .bh.gl-ready .bh-look{opacity:1; visibility:visible; transition-delay:0s;}
   .bh.focused .bh-look{opacity:0; pointer-events:none;}
-  .bh-look span{border-bottom:1px solid currentColor; padding-bottom:1px;}
-  .bh-look i{flex:none; width:9px; height:9px; border-radius:50%; border:1.5px solid currentColor; box-sizing:border-box;}
-  .bh-look:hover span{border-bottom-color:var(--accent);}
-  .bh-look:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
+  .bh-look i{flex:none; width:8px; height:8px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 1px rgba(10,10,11,.25);}
+  .bh-look:hover{background:var(--ink); color:var(--paper);}
+  .bh-look:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
   .bh-look[data-state="starting"]{cursor:progress;}
-  .bh-look[data-state="starting"] i{border-color:var(--accent); border-right-color:transparent; animation:bhSpin .8s linear infinite;}
-  .bh-look[data-state="on"] i{background:var(--accent); border-color:var(--accent); animation:bhLive 1.8s ease-in-out infinite;}
-  .bh-look[data-state="blocked"],
-  .bh-look[data-state="failed"]{color:var(--mute); cursor:default;}
-  .bh-look[data-state="blocked"] span,
-  .bh-look[data-state="failed"] span{border-bottom-color:transparent;}
+  .bh-look[data-state="starting"] i{background:none; border:1.5px solid var(--a-mid); border-right-color:transparent; box-shadow:none; animation:bhSpin .8s linear infinite;}
+  .bh-look[data-state="on"] i{animation:bhLive 1.8s ease-in-out infinite;}
+  .bh-look[data-state="failed"]{color:var(--mute); border-color:transparent; cursor:default;}
+
+  /* the invitation: a veil over the hero, and one card */
+  .bh .bh-invite{
+    position:absolute; inset:0; z-index:5; display:grid; place-items:center; padding:var(--edge) var(--pad);
+    background:rgba(230,229,226,.5); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+    opacity:0; visibility:hidden; pointer-events:none; transition:opacity .7s ease, visibility 0s linear .7s;
+  }
+  .bh .bh-invite.open{opacity:1; visibility:visible; pointer-events:auto; transition-delay:0s;}
+  .bh-invite-card{
+    width:min(31rem, 100%); background:var(--ink); color:var(--paper); border-radius:18px;
+    padding:30px 32px 28px; box-shadow:0 30px 80px rgba(10,10,11,.3);
+    transform:translateY(16px); transition:transform .9s cubic-bezier(.2,.7,.3,1);
+  }
+  .bh-invite.open .bh-invite-card{transform:none;}
+  .bh-invite-k{display:flex; align-items:center; gap:10px; margin:0; font-family:var(--mono); font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--accent);}
+  .bh-invite-k::before{content:""; width:8px; height:8px; border-radius:50%; background:var(--accent); animation:bhLive 1.8s ease-in-out infinite;}
+  .bh-invite-h{margin:.55em 0 .5em; font-size:clamp(1.6rem, 2.5vw, 2.15rem); font-weight:600; line-height:1.15; letter-spacing:-.01em;}
+  .bh-invite-v{margin:0 0 1.7em; font-size:.92rem; line-height:1.55; color:rgba(255,255,255,.72);}
+  .bh-invite-a{display:flex; flex-wrap:wrap; align-items:center; gap:14px 26px;}
+  .bh-invite-yes{
+    display:inline-flex; align-items:center; gap:.8em; padding:.85em 1.4em; border:0; border-radius:999px;
+    background:var(--accent); color:var(--ink); font:inherit; font-size:.95rem; font-weight:600; cursor:pointer;
+    transition:box-shadow .3s ease, transform .3s ease;
+  }
+  .bh-invite-yes:hover,
+  .bh-invite-yes:focus-visible{box-shadow:0 0 0 8px rgba(255,206,0,.2), 0 0 34px 6px rgba(255,206,0,.42); transform:translateY(-1px);}
+  .bh-invite-yes:focus-visible{outline:2px solid var(--paper); outline-offset:3px;}
+  .bh-invite-yes i{font-style:normal; transition:transform .3s ease;}
+  .bh-invite-yes:hover i{transform:translateX(3px);}
+  .bh-invite.busy .bh-invite-yes{cursor:progress; box-shadow:none; transform:none;}
+  .bh-invite.busy .bh-invite-yes i{display:none;}
+  .bh-invite-no{
+    padding:.35em 0; border:0; border-bottom:1px solid rgba(255,255,255,.35); background:none; cursor:pointer;
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.16em; text-transform:uppercase; color:rgba(255,255,255,.72);
+  }
+  .bh-invite-no:hover,
+  .bh-invite-no:focus-visible{color:var(--paper); border-bottom-color:var(--paper);}
+  .bh-invite.busy .bh-invite-no{visibility:hidden;}
+
+  /* in the view: the copy steps aside, the way out takes the top right */
+  .bh.looking .bh-head,
+  .bh.looking .bh-base,
+  .bh.looking .bh-bar-r{opacity:0;}
+  .bh.looking .bh-head *,
+  .bh.looking .bh-base *{pointer-events:none;}
+  .bh .bh-exit{
+    position:absolute; top:var(--edge); right:var(--pad); z-index:4;
+    display:inline-flex; align-items:center; gap:.7em; padding:.6em 1.05em .6em .9em;
+    border:1px solid var(--ink); border-radius:999px; background:rgba(230,229,226,.8); cursor:pointer;
+    font-family:var(--mono); font-size:.68rem; letter-spacing:.14em; text-transform:uppercase; color:var(--ink);
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .5s ease, visibility 0s linear .5s, background-color .25s ease, color .25s ease;
+  }
+  .bh.looking .bh-exit{opacity:1; visibility:visible; pointer-events:auto; transition-delay:.5s, 0s, 0s, 0s;}
+  .bh.looking.focused .bh-exit{opacity:0; pointer-events:none;}
+  .bh-exit i{width:8px; height:8px; border-radius:50%; background:var(--accent); animation:bhLive 1.8s ease-in-out infinite;}
+  .bh-exit:hover{background:var(--ink); color:var(--paper);}
+  .bh-exit:focus-visible{outline:2px solid var(--ink); outline-offset:3px;}
+  [dir="rtl"] .bh .bh-exit{right:auto; left:var(--pad);}
+  [lang="ar"] .bh-exit,
+  [lang="ar"] .bh-invite-k,
+  [lang="ar"] .bh-invite-no{font-size:var(--ar-label); letter-spacing:0;}
   @keyframes bhLive{50%{box-shadow:0 0 0 5px rgba(255,206,0,.3);}}
   @keyframes bhSpin{to{transform:rotate(360deg);}}
   /* the close-up of a part: one quiet line at the top right */
@@ -1403,6 +1464,6 @@
 <script src="../assets/content.js?v=35cd74ca"></script>
 <script src="../assets/site.js?v=e366cbee" defer></script>
 <script src="../assets/logo3d.js?v=9f1c4f07" defer></script>
-<script type="module" src="../assets/booth/booth.js?v=f94b241f"></script>
+<script type="module" src="../assets/booth/booth.js?v=97f5e33c"></script>
 </body>
 </html>
