@@ -1551,7 +1551,24 @@ function init(){
     invite.classList.toggle('busy', !!busy);
   }
 
-  const cam = { on:false, busy:false, stream:null, video:null, detector:null, raf:0, seen:0, last:0, vt:-1, n:0, cx:0, cy:0, cs:0, away:0 };
+  const cam = { on:false, busy:false, stream:null, video:null, detector:null, raf:0, seen:0, last:0, vt:-1, n:0, cx:0, cy:0, cs:0, away:0,
+                hist:[], fx:0, fy:0, fs:0, moving:false, still:0, px:0, py:0, pz:0, lost:false };
+  /* Steadiness. The detector's reading trembles by a few pixels even on a
+     still head, and now and then one frame jumps. So: the middle of the
+     last five readings (a single bad frame never reaches the stand), a
+     light low-pass on top, a small dead zone round the middle, and a
+     threshold - the stand holds still until the head has moved by HOLD
+     (about 2 cm at a laptop's distance), then follows the move fully, and
+     locks again once the head has been still for SETTLE seconds. */
+  const HOLD = 0.12, SETTLE = 0.35, DEAD = 0.06;
+  const TURN = 0.35, AWAY = 500;                              // a head turned this far, for this long (ms), has looked away
+  function faceFront(){
+    cam.lost = true; cam.moving = false;
+    look.tx = look.ty = look.tz = 0;                          // the eye back to the middle
+    target = REST; vel = 0; lastInput = performance.now();    // and the stand square on, as it rests
+    kick();
+  }
+  const deadZone = v => Math.abs(v) < DEAD ? 0 : Math.sign(v) * (Math.abs(v) - DEAD) / (1 - DEAD);
   async function loadDetector(){
     const lib = MP + '/vision_bundle.mjs';                    // a variable, so no bundler tries to fetch it
     const { FilesetResolver, FaceDetector } = await import(lib);
@@ -1577,6 +1594,7 @@ function init(){
       cam.video.srcObject = cam.stream;
       await cam.video.play();
       cam.on = true; cam.n = 0; cam.vt = -1; cam.seen = cam.last = performance.now();
+      cam.hist = []; cam.fx = cam.fy = cam.fs = 0; cam.moving = false; cam.still = 0; cam.lost = false;
       look.src = 'cam';
       closeInvite();
       enterImmersive();
@@ -1640,12 +1658,20 @@ function init(){
       const b = d.boundingBox, a = b ? b.width * b.height : 0;
       if (a > area){ area = a; best = d; }
     }
-    if (!best){                                                // looked away, or left: ease back to the middle
-      if (now - cam.seen > 800 && (look.tx || look.ty || look.tz)){ look.tx = look.ty = look.tz = 0; kick(); }
+    /* Looking away - out of frame, or the head turned aside (the nose swung
+       well off the line between the eyes): the stand holds, then turns back
+       to face front, so whoever looks back finds it square on. */
+    const k = best && best.keypoints;
+    const turn = k && k.length >= 3 ? (k[2].x - (k[0].x + k[1].x) / 2) / Math.max(Math.abs(k[0].x - k[1].x), 1e-3) : 0;
+    if (!best || Math.abs(turn) > TURN){
+      if (now - cam.seen > AWAY && !cam.lost) faceFront();
       return;
     }
     cam.seen = now;
-    const k = best.keypoints, W = vid.videoWidth || 320, H = vid.videoHeight || 240, b = best.boundingBox;
+    if (cam.lost){                                             // back: this is the new middle
+      cam.lost = false; cam.n = 0; cam.hist = []; cam.moving = false;
+    }
+    const W = vid.videoWidth || 320, H = vid.videoHeight || 240, b = best.boundingBox;
     let px, py, span;
     if (k && k.length >= 2){                                   // between the eyes, and how far apart they look
       px = (k[0].x + k[1].x) / 2; py = (k[0].y + k[1].y) / 2;
@@ -1654,20 +1680,39 @@ function init(){
     /* the camera's image is not mirrored: a step to the viewer's right
        moves the face to the left of the frame */
     const hx = (0.5 - px) * 2, hy = (0.5 - py) * 2;
+    /* the middle of the last five readings, then a light low-pass */
+    cam.hist.push([hx, hy, span]);
+    if (cam.hist.length > 5) cam.hist.shift();
+    const mid = i => { const a = cam.hist.map(r => r[i]).sort((p, q) => p - q); return a[a.length >> 1]; };
+    const lp = cam.n ? 1 - Math.exp(-gap / 0.12) : 1;
+    cam.fx += (mid(0) - cam.fx) * lp; cam.fy += (mid(1) - cam.fy) * lp; cam.fs += (mid(2) - cam.fs) * lp;
     /* the middle is wherever the face first sits, and it drifts, slowly,
        to wherever it settles - nobody sits square to their webcam */
     if (cam.n < 8){
-      cam.cx = (cam.cx * cam.n + hx) / (cam.n + 1); cam.cy = (cam.cy * cam.n + hy) / (cam.n + 1);
-      cam.cs = (cam.cs * cam.n + span) / (cam.n + 1); cam.n++;
+      cam.cx = (cam.cx * cam.n + cam.fx) / (cam.n + 1); cam.cy = (cam.cy * cam.n + cam.fy) / (cam.n + 1);
+      cam.cs = (cam.cs * cam.n + cam.fs) / (cam.n + 1); cam.n++;
       return;
     }
     const drift = 1 - Math.exp(-gap / 25);
-    cam.cx += (hx - cam.cx) * drift; cam.cy += (hy - cam.cy) * drift; cam.cs += (span - cam.cs) * drift;
-    const tx = clamp1((hx - cam.cx) * GAIN), ty = clamp1((hy - cam.cy) * GAIN);
-    const tz = cam.cs > 0 ? clamp1((span / cam.cs - 1) * LEAN_GAIN) : 0;
-    if (Math.abs(tx - look.tx) + Math.abs(ty - look.ty) + Math.abs(tz - look.tz) > 0.004){
-      look.tx = tx; look.ty = ty; look.tz = tz; kick();
+    cam.cx += (cam.fx - cam.cx) * drift; cam.cy += (cam.fy - cam.cy) * drift; cam.cs += (cam.fs - cam.cs) * drift;
+    const rx = deadZone(clamp1((cam.fx - cam.cx) * GAIN)), ry = deadZone(clamp1((cam.fy - cam.cy) * GAIN));
+    const rz = cam.cs > 0 ? deadZone(clamp1((cam.fs / cam.cs - 1) * LEAN_GAIN)) : 0;
+    /* the threshold: hold until the head has really moved, follow while it
+       moves, and hold again once it has settled */
+    if (!cam.moving && Math.max(Math.abs(rx - look.tx), Math.abs(ry - look.ty), Math.abs(rz - look.tz)) > HOLD){
+      cam.moving = true; cam.still = 0;
     }
+    if (cam.moving){
+      /* still is staying inside a small window, however much the reading
+         trembles within it; leaving the window starts the count again */
+      if (Math.max(Math.abs(rx - cam.px), Math.abs(ry - cam.py), Math.abs(rz - cam.pz)) < HOLD * 0.5) cam.still += gap;
+      else { cam.still = 0; cam.px = rx; cam.py = ry; cam.pz = rz; }
+      look.tx = rx; look.ty = ry; look.tz = rz; kick();
+      if (cam.still > SETTLE){                                 // settled: rest on the window's centre
+        cam.moving = false;
+        look.tx = (rx + cam.px) / 2; look.ty = (ry + cam.py) / 2; look.tz = (rz + cam.pz) / 2;
+      }
+    } else { cam.px = rx; cam.py = ry; cam.pz = rz; }
   }
   addEventListener('pagehide', () => { if (cam.on) camStop(); });
 
@@ -1723,7 +1768,7 @@ function init(){
     kick();
   };
   hero.booth.immerse = on => { closeInvite(); if (on) enterImmersive(); else leaveImmersive(); };
-  hero.booth.looking = () => ({ src:look.src, imm:+imm.t.toFixed(2), x:+look.x.toFixed(3), y:+look.y.toFixed(3), z:+look.z.toFixed(3),
+  hero.booth.looking = () => ({ src:look.src, imm:+imm.t.toFixed(2), vt:cam.video ? +cam.video.currentTime.toFixed(1) : null, moving:cam.moving, lost:cam.lost, x:+look.x.toFixed(3), y:+look.y.toFixed(3), z:+look.z.toFixed(3),
                                 tx:+look.tx.toFixed(3), ty:+look.ty.toFixed(3), tz:+look.tz.toFixed(3) });
 
   /* ---- loop --------------------------------------------------------------
@@ -1792,7 +1837,7 @@ function init(){
        immersive view comes forward, or steps back, over a second or so */
     let moveEye = false;
     if (look.src || look.x || look.y || look.z){
-      const kl = calm ? 1 : 1 - Math.pow(0.02, dt);
+      const kl = calm ? 1 : 1 - Math.pow(look.src === 'cam' ? 0.07 : 0.02, dt);   // the head's glide a little calmer than a tilt's
       look.x += (look.tx - look.x) * kl; look.y += (look.ty - look.y) * kl; look.z += (look.tz - look.z) * kl;
       if (Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) + Math.abs(look.tz - look.z) > 1e-3) busy = true;
       else if (!look.src) look.x = look.y = look.z = 0;
