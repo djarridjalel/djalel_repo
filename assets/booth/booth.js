@@ -586,7 +586,9 @@ function init(){
         imm.pos.copy(camera.position); imm.look.copy(look);
         imm.ox = (r.minX + r.maxX) / 2 - (T.l + T.r) / 2;
         imm.oy = (r.minY + r.maxY) / 2 - (T.t + T.b) / 2;
-        imm.ok = true;
+        /* a pose that failed to settle (a window so narrow the eye would
+           have to stand inside the stand) is simply not offered */
+        imm.ok = Number.isFinite(di) && di > size.z * 0.6 && Number.isFinite(imm.ox) && Number.isFinite(imm.oy);
       }
     }
     applyCamera();
@@ -1031,8 +1033,11 @@ function init(){
     const e = focus.c < 0 ? 0 : easeIO(focus.t);
     corridor(focus.target, e > 0);
     const ti = imm.ok ? easeIO(imm.t) : 0;
-    _bp.lerpVectors(rest.pos, imm.pos, ti); _bl.lerpVectors(rest.look, imm.look, ti);
-    const bx = rest.ox + (imm.ox - rest.ox) * ti, by = rest.oy + (imm.oy - rest.oy) * ti;
+    let bx = rest.ox, by = rest.oy;
+    if (ti > 0){                                              // never touches the rest pose otherwise
+      _bp.lerpVectors(rest.pos, imm.pos, ti); _bl.lerpVectors(rest.look, imm.look, ti);
+      bx += (imm.ox - rest.ox) * ti; by += (imm.oy - rest.oy) * ti;
+    } else { _bp.copy(rest.pos); _bl.copy(rest.look); }
     lookOffset(1 - e, ti);                                    // the head's say fades out as a close-up flies in
     _rp.copy(_bp).add(_hp); _rl.copy(_bl).add(_hp);
     if (e > 0){
@@ -1469,7 +1474,7 @@ function init(){
   const lookRow = hero.querySelector('.bh-tools') || baseEl;
   const T_STARTING = 'Opening the immersive view…';
   const T_FAILED = 'The immersive view needs the camera. Here is the standard view.';
-  let lookBtn = null, lookReset = 0, invite = null, exitBtn = null;
+  let lookBtn = null, lookReset = 0, invite = null, exitBtn = null, inviteOpen = false;
 
   function lookState(state, text){
     if (!lookBtn) return;
@@ -1529,12 +1534,14 @@ function init(){
     invited = true;
     if (declined() || cam.on) return;
     hero.classList.add('inviting');
+    inviteOpen = true;                                        // the stand holds still under it
     requestAnimationFrame(() => invite.classList.add('open'));
   }
   function closeInvite(){
     if (!invite) return;
     invite.classList.remove('open');
     hero.classList.remove('inviting');
+    if (inviteOpen){ inviteOpen = false; kick(); }            // and sways again
   }
   function inviteSays(text, busy){
     if (!invite) return;
@@ -1754,7 +1761,7 @@ function init(){
     }
 
     /* idle sway once nobody has touched it for a while */
-    if (!calm && !dragging && focus.t === 0 && hover === null && !look.src && now - lastInput > IDLE){
+    if (!calm && !dragging && focus.t === 0 && hover === null && !look.src && !inviteOpen && now - lastInput > IDLE){
       const sway = REST + Math.sin(now / 3400) * Math.min(0.16, (MAX - MIN) / 2);
       target += (sway - target) * (1 - Math.pow(0.3, dt));    // eases back into the sway
       busy = true;
