@@ -63,7 +63,7 @@
   }
 }
 </script>
-<link rel="modulepreload" href="assets/booth/booth.js?v=8012cc0c">
+<link rel="modulepreload" href="assets/booth/booth.js?v=f94b241f">
 <link rel="modulepreload" href="assets/vendor/three/three.module.min.js">
 <link rel="modulepreload" href="assets/vendor/three/addons/loaders/GLTFLoader.js">
 <link rel="modulepreload" href="assets/vendor/three/addons/utils/BufferGeometryUtils.js">
@@ -257,6 +257,29 @@
   .bh-hint{transition:opacity .5s ease;}
   .bh.touched .bh-hint,
   .bh.focused .bh-hint{opacity:0;}
+  /* looking around with the webcam (or, on an iPhone, asking for the tilt):
+     a quiet switch beside the hint, there once the stand is */
+  .bh-tools{display:inline-flex; align-items:baseline; gap:12px 28px; flex-wrap:wrap;}
+  .bh-look{
+    display:inline-flex; align-items:center; gap:.75em; padding:0; border:0; background:none;
+    font:inherit; letter-spacing:inherit; text-transform:inherit; color:var(--ink); cursor:pointer;
+    opacity:0; visibility:hidden; transition:opacity .6s ease, visibility 0s linear .6s;
+  }
+  .bh.gl-ready .bh-look{opacity:1; visibility:visible; transition-delay:0s;}
+  .bh.focused .bh-look{opacity:0; pointer-events:none;}
+  .bh-look span{border-bottom:1px solid currentColor; padding-bottom:1px;}
+  .bh-look i{flex:none; width:9px; height:9px; border-radius:50%; border:1.5px solid currentColor; box-sizing:border-box;}
+  .bh-look:hover span{border-bottom-color:var(--accent);}
+  .bh-look:focus-visible{outline:2px solid var(--ink); outline-offset:4px;}
+  .bh-look[data-state="starting"]{cursor:progress;}
+  .bh-look[data-state="starting"] i{border-color:var(--accent); border-right-color:transparent; animation:bhSpin .8s linear infinite;}
+  .bh-look[data-state="on"] i{background:var(--accent); border-color:var(--accent); animation:bhLive 1.8s ease-in-out infinite;}
+  .bh-look[data-state="blocked"],
+  .bh-look[data-state="failed"]{color:var(--mute); cursor:default;}
+  .bh-look[data-state="blocked"] span,
+  .bh-look[data-state="failed"] span{border-bottom-color:transparent;}
+  @keyframes bhLive{50%{box-shadow:0 0 0 5px rgba(255,206,0,.3);}}
+  @keyframes bhSpin{to{transform:rotate(360deg);}}
   /* the close-up of a part: one quiet line at the top right */
   .bh-back{
     position:absolute; right:var(--pad); top:var(--edge);
@@ -662,7 +685,7 @@
 
   <div class="bh-base">
     <span data-ed="index.t104">Selected work — <b>Evolab Laboratories</b> · SIPHAL stand · 3D to on-site build</span>
-    <span class="bh-hint" aria-hidden="true">Drag to turn &#8596;</span>
+    <span class="bh-tools"><span class="bh-hint" aria-hidden="true">Drag to turn &#8596;</span></span>
   </div>
 </header>
 <script>
@@ -1380,6 +1403,6 @@
 <script src="assets/content.js?v=35cd74ca"></script>
 <script src="assets/site.js?v=e366cbee" defer></script>
 <script src="assets/logo3d.js?v=9f1c4f07" defer></script>
-<script type="module" src="assets/booth/booth.js?v=8012cc0c"></script>
+<script type="module" src="assets/booth/booth.js?v=f94b241f"></script>
 </body>
 </html>

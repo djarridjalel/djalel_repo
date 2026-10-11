@@ -36,6 +36,9 @@ const doc = await io.read(path.join(BOOTH, 'evolab-booth.glb'));
 for (const e of doc.getRoot().listExtensionsUsed())
   if (e.extensionName === 'EXT_meshopt_compression') e.dispose();
 const glb = Buffer.from(await io.writeBinary(doc)).toString('base64');
+/* the face detector's model, carried in the bundle the same way: a single
+   file has no folder to fetch it from */
+const face = readFileSync(path.join(BOOTH, 'face-detector.tflite')).toString('base64');
 
 function patch(src, from, to, file){
   if (!src.includes(from)) throw new Error(`${file}: expected text not found: ${from.slice(0, 60)}`);
@@ -62,7 +65,9 @@ await build({
         if (!m) throw new Error('booth.js: model load call not found');
         s = s.replace(m[0], `loader.parse(Uint8Array.from(atob(__GLB), c => c.charCodeAt(0)).buffer, '', ${m[1]}, ${m[2]}`);
         s = patch(s, "import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';\n", '', 'booth.js');
-        return { contents: `const __GLB = ${JSON.stringify(glb)};\n` + s, loader: 'js' };
+        s = patch(s, "modelAssetPath: new URL('face-detector.tflite', import.meta.url).href",
+                  "modelAssetBuffer: Uint8Array.from(atob(__FACE), c => c.charCodeAt(0))", 'booth.js');
+        return { contents: `const __GLB = ${JSON.stringify(glb)};\nconst __FACE = ${JSON.stringify(face)};\n` + s, loader: 'js' };
       });
       b.onLoad({ filter: /GLTFLoader\.js$/ }, a => ({
         contents: patch(readFileSync(a.path, 'utf8'),

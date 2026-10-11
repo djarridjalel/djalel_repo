@@ -70,7 +70,15 @@ function init(){
     'The launch roll-up: the carton, its chevron and the campaign\u2019s key visual carried to two metres of print, beside the Evolab one.':
       'لافتة الإطلاق: العلبة وشيفرونها والصورة الرئيسية للحملة منقولةً إلى مترين من الطباعة، بجانب لافتة Evolab.',
     'The studio\u2019s showreel on the stand\u2019s screen: identity, packaging, campaigns, web and film, in one minute.':
-      'عرض أعمال الاستوديو على شاشة الجناح: الهوية والتغليف والحملات والويب والأفلام، في دقيقة واحدة.'
+      'عرض أعمال الاستوديو على شاشة الجناح: الهوية والتغليف والحملات والويب والأفلام، في دقيقة واحدة.',
+    'Look around with your camera': 'انظر حول الجناح بكاميرتك',
+    'Starting the camera…': 'جارٍ تشغيل الكاميرا…',
+    'Camera on · Stop': 'الكاميرا تعمل · إيقاف',
+    'Camera blocked': 'الكاميرا محجوبة',
+    'Camera unavailable': 'الكاميرا غير متاحة',
+    'Tilt to look around': 'أمِل الهاتف للنظر حول الجناح',
+    'Move your head to look around the stand. The camera image stays on this device: nothing is recorded or sent.':
+      'حرّك رأسك للنظر حول الجناح. تبقى صورة الكاميرا على هذا الجهاز: لا يُسجَّل شيء ولا يُرسَل.'
   } : null;
   /* the desk's captions are built per flyer, so they are built per language */
   const AR_DCI = { Xyline:'دوكسيسيكلين 100 ملغ', Esoprotect:'إيزوميبرازول 40 ملغ و20 ملغ', Lansoprotect:'لانسوبرازول 30 ملغ',
@@ -602,6 +610,32 @@ function init(){
   const GIVE = 5 * Math.PI / 180;
   const clampYaw = v => Math.min(MAX + GIVE, Math.max(MIN - GIVE, v));
 
+  /* ---- looking around ----------------------------------------------------
+     The viewer's head (the webcam, on request) or the phone's tilt moves the
+     eye as if the screen were a window onto the stand: the camera slides
+     with the head, and the frame is shifted back so the plane of the
+     stand's open front holds still - the opening stays where the page put
+     it and the inside moves behind it, as a room does through a window.
+     look.x and look.y run -1 to 1 (right, up). */
+  const LOOK_X = 9 * Math.PI / 180, LOOK_Y = 5 * Math.PI / 180;   // the eye's swing at full reach
+  const look = { x:0, y:0, tx:0, ty:0, src:null };                // src: 'cam' | 'tilt' | 'sim' | null
+  const Y_UP = new THREE.Vector3(0, 1, 0);
+  const _hf = new THREE.Vector3(), _hr = new THREE.Vector3(), _hu = new THREE.Vector3();
+  const _hp = new THREE.Vector3(), _rp = new THREE.Vector3(), _rl = new THREE.Vector3();
+  let shiftX = 0, shiftY = 0;
+  function lookOffset(s){                                     // s: how much applies (1 at rest, 0 in a close-up)
+    _hp.set(0, 0, 0); shiftX = shiftY = 0;
+    if (!s || (!look.x && !look.y)) return;
+    _hf.subVectors(rest.look, rest.pos);
+    const D = _hf.length(); _hf.divideScalar(D);
+    _hr.crossVectors(_hf, Y_UP).normalize(); _hu.crossVectors(_hr, _hf);
+    const dx = look.x * s * D * Math.tan(LOOK_X), dy = look.y * s * D * Math.tan(LOOK_Y);
+    _hp.copy(_hr).multiplyScalar(dx).addScaledVector(_hu, dy);
+    const front = Math.max(D * 0.5, D - size.z * 0.45);       // the open front, a little in from the box's edge
+    const f = rest.h / (2 * front * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));   // px per metre there
+    shiftX = -dx * f; shiftY = dy * f;
+  }
+
   /* the stand's own area on screen: its box, as it stands now, projected.
      Drags start only there (and on the hotspots); the rest of the hero
      belongs to the page. */
@@ -961,25 +995,27 @@ function init(){
   function applyCamera(){
     const e = focus.c < 0 ? 0 : easeIO(focus.t);
     corridor(focus.target, e > 0);
+    lookOffset(1 - e);                                        // the head's say fades out as a close-up flies in
+    _rp.copy(rest.pos).add(_hp); _rl.copy(rest.look).add(_hp);
     if (e > 0){
       focusPose();
       if (focus.sw < 1){
         const s = easeIO(focus.sw);
         fp.eye.lerpVectors(swFrom.eye, fp.eye, s); fp.at.lerpVectors(swFrom.at, fp.at, s);
       }
-      camera.position.lerpVectors(rest.pos, fp.eye, e);
-      camera.lookAt(_look.lerpVectors(rest.look, fp.at, e));
+      camera.position.lerpVectors(_rp, fp.eye, e);
+      camera.lookAt(_look.lerpVectors(_rl, fp.at, e));
       /* the near plane cuts away what stands in front of the flyer, measured
          from where the camera is, not where it is going: mid-glide the
          target is nearer or farther than its resting distance */
       camera.near = focus.target.clear ? 0.1 + (Math.max(0.1, camera.position.distanceTo(fp.at) - focus.target.clear) - 0.1) * e : 0.1;
     } else {
-      camera.position.copy(rest.pos);
-      camera.lookAt(rest.look);
+      camera.position.copy(_rp);
+      camera.lookAt(_rl);
       camera.near = 0.1;
     }
     /* the carton lands in the middle of the stage, not of the wider canvas */
-    const ox = rest.ox + (rest.cx - rest.ox) * e, oy = rest.oy * (1 - e);
+    const ox = rest.ox + (rest.cx - rest.ox) * e + shiftX, oy = rest.oy * (1 - e) + shiftY;
     if (ox || oy) camera.setViewOffset(rest.w, rest.h, ox, oy, rest.w, rest.h);
     else camera.clearViewOffset();
     camera.updateProjectionMatrix();
@@ -1370,6 +1406,176 @@ function init(){
     }
   }
 
+  /* ---- looking around: the webcam, the tilt, and the button ---------------
+     A computer offers the webcam, and only on request: a button in the base
+     row starts it, and nothing - not even the face detector - loads before
+     that. The image never leaves the page: frames go to a small face
+     detector running here (MediaPipe's BlazeFace), and only the point
+     between the eyes is kept. The camera stops on the button, when the
+     page is hidden, or a few seconds after the stand leaves the screen.
+     A phone uses its tilt instead: on Android it simply runs, on iOS
+     the button asks once for the motion sensor. */
+  const MP = 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.1.0';
+  const faceModel = () => ({ modelAssetPath: new URL('face-detector.tflite', import.meta.url).href, delegate:'CPU' });
+  const GAIN = 2.4;                                           // head travel, as a share of the camera frame, to full reach
+  const clamp1 = v => Math.max(-1, Math.min(1, v));
+  const lookRow = hero.querySelector('.bh-tools') || baseEl;
+  let lookBtn = null, lookReset = 0;
+  function lookState(state, text){
+    if (!lookBtn) return;
+    lookBtn.dataset.state = state;
+    lookBtn.querySelector('span').textContent = tr(text);
+    lookBtn.setAttribute('aria-pressed', state === 'on' ? 'true' : 'false');
+    clearTimeout(lookReset);
+  }
+  function makeLookBtn(text, onClick){
+    if (!lookRow) return null;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'bh-look';
+    b.innerHTML = '<i aria-hidden="true"></i><span></span>';
+    b.addEventListener('click', onClick);
+    lookRow.append(b);
+    lookBtn = b;
+    lookState('idle', text);
+    return b;
+  }
+
+  const cam = { on:false, busy:false, stream:null, video:null, detector:null, raf:0, seen:0, last:0, vt:-1, n:0, cx:0, cy:0, away:0 };
+  async function loadDetector(){
+    const lib = MP + '/vision_bundle.mjs';                    // a variable, so no bundler tries to fetch it
+    const { FilesetResolver, FaceDetector } = await import(lib);
+    const files = await FilesetResolver.forVisionTasks(MP + '/wasm');
+    return FaceDetector.createFromOptions(files, { baseOptions:faceModel(), runningMode:'VIDEO', minDetectionConfidence:0.5 });
+  }
+  async function camToggle(){
+    if (cam.busy) return;
+    if (cam.on){ camStop(); return; }
+    cam.busy = true;
+    lookState('starting', 'Starting the camera…');
+    try{
+      const media = navigator.mediaDevices.getUserMedia({ audio:false,
+        video:{ facingMode:'user', width:{ ideal:320 }, height:{ ideal:240 }, frameRate:{ ideal:30 } } });
+      const lib = cam.detector ? null : loadDetector();
+      lib && lib.catch(() => {});                              // a refused camera must not leave this unhandled
+      cam.stream = await media;
+      if (lib) cam.detector = await lib;
+      if (!cam.video){
+        cam.video = document.createElement('video');
+        cam.video.muted = true; cam.video.playsInline = true;
+      }
+      cam.video.srcObject = cam.stream;
+      await cam.video.play();
+      cam.on = true; cam.n = 0; cam.vt = -1; cam.seen = cam.last = performance.now();
+      look.src = 'cam';
+      lookState('on', 'Camera on · Stop');
+      hero.classList.add('looking');
+      cam.raf = requestAnimationFrame(camTick);
+      kick();
+    }catch(err){
+      if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
+      cam.stream = null;
+      const blocked = err && (err.name === 'NotAllowedError' || err.name === 'SecurityError');
+      lookState(blocked ? 'blocked' : 'failed', blocked ? 'Camera blocked' : 'Camera unavailable');
+      lookReset = setTimeout(() => {
+        if (err && (err.name === 'NotFoundError' || err.name === 'OverconstrainedError')) lookBtn.hidden = true;   // no camera at all
+        else lookState('idle', 'Look around with your camera');
+      }, 2800);
+    }
+    cam.busy = false;
+  }
+  function camStop(){
+    cam.on = false;
+    cancelAnimationFrame(cam.raf); clearTimeout(cam.away);
+    if (cam.stream) cam.stream.getTracks().forEach(t => t.stop());
+    cam.stream = null;
+    if (cam.video) cam.video.srcObject = null;
+    if (look.src === 'cam') look.src = null;
+    look.tx = look.ty = 0;
+    hero.classList.remove('looking');
+    lookState('idle', 'Look around with your camera');
+    kick();
+  }
+  function camTick(now){
+    if (!cam.on) return;
+    cam.raf = requestAnimationFrame(camTick);
+    const vid = cam.video;
+    if (document.hidden || !visible || vid.readyState < 2 || now - cam.last < 30 || vid.currentTime === cam.vt) return;
+    const gap = Math.min(now - cam.last, 250) / 1000;
+    cam.last = now; cam.vt = vid.currentTime;
+    let res;
+    try{ res = cam.detector.detectForVideo(vid, now); }catch(e){ return; }
+    let best = null, area = -1;                                // the nearest face, if there are several
+    for (const d of res.detections){
+      const b = d.boundingBox, a = b ? b.width * b.height : 0;
+      if (a > area){ area = a; best = d; }
+    }
+    if (!best){                                                // looked away, or left: ease back to the middle
+      if (now - cam.seen > 800 && (look.tx || look.ty)){ look.tx = look.ty = 0; kick(); }
+      return;
+    }
+    cam.seen = now;
+    const k = best.keypoints, W = vid.videoWidth || 320, H = vid.videoHeight || 240;
+    let px, py;
+    if (k && k.length >= 2){ px = (k[0].x + k[1].x) / 2; py = (k[0].y + k[1].y) / 2; }   // between the eyes
+    else { const b = best.boundingBox; px = (b.originX + b.width / 2) / W; py = (b.originY + b.height * 0.4) / H; }
+    /* the camera's image is not mirrored: a step to the viewer's right
+       moves the face to the left of the frame */
+    const hx = (0.5 - px) * 2, hy = (0.5 - py) * 2;
+    /* the middle is wherever the face first sits, and it drifts, slowly,
+       to wherever it settles - nobody sits square to their webcam */
+    if (cam.n < 8){ cam.cx = (cam.cx * cam.n + hx) / (cam.n + 1); cam.cy = (cam.cy * cam.n + hy) / (cam.n + 1); cam.n++; return; }
+    const drift = 1 - Math.exp(-gap / 25);
+    cam.cx += (hx - cam.cx) * drift; cam.cy += (hy - cam.cy) * drift;
+    const tx = clamp1((hx - cam.cx) * GAIN), ty = clamp1((hy - cam.cy) * GAIN);
+    if (Math.abs(tx - look.tx) + Math.abs(ty - look.ty) > 0.004){ look.tx = tx; look.ty = ty; kick(); }
+  }
+  addEventListener('pagehide', () => { if (cam.on) camStop(); });
+
+  const tilt = { base:null, at:0 };
+  function onTilt(e){
+    if (e.beta == null || e.gamma == null || focus.on) return;
+    const so = screen.orientation;
+    const a = (((so && so.angle) ?? window.orientation ?? 0) + 360) % 360;
+    let lr = e.gamma, fb = e.beta;                              // as the viewer holds it: left-right, top-bottom
+    if (a === 90){ lr = e.beta; fb = -e.gamma; }
+    else if (a === 270){ lr = -e.beta; fb = e.gamma; }
+    else if (a === 180){ lr = -e.gamma; fb = -e.beta; }
+    const now = performance.now();
+    if (!tilt.base){ tilt.base = { lr, fb }; tilt.at = now; look.src = 'tilt'; return; }
+    /* the rest pose follows however the phone is held, over a few seconds */
+    const k = 1 - Math.exp(-Math.min(now - tilt.at, 250) / 1000 / 5);
+    tilt.at = now;
+    tilt.base.lr += (lr - tilt.base.lr) * k; tilt.base.fb += (fb - tilt.base.fb) * k;
+    const tx = clamp1((lr - tilt.base.lr) / 16), ty = clamp1(-(fb - tilt.base.fb) / 12);
+    if (Math.abs(tx - look.tx) + Math.abs(ty - look.ty) > 0.004){ look.tx = tx; look.ty = ty; kick(); }
+  }
+
+  if (!calm && !POSTER){
+    const md = navigator.mediaDevices;
+    if (!LITE && window.isSecureContext && md && md.getUserMedia){
+      makeLookBtn('Look around with your camera', camToggle);
+      lookBtn.title = tr('Move your head to look around the stand. The camera image stays on this device: nothing is recorded or sent.');
+    } else if (LITE && 'DeviceOrientationEvent' in window){
+      const ask = DeviceOrientationEvent.requestPermission;
+      if (typeof ask === 'function'){                         // iOS: one tap, once
+        makeLookBtn('Tilt to look around', () => {
+          ask.call(DeviceOrientationEvent).then(p => {
+            if (p === 'granted'){ addEventListener('deviceorientation', onTilt); lookBtn.hidden = true; }
+            else lookState('blocked', 'Tilt to look around');
+          }).catch(() => { lookBtn.hidden = true; });
+        });
+      } else addEventListener('deviceorientation', onTilt);
+    }
+  }
+  /* for tests: a head at (x, y), or null to let go */
+  hero.booth.look = (x, y) => {
+    if (x == null){ if (look.src === 'sim') look.src = null; look.tx = look.ty = 0; }
+    else { look.src = 'sim'; look.tx = clamp1(x); look.ty = clamp1(y || 0); }
+    kick();
+  };
+  hero.booth.looking = () => ({ src:look.src, x:+look.x.toFixed(3), y:+look.y.toFixed(3), tx:+look.tx.toFixed(3), ty:+look.ty.toFixed(3) });
+
   /* ---- loop --------------------------------------------------------------
      Runs only while something is moving and the stage is on screen. */
   let running = false, visible = true, buildStart = 0, last = 0;
@@ -1379,6 +1585,8 @@ function init(){
   new IntersectionObserver(es => {
     visible = es[0].isIntersecting;
     if (visible) kick(); else leaveFocus(true);               // scrolled away: back to the stand
+    clearTimeout(cam.away);                                   // and the camera goes off, unless it comes back soon
+    if (!visible && cam.on) cam.away = setTimeout(camStop, 4000);
   }).observe(stage);
   function kick(){ if (!running && visible && model && shown){ running = true; last = performance.now(); requestAnimationFrame(frame); } }
 
@@ -1402,7 +1610,7 @@ function init(){
     }
 
     /* idle sway once nobody has touched it for a while */
-    if (!calm && !dragging && focus.t === 0 && hover === null && now - lastInput > IDLE){
+    if (!calm && !dragging && focus.t === 0 && hover === null && !look.src && now - lastInput > IDLE){
       const sway = REST + Math.sin(now / 3400) * Math.min(0.16, (MAX - MIN) / 2);
       target += (sway - target) * (1 - Math.pow(0.3, dt));    // eases back into the sway
       busy = true;
@@ -1428,6 +1636,15 @@ function init(){
     yaw = clampYaw(yaw + (target - yaw) * k);
     if (Math.abs(target - yaw) > 1e-4) busy = true;
     table.rotation.y = yaw;
+
+    /* looking around: the eye follows the head, or the tilt, softly */
+    if (look.src || look.x || look.y){
+      const kl = calm ? 1 : 1 - Math.pow(0.02, dt);
+      look.x += (look.tx - look.x) * kl; look.y += (look.ty - look.y) * kl;
+      if (Math.abs(look.tx - look.x) + Math.abs(look.ty - look.y) > 1e-3) busy = true;
+      else if (!look.src) look.x = look.y = 0;
+      if (focus.c < 0) applyCamera();
+    }
 
     /* the close-up: fly in or out, and follow the orbit */
     if (focus.c >= 0){
