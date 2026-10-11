@@ -732,8 +732,9 @@ function init(){
         kick();
       }
     }
-    /* with a mouse, the close-up turns to follow the pointer across the hero */
-    if (focus.on && e.pointerType !== 'touch'){
+    /* with a mouse, the close-up turns to follow the pointer across the hero
+       - unless the camera is on, when the head turns it (see the loop) */
+    if (focus.on && e.pointerType !== 'touch' && !cam.on){
       const r = hero.getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width * 2 - 1, ny = (e.clientY - r.top) / r.height * 2 - 1;
       focus.tyaw = THREE.MathUtils.clamp(nx, -1, 1) * (focus.target.orbitYaw ?? ORBIT_YAW);
@@ -1391,7 +1392,9 @@ function init(){
     hover = i;
     hero.classList.toggle('lit', i !== null);                 // the page shows the stand in colour while it is pointed at
     stage.style.cursor = focus.on ? 'zoom-out' : i === null ? '' : i === CARTON || i === SHELF || i === ROLLUP || i === FILM || i === DESK ? 'zoom-in' : '';
-    if (i === null){ tag.classList.remove('on'); kick(); return; }
+    /* only the parts that open a close-up answer with a label; the rest of
+       the stand just takes its colour */
+    if (i === null || !ZONES[i].go){ tag.classList.remove('on'); kick(); return; }
     const z = ZONES[i];
     tagK.textContent = tr(z.k);
     tagV.textContent = tr(z.v);
@@ -1565,7 +1568,8 @@ function init(){
   function faceFront(){
     cam.lost = true; cam.moving = false;
     look.tx = look.ty = look.tz = 0;                          // the eye back to the middle
-    target = REST; vel = 0; lastInput = performance.now();    // and the stand square on, as it rests
+    if (!focus.on){ target = REST; vel = 0; }                 // and the stand square on, as it rests (not under a close-up)
+    lastInput = performance.now();
     kick();
   }
   const deadZone = v => Math.abs(v) < DEAD ? 0 : Math.sign(v) * (Math.abs(v) - DEAD) / (1 - DEAD);
@@ -1768,7 +1772,7 @@ function init(){
     kick();
   };
   hero.booth.immerse = on => { closeInvite(); if (on) enterImmersive(); else leaveImmersive(); };
-  hero.booth.looking = () => ({ src:look.src, imm:+imm.t.toFixed(2), vt:cam.video ? +cam.video.currentTime.toFixed(1) : null, moving:cam.moving, lost:cam.lost, x:+look.x.toFixed(3), y:+look.y.toFixed(3), z:+look.z.toFixed(3),
+  hero.booth.looking = () => ({ src:look.src, imm:+imm.t.toFixed(2), vt:cam.video ? +cam.video.currentTime.toFixed(1) : null, moving:cam.moving, lost:cam.lost, orbit:+focus.tyaw.toFixed(3), close:focus.on, x:+look.x.toFixed(3), y:+look.y.toFixed(3), z:+look.z.toFixed(3),
                                 tx:+look.tx.toFixed(3), ty:+look.ty.toFixed(3), tz:+look.tz.toFixed(3) });
 
   /* ---- loop --------------------------------------------------------------
@@ -1812,7 +1816,7 @@ function init(){
       busy = true;
     }
     /* a hovered close-up target turns to face the viewer */
-    const fy = hover !== null && focus.t === 0 && !dragging ? faceYaw(hover) : null;
+    const fy = hover !== null && focus.t === 0 && !dragging && !imm.on ? faceYaw(hover) : null;   // the head steers in the immersive view
     if (fy !== null){                                         // glides there, no snap
       target += (fy - target) * (1 - Math.pow(0.12, dt)); vel = 0; lastInput = now;
       if (Math.abs(fy - target) > 1e-4) busy = true;
@@ -1850,6 +1854,12 @@ function init(){
     }
     if (moveEye && focus.c < 0) applyCamera();
 
+    /* in the immersive view the head orbits a close-up, as the pointer
+       does otherwise: the same window, the head's way round the object */
+    if (cam.on && focus.on){
+      focus.tyaw = look.x * (focus.target.orbitYaw ?? ORBIT_YAW);
+      focus.tpitch = look.y * (focus.target.orbitPitch ?? ORBIT_PITCH);
+    }
     /* the close-up: fly in or out, and follow the orbit */
     if (focus.c >= 0){
       const goal = focus.on ? 1 : 0;
@@ -1865,7 +1875,7 @@ function init(){
     }
 
     /* brackets fade */
-    const want = hover === null ? 0 : 1;
+    const want = hover === null || !ZONES[hover].go ? 0 : 1;
     bracketMat.opacity += (want - bracketMat.opacity) * (calm ? 1 : Math.min(1, dt * 12));
     brackets.visible = bracketMat.opacity > 0.01;
     if (Math.abs(want - bracketMat.opacity) > 0.01) busy = true;
