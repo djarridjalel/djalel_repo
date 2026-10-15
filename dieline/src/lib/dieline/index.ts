@@ -1,6 +1,7 @@
 import ClipperLib from "clipper-lib";
 import { DEFAULT_BOARD } from "./boards";
 import { buildBlank } from "./carton";
+import { buildDisplay, buildMailer, buildPillow } from "./styles";
 import { boxOf, findSelfIntersection, line, pt, round, samplePath, segLength, signedArea, type Pt, type Seg } from "./geom";
 import { buildPharma } from "./pharma";
 import { resolve } from "./resolve";
@@ -37,6 +38,10 @@ export const DEFAULT_PARAMS: CartonParams = {
   window: { enabled: false, panel: "front", width: 30, height: 40, radius: 4, align: "center", offsetX: 0, offsetY: 0 },
   zipStrip: { enabled: false, fromTop: 15, width: 6 },
   dispenser: { enabled: false, panel: "front", width: 40, height: 30, fromBottom: 12 },
+  lockTab: false,
+  gable: { handleHeight: 40, holeWidth: 70, holeHeight: 24 },
+  display: { rise: 40, header: 60 },
+  srp: { tearDepth: 0, fingerWidth: 60 },
 };
 
 /** Fills in fields added after a project was saved. */
@@ -49,6 +54,9 @@ export function normalizeParams(raw: Partial<CartonParams> | null | undefined): 
   p.window = { ...DEFAULT_PARAMS.window, ...(raw?.window ?? {}) };
   p.zipStrip = { ...DEFAULT_PARAMS.zipStrip, ...(raw?.zipStrip ?? {}) };
   p.dispenser = { ...DEFAULT_PARAMS.dispenser, ...(raw?.dispenser ?? {}) };
+  p.gable = { ...DEFAULT_PARAMS.gable, ...(raw?.gable ?? {}) };
+  p.display = { ...DEFAULT_PARAMS.display, ...(raw?.display ?? {}) };
+  p.srp = { ...DEFAULT_PARAMS.srp, ...(raw?.srp ?? {}) };
   return p;
 }
 
@@ -66,7 +74,8 @@ function offsetPolygon(poly: Pt[], d: number): Pt[][] {
 export function generate(params: CartonParams): Dieline {
   const p = normalizeParams(params);
   const { r, issues } = resolve(p);
-  const blank = buildBlank(p, r);
+  const blank =
+    p.style === "pillow" ? buildPillow(p, r, issues) : p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : buildBlank(p, r);
   const pharma = buildPharma(p, blank.panels);
   const allIssues: Issue[] = [...issues, ...pharma.issues];
 

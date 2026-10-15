@@ -333,3 +333,26 @@ export function euroSlot(cx: number, cy: number, width: number, height: number, 
   segs.push(arc(pt(x0, cy), r, pt(x0, yB), pt(x0, yT), true));
   return segs;
 }
+
+/** Circular arc from a to b through m. Falls back to a straight line when the points are collinear. */
+export function arc3(a: Pt, m: Pt, b: Pt): Seg {
+  const d = 2 * (a.x * (m.y - b.y) + m.x * (b.y - a.y) + b.x * (a.y - m.y));
+  if (Math.abs(d) < 1e-9) return line(a, b);
+  const a2 = a.x * a.x + a.y * a.y;
+  const m2 = m.x * m.x + m.y * m.y;
+  const b2 = b.x * b.x + b.y * b.y;
+  const c = pt((a2 * (m.y - b.y) + m2 * (b.y - a.y) + b2 * (a.y - m.y)) / d, (a2 * (b.x - m.x) + m2 * (a.x - b.x) + b2 * (m.x - a.x)) / d);
+  return arc(c, dist(c, a), a, b, cross(sub(m, a), sub(b, m)) > 0);
+}
+
+/** Arc from a to b whose midpoint sits `s` to the left of a→b (negative: to the right), in the y-down frame. */
+export function bulge(a: Pt, b: Pt, s: number): Seg {
+  const mid = lerp(a, b, 0.5);
+  const n = unit(pt(a.y - b.y, b.x - a.x));
+  return arc3(a, add(mid, scale(n, -s)), b);
+}
+
+/** Closed polyline as line segments. */
+export function polygon(points: Pt[]): Seg[] {
+  return points.map((q, i) => line(q, points[(i + 1) % points.length]));
+}

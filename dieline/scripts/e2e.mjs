@@ -40,7 +40,7 @@ ok('preview fits its frame', vb === '100%', vb);
 
 const stat = async (label) => (await p.locator('dt', { hasText: label }).locator('xpath=following-sibling::dd').textContent())?.trim();
 const flat0 = await stat('Flat size');
-for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Reverse tuck end']) {
+for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray', 'Gable box', 'Pillow pack', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
   await p.getByRole('button', { name: new RegExp(s) }).first().click();
   await p.waitForTimeout(250);
   const flat = await stat('Flat size');
@@ -48,6 +48,18 @@ for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Reverse tuck e
   ok(`style ${s} renders without blocking checks`, !!flat && blocking === 0, flat);
   await p.screenshot({ path: `${OUT}/style-${s.split(' ')[0].toLowerCase()}.png` });
 }
+
+for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
+await p.waitForTimeout(300);
+
+// Lock tab
+const cutD = async () => p.locator('.dieline-preview #Cut path').evaluateAll((els) => els.reduce((a, e) => a + (e.getAttribute('d')?.length ?? 0), 0));
+const cutA = await cutD();
+await p.getByText('Lock tab through the lid fold').click();
+await p.waitForTimeout(300);
+ok('lock tab adds its cuts', (await cutD()) > cutA);
+await p.getByText('Lock tab through the lid fold').click();
+await p.waitForTimeout(300);
 
 // Dimension change updates stats
 await p.getByLabel('Length').first().fill('90');

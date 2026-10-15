@@ -3,7 +3,7 @@
 // has an obvious remedy carries a one-click fix.
 
 import { clamp, round } from "./geom";
-import type { CartonParams, Issue, Resolved } from "./types";
+import { hasTopLid, isTube, type CartonParams, type Issue, type Resolved } from "./types";
 
 export interface ResolveResult {
   r: Resolved;
@@ -35,7 +35,9 @@ export function resolve(p: CartonParams): ResolveResult {
     if (v > 600) issues.push({ severity: "error", field: k, message: `${name} above 600 mm is outside the folding-carton range.` });
   }
 
-  const bottomLocks = p.style === "crash" || p.style === "snap";
+  const snapBase = p.style === "snap" || p.style === "gable";
+  const crashBase = p.style === "crash" || p.style === "srp";
+  const bottomLocks = snapBase || crashBase;
   if (Wi > Li) {
     issues.push(
       bottomLocks
@@ -118,7 +120,7 @@ export function resolve(p: CartonParams): ResolveResult {
   if (glueWidth < 10) {
     issues.push({ severity: "info", field: "glueWidth", message: "Most folder-gluers need a glue flap of at least 10–12 mm.", fix: { field: "glueWidth", value: 12, label: "Use 12 mm" } });
   }
-  const glueAngle = clamp(p.glueAngle ?? (p.style === "crash" ? 45 : 15), 0, 60);
+  const glueAngle = clamp(p.glueAngle ?? (crashBase ? 45 : 15), 0, 60);
 
   // Lock bottoms
   let bottomExtension = p.bottomExtension ?? round(Wi * 0.25, 1);
@@ -131,10 +133,10 @@ export function resolve(p: CartonParams): ResolveResult {
       }
       bottomExtension = Math.max(3, maxE);
     }
-    if (p.style === "snap" && Li - Wi < 10) {
+    if (snapBase && Li - Wi < 10) {
       issues.push({ severity: "error", field: "L", message: "Snap-lock bottoms need Length at least 10 mm more than Width for the centre tongue. Use crash-lock or a tuck end instead." });
     }
-    if (p.style === "crash" && Wi > Li - 2) {
+    if (crashBase && Wi > Li - 2) {
       issues.push({ severity: "error", field: "W", message: "Crash-lock bottoms need Length clearly greater than Width." });
     }
   }
@@ -161,6 +163,12 @@ export function resolve(p: CartonParams): ResolveResult {
 
   if (p.bleed < 0 || p.bleed > 10) issues.push({ severity: "warning", field: "bleed", message: "Bleed is normally 0–5 mm." });
 
+  // Checks on tuck lids, dust flaps and tube options only apply where those parts exist.
+  const lidFields = ["tuckDepth", "tuckRadius", "slitLength", "dustDepth"];
+  const tubeFields = [...lidFields, "glueWidth", "bottomExtension", "hangTab", "zipStrip", "W"];
+  const drop = !isTube(p.style) ? tubeFields : !hasTopLid(p.style) ? [...lidFields, "hangTab"] : [];
+  const kept = issues.filter((i) => !(i.field && drop.includes(i.field)));
+
   return {
     r: {
       Li,
@@ -183,6 +191,6 @@ export function resolve(p: CartonParams): ResolveResult {
       zipFromTop,
       zipWidth,
     },
-    issues,
+    issues: kept,
   };
 }

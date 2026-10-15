@@ -13,7 +13,13 @@ export type Layer =
   | "dimension"
   | "label";
 
-export type StyleId = "rte" | "ste" | "crash" | "snap";
+export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "gable" | "pillow" | "mailer" | "display";
+
+/** Styles built as a four-panel tube with a manufacturer's joint. */
+export const TUBE_STYLES: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "gable"];
+export const isTube = (s: StyleId) => TUBE_STYLES.includes(s);
+/** Tube styles closed by a tuck lid at the top. */
+export const hasTopLid = (s: StyleId) => isTube(s) && s !== "gable";
 export type LockType = "slit" | "friction" | "none";
 export type TamperType = "none" | "glueTuck" | "tearStrip";
 export type Align = "top" | "center" | "bottom";
@@ -48,6 +54,32 @@ export interface CartonParams {
   window: WindowParams;
   zipStrip: ZipStripParams;
   dispenser: DispenserParams;
+  /** Tuck end: a tab on the receiving panel passes through a slit in the lid fold. */
+  lockTab: boolean;
+  gable: GableParams;
+  display: DisplayParams;
+  srp: SrpParams;
+}
+
+export interface GableParams {
+  /** Handle height above the roof fold. */
+  handleHeight: number;
+  holeWidth: number;
+  holeHeight: number;
+}
+
+export interface DisplayParams {
+  /** How much higher the side walls are at the back than the front wall (H). */
+  rise: number;
+  /** Header card above the side walls, 0 for none. */
+  header: number;
+}
+
+export interface SrpParams {
+  /** Depth of the tear-away part of the front, from the top; 0 for automatic (half the height). */
+  tearDepth: number;
+  /** Width of the finger opening in the front, 0 for none. */
+  fingerWidth: number;
 }
 
 /** Hanger above the front panel: two layers glued back to back, with the slot through both. */
@@ -128,7 +160,10 @@ export type PanelId =
   | "glueFlap"
   | "topTuck"
   | "bottomTuck"
-  | "hanger";
+  | "hanger"
+  | "base"
+  | "header"
+  | "handle";
 
 export interface Panel {
   id: PanelId;

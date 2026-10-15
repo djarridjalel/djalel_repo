@@ -11,8 +11,11 @@ import {
   crashMainPiece,
   crashSidePiece,
   dustPiece,
+  gableEndPiece,
+  gableRoofPiece,
   hangerPiece,
   lidPiece,
+  lockTabPiece,
   nonePiece,
   snapHookPiece,
   snapNotchPiece,
@@ -20,8 +23,8 @@ import {
   type LocalPanel,
   type Piece,
 } from "./closures";
-import { clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Seg, type Xf } from "./geom";
-import type { CartonParams, Dimension, Panel, Region, Resolved, Stroke, TextItem } from "./types";
+import { arc3, clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Seg, type Xf } from "./geom";
+import { hasTopLid, type CartonParams, type Dimension, type Panel, type Region, type Resolved, type Stroke, type TextItem } from "./types";
 
 export interface Blank {
   outline: Seg[];
@@ -32,7 +35,20 @@ export interface Blank {
   texts: TextItem[];
 }
 
-type Slot = "none" | "hanger" | "lid" | "dust" | "crashMain" | "crashSide" | "snapNotch" | "snapTongue" | "snapHookL" | "snapHookR";
+type Slot =
+  | "none"
+  | "hanger"
+  | "lockTab"
+  | "lid"
+  | "dust"
+  | "crashMain"
+  | "crashSide"
+  | "snapNotch"
+  | "snapTongue"
+  | "snapHookL"
+  | "snapHookR"
+  | "gableRoof"
+  | "gableEnd";
 
 function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; bottomLidOn: 0 | 2 | null } {
   const top: Slot[] = ["none", "dust", "lid", "dust"];
@@ -42,9 +58,14 @@ function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; 
     case "rte":
       return { top, bottom: ["lid", "dust", "none", "dust"], bottomLidOn: 0 };
     case "crash":
+    case "srp":
       return { top, bottom: ["crashMain", "crashSide", "crashMain", "crashSide"], bottomLidOn: null };
     case "snap":
       return { top, bottom: ["snapNotch", "snapHookL", "snapTongue", "snapHookR"], bottomLidOn: null };
+    case "gable":
+      return { top: ["gableRoof", "gableEnd", "gableRoof", "gableEnd"], bottom: ["snapNotch", "snapHookL", "snapTongue", "snapHookR"], bottomLidOn: null };
+    default:
+      return { top, bottom: ["none", "dust", "lid", "dust"], bottomLidOn: 2 };
   }
 }
 
@@ -52,7 +73,16 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const { t, panelWidths: pw, bodyHeight: Hp } = r;
   const xs = [0, pw[0], pw[0] + pw[1], pw[0] + pw[1] + pw[2], pw[0] + pw[1] + pw[2] + pw[3]];
   const { top, bottom, bottomLidOn } = slotsFor(p.style);
-  if (p.hangTab.enabled) top[0] = "hanger";
+  if (p.hangTab.enabled && hasTopLid(p.style)) top[0] = "hanger";
+  // Lock tab on the panel that receives each tuck.
+  const tabTop = p.lockTab && top[0] === "none";
+  if (tabTop) top[0] = "lockTab";
+  const bottomRecv = bottomLidOn === 0 ? 2 : bottomLidOn === 2 ? 0 : -1;
+  const tabBottom = p.lockTab && bottomRecv >= 0 && bottom[bottomRecv] === "none";
+  if (tabBottom) bottom[bottomRecv] = "lockTab";
+  const tabW = clamp(pw[0] * 0.44, 12, 50);
+  const tabStrip = clamp(r.tuckDepth * 0.8, 6, Hp * 0.3);
+  const tabTongue = clamp(Math.min(tabW * 0.23, tabStrip - 3), 3, 10);
   const c = r.Wi / 2 + t / 2;
 
   // Dust flaps lock on the edge facing the panel that receives the tuck.
@@ -71,6 +101,12 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         return nonePiece(w);
       case "hanger":
         return hangerPiece(w, r.hangerHeight, p.hangTab.slot);
+      case "lockTab":
+        return lockTabPiece({ w, t, width: tabW, height: Math.max(8, r.tuckDepth - 1), strip: tabStrip, tongue: tabTongue });
+      case "gableRoof":
+        return gableRoofPiece({ w, roof: Math.max(5, r.Wi / 2 - t / 2), handle: p.gable.handleHeight, holeW: p.gable.holeWidth, holeH: p.gable.holeHeight, glue: i === 2 });
+      case "gableEnd":
+        return gableEndPiece({ w, t, apex: p.gable.handleHeight, slotH: p.gable.handleHeight * 0.7 + 6 });
       case "lid":
         return lidPiece({
           w,
@@ -84,6 +120,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
           sideClear: r.sideClear,
           tamper: which === "top" ? p.tamper : "none",
           which,
+          tabSlit: (which === "top" ? tabTop : tabBottom) ? { width: tabW + 0.4, hole: tabTongue } : undefined,
+          middleFold: which === "top" && p.style === "srp" ? { thumb: clamp(pw[2] * 0.35, 0, 60) } : undefined,
         });
       case "dust": {
         const lidOn = which === "top" ? 2 : (bottomLidOn ?? 2);
@@ -156,6 +194,26 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     outline.push(line(pt(0, Hp), pt(0, 0)));
   }
 
+  if (p.style === "srp") {
+    // Tear-away front: across the front, down both sides from the back
+    // corners, and through the glue flap glued behind the front.
+    const d = clamp(p.srp.tearDepth > 0 ? p.srp.tearDepth : Math.round(Hp / 2), 10, Math.max(10, Hp - 10));
+    const k = Math.tan((r.glueAngle * Math.PI) / 180);
+    const xEnd = x4 + (k > 0 ? Math.min(g, Math.min(d, Hp - d) / k) : g);
+    const fw = Math.min(p.srp.fingerWidth, pw[0] * 0.6);
+    const sg = Math.min(fw * 0.375, Hp - d - 8);
+    const cx = pw[0] / 2;
+    const perf = (seg: Seg) => strokes.push({ layer: "perf", seg });
+    if (fw >= 10 && sg >= 4) {
+      perf(line(pt(0, d), pt(cx - fw / 2, d)));
+      perf(arc3(pt(cx - fw / 2, d), pt(cx, d + sg), pt(cx + fw / 2, d)));
+      perf(line(pt(cx + fw / 2, d), pt(xs[1], d)));
+    } else perf(line(pt(0, d), pt(xs[1], d)));
+    perf(line(pt(xs[1], d), pt(xs[2], 0)));
+    perf(line(pt(xs[3], 0), pt(x4, d)));
+    perf(line(pt(x4, d), pt(xEnd, d)));
+  }
+
   for (let i = 1; i <= 3; i++) strokes.push({ layer: "crease", seg: line(pt(xs[i], 0), pt(xs[i], Hp)) });
 
   const names = ["Front", "Side A", "Back", "Side B"];
@@ -205,7 +263,7 @@ function buildDims(p: CartonParams, r: Resolved, xs: number[], panels: Panel[]):
   return dims;
 }
 
-function buildLabels(p: CartonParams, panels: Panel[]): TextItem[] {
+export function buildLabels(p: CartonParams, panels: Panel[]): TextItem[] {
   const out: TextItem[] = [];
   for (const q of panels) {
     if (q.w < 8 || q.h < 8) continue;
@@ -213,7 +271,7 @@ function buildLabels(p: CartonParams, panels: Panel[]): TextItem[] {
     const vertical = q.id === "glueFlap";
     out.push({
       // The hanger's centre holds the slot, so its name sits near the body.
-      at: pt(q.x + q.w / 2, q.id === "hanger" ? q.y + q.h - 3 : q.y + q.h / 2),
+      at: pt(q.x + q.w / 2, q.id === "hanger" ? q.y + q.h - 3 : q.id === "handle" ? q.y + Math.min(5, q.h * 0.15) + size / 2 : q.y + q.h / 2),
       text: q.name.toUpperCase(),
       size,
       layer: "label",
@@ -224,7 +282,7 @@ function buildLabels(p: CartonParams, panels: Panel[]): TextItem[] {
   return out;
 }
 
-function grainArrow(p: CartonParams, panels: Panel[]): Stroke[] {
+export function grainArrow(p: CartonParams, panels: Panel[]): Stroke[] {
   const back = panels.find((q) => q.id === "back");
   if (!back) return [];
   const cx = back.x + back.w / 2;

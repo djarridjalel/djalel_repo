@@ -76,6 +76,52 @@ describe("carton geometry", () => {
     }
   });
 
+  it("keeps outlines clean for every style, with and without the lock tab", () => {
+    const sizes: Record<string, number[][]> = {
+      rte: [[60, 25, 110], [80, 60, 150]],
+      ste: [[60, 25, 110], [80, 30, 120]],
+      crash: [[120.6, 60.6, 161.1], [90, 30, 80]],
+      snap: [[120.6, 60.6, 161.1], [90, 30, 80]],
+      srp: [[150, 100, 80], [200, 120, 100], [90, 60, 60]],
+      gable: [[120, 80, 100], [310, 250, 190], [90, 60, 70]],
+      pillow: [[180, 120, 40], [100, 70, 20], [250, 180, 45]],
+      mailer: [[220, 160, 60], [330, 205, 63], [150, 120, 40]],
+      display: [[200, 120, 40], [300, 200, 60], [120, 80, 30]],
+    };
+    for (const [style, list] of Object.entries(sizes)) {
+      for (const [L, W, H] of list) {
+        for (const lockTab of [false, true]) {
+          const caliper = style === "mailer" ? 1.5 : 0.46;
+          const d = generate(make({ style: style as StyleId, L, W, H, lockTab, caliper, gable: { handleHeight: 40, holeWidth: 70, holeHeight: 24 } }));
+          const o = d.outline;
+          const at = `${style} ${L}×${W}×${H}${lockTab ? " lock tab" : ""}`;
+          for (let i = 1; i < o.length; i++) expect(dist(o[i - 1].b, o[i].a), at).toBeLessThan(1e-6);
+          expect(dist(o[0].a, o[o.length - 1].b), at).toBeLessThan(1e-6);
+          expect(findSelfIntersection(samplePath(o, 1)), at).toBeNull();
+          expect(d.issues.filter((x) => x.severity === "error"), at).toEqual([]);
+          expect(d.stats.blankArea, at).toBeGreaterThan(0);
+        }
+      }
+    }
+  });
+
+  it("cuts the lock tab and its lid slit to match", () => {
+    const d = generate(make({ style: "rte", L: 80, W: 60, H: 150, lockTab: true }));
+    const plain = generate(make({ style: "rte", L: 80, W: 60, H: 150 }));
+    expect(d.stats.cutLength).toBeGreaterThan(plain.stats.cutLength);
+    expect(d.bbox.minY).toBeLessThan(plain.bbox.minY + 1);
+  });
+
+  it("adds the tear-away perforation to the shelf-ready tray", () => {
+    const d = generate(make({ style: "srp", L: 150, W: 100, H: 80 }));
+    expect(d.stats.perfLength).toBeGreaterThan(150 + 2 * 100);
+  });
+
+  it("flags a pillow pack that is too thick to close", () => {
+    const d = generate(make({ style: "pillow", L: 150, W: 60, H: 50 }));
+    expect(d.issues.some((x) => x.field === "H")).toBe(true);
+  });
+
   it("flags a window that does not fit", () => {
     const d = generate(make({ window: { ...DEFAULT_PARAMS.window, enabled: true, width: 200, height: 20 } }));
     expect(d.issues.some((x) => x.field === "window" && x.severity === "error")).toBe(true);

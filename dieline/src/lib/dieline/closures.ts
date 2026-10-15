@@ -5,6 +5,7 @@
 
 import {
   arc,
+  arc3,
   circle,
   clamp,
   euroSlot,
@@ -13,6 +14,7 @@ import {
   line,
   pt,
   reversePath,
+  roundedRect,
   xfSeg,
   type Pt,
   type Seg,
@@ -67,6 +69,25 @@ export interface LidSpec {
   sideClear: number;
   tamper: TamperType;
   which: "top" | "bottom";
+  /** Slit across the middle of the tuck fold that a lock tab passes through, with a finger hole. */
+  tabSlit?: { width: number; hole: number };
+  /** Crease across the middle of the lid with a finger tab (shelf-ready tray). */
+  middleFold?: { thumb: number };
+}
+
+/** Replaces horizontal creases at v with the parts outside [u0, u1]. */
+function splitCrease(strokes: Stroke[], v: number, u0: number, u1: number) {
+  for (let i = strokes.length - 1; i >= 0; i--) {
+    const st = strokes[i];
+    if (st.layer !== "crease" || st.seg.kind !== "line") continue;
+    const { a, b } = st.seg;
+    if (Math.abs(a.y - v) > 1e-6 || Math.abs(b.y - v) > 1e-6) continue;
+    const lo = Math.min(a.x, b.x);
+    const hi = Math.max(a.x, b.x);
+    strokes.splice(i, 1);
+    if (u0 > lo) strokes.push(S(line(pt(lo, v), pt(Math.min(u0, hi), v)), "crease"));
+    if (u1 < hi) strokes.push(S(line(pt(Math.max(u1, lo), v), pt(hi, v)), "crease"));
+  }
 }
 
 /**
@@ -147,6 +168,27 @@ export function lidPiece(s: LidSpec): Piece {
         label: "Glue",
       });
     }
+  }
+
+  if (s.tabSlit) {
+    const cx = w / 2;
+    const hw = s.tabSlit.width / 2;
+    const rh = s.tabSlit.hole;
+    const vc = vT + so;
+    splitCrease(strokes, vT, cx - hw, cx + hw);
+    strokes.push(S(line(pt(cx - hw, vT), pt(cx - hw, vc)), "cut"));
+    strokes.push(S(line(pt(cx - hw, vc), pt(cx + hw, vc)), "cut"));
+    strokes.push(S(line(pt(cx + hw, vc), pt(cx + hw, vT)), "cut"));
+    strokes.push(S(arc3(pt(cx - rh, vc), pt(cx, vc - rh), pt(cx + rh, vc)), "cut"));
+  }
+  if (s.middleFold) {
+    const vm = vH + lidDepth / 2;
+    const r = Math.min(s.middleFold.thumb / 2, lidDepth / 2 - 3);
+    const cx = w / 2;
+    if (r > 3) {
+      strokes.push(S(line(pt(0, vm), pt(cx - r, vm)), "crease"), S(line(pt(cx + r, vm), pt(w, vm)), "crease"));
+      strokes.push(S(arc3(pt(cx - r, vm), pt(cx, vm - r), pt(cx + r, vm)), "cut"));
+    } else strokes.push(S(line(pt(0, vm), pt(w, vm)), "crease"));
   }
 
   const lidId: PanelId = s.which === "top" ? "topLid" : "bottomLid";
@@ -311,4 +353,87 @@ export function hangerPiece(w: number, h: number, slot: "euro" | "round"): Piece
     regions: [],
     panels: [{ id: "hanger", name: "Hanger", u: 0, v: 0, w, h, printable: true }],
   };
+}
+
+export interface LockTabSpec {
+  w: number;
+  t: number;
+  /** Tab width (the lid slit is cut to the same width). */
+  width: number;
+  /** Height above the panel edge. */
+  height: number;
+  /** Depth of the hinge strip cut into the panel. */
+  strip: number;
+  /** Radius of the finger tongue on the tab fold. */
+  tongue: number;
+}
+
+/**
+ * Lock tab on the panel that receives the tuck: a tab above the edge on a
+ * hinge strip cut into the panel. Closed, it passes through the slit in the
+ * lid fold and lies on the lid.
+ */
+export function lockTabPiece(s: LockTabSpec): Piece {
+  const { w, t, width, height, strip, tongue } = s;
+  const a = (w - width) / 2;
+  const b = a + width;
+  const cx = w / 2;
+  const cr = clamp(width * 0.06, 1, 2.5);
+  const outline = filletPolyline([pt(0, 0), pt(a, 0), pt(a, height), pt(b, height), pt(b, 0), pt(w, 0)], [0, 0, cr, cr, 0, 0]);
+  const vf = -t;
+  const strokes: Stroke[] = [
+    S(line(pt(a, 0), pt(a, -strip - 0.25)), "cut"),
+    S(line(pt(b, 0), pt(b, -strip - 0.25)), "cut"),
+    S(line(pt(a, -strip), pt(b, -strip)), "crease"),
+    S(line(pt(a, vf), pt(b, vf)), "crease"),
+    S(arc3(pt(cx - tongue, vf), pt(cx, vf - tongue), pt(cx + tongue, vf)), "cut"),
+  ];
+  return { outline, strokes, regions: [], panels: [] };
+}
+
+/** Gable roof with the carrying handle above it: the roofs meet in the middle and the handles stand back to back. */
+export function gableRoofPiece(s: { w: number; roof: number; handle: number; holeW: number; holeH: number; glue: boolean }): Piece {
+  const { w, roof, handle } = s;
+  const eh = handle * 0.7;
+  const lean = Math.min(3, eh * 0.05);
+  const sx = clamp(w * 0.19, lean + 4, w / 2 - 8);
+  const fr = clamp(handle * 0.07, 1, 5);
+  const pts = [pt(0, 0), pt(0, roof), pt(lean, roof + eh), pt(sx, roof + handle), pt(w - sx, roof + handle), pt(w - lean, roof + eh), pt(w, roof), pt(w, 0)];
+  const outline = filletPolyline(pts, [0, 0, fr, fr, fr, fr, 0, 0]);
+  const strokes: Stroke[] = [S(line(pt(0, 0), pt(w, 0)), "crease"), S(line(pt(0, roof), pt(w, roof)), "crease")];
+  const hw = Math.min(s.holeW, w - 2 * sx - 4);
+  const hh = Math.min(s.holeH, handle * 0.6);
+  const hy = roof + handle * 0.49 - hh / 2;
+  const regions: Region[] = [];
+  if (hw > 10 && hh > 6) {
+    for (const seg of roundedRect(w / 2 - hw / 2, hy, hw, hh, Math.min(8, hh / 2))) strokes.push(S(seg, "cut"));
+    if (s.glue && hy - roof > 8) regions.push({ layer: "glue", pts: insetConvex([pt(lean, roof), pt(w - lean, roof), pt(w - lean, hy - 1), pt(lean, hy - 1)], 2), label: "Glue" });
+  }
+  return {
+    outline,
+    strokes,
+    regions,
+    panels: [
+      { id: "topLid", name: "Roof", u: 0, v: 0, w, h: roof, printable: true },
+      { id: "handle", name: "Handle", u: sx, v: roof, w: w - 2 * sx, h: handle, printable: true },
+    ],
+  };
+}
+
+/** Gable end: a triangle standing above the end wall, slotted to hold the handle ends. */
+export function gableEndPiece(s: { w: number; t: number; apex: number; slotH: number }): Piece {
+  const { w, t, apex } = s;
+  const cx = w / 2;
+  const outline = filletPolyline([pt(0, 0), pt(cx, apex), pt(w, 0)], [0, Math.min(10, apex * 0.15), 0]);
+  const sw = Math.max(2 * t + 1, 2.5);
+  const sh = Math.min(s.slotH, apex - 6);
+  const strokes: Stroke[] = [
+    S(line(pt(0, 0), pt(cx - sw / 2, 0)), "crease"),
+    S(line(pt(cx + sw / 2, 0), pt(w, 0)), "crease"),
+    S(line(pt(cx - sw / 2, 0), pt(cx - sw / 2, sh)), "cut"),
+    S(line(pt(cx - sw / 2, sh), pt(cx + sw / 2, sh)), "cut"),
+    S(line(pt(cx + sw / 2, sh), pt(cx + sw / 2, 0)), "cut"),
+    S(line(pt(cx + sw / 2, 0), pt(cx - sw / 2, 0)), "cut"),
+  ];
+  return { outline, strokes, regions: [], panels: [] };
 }
