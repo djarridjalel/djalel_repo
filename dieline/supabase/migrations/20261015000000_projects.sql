@@ -23,6 +23,7 @@ create table if not exists public.project_versions (
 );
 
 create index if not exists project_versions_project_idx on public.project_versions (project_id, version desc);
+create index if not exists project_versions_user_idx on public.project_versions (user_id);
 
 alter table public.projects enable row level security;
 alter table public.project_versions enable row level security;
