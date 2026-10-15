@@ -1,0 +1,106 @@
+import { describe, expect, it } from "vitest";
+import { textToBraille, wrapCells } from "./braille";
+import { dist, samplePath, findSelfIntersection } from "./geom";
+import { DEFAULT_PARAMS, generate } from "./index";
+import { DEFAULT_CONTENTS, sizeFromContents } from "./sizing";
+import type { CartonParams, StyleId } from "./types";
+
+const make = (over: Partial<CartonParams>): CartonParams => ({ ...DEFAULT_PARAMS, ...over });
+
+describe("carton geometry", () => {
+  it("applies thickness allowances to crease-to-crease widths", () => {
+    const d = generate(make({ style: "rte", L: 120.6, W: 60.6, H: 161.1, caliper: 0.46 }));
+    expect(d.resolved.panelWidths.map((v) => +v.toFixed(2))).toEqual([121.06, 61.06, 121.06, 60.6]);
+    expect(+d.resolved.bodyHeight.toFixed(2)).toBe(161.56);
+  });
+
+  it("converts outside dimensions to inside", () => {
+    const d = generate(make({ dimMode: "outside", L: 61, W: 26, H: 111, caliper: 0.5 }));
+    expect(d.resolved.Li).toBeCloseTo(60);
+    expect(d.resolved.Wi).toBeCloseTo(25);
+    expect(d.resolved.Hi).toBeCloseTo(110);
+  });
+
+  const styles: StyleId[] = ["rte", "ste", "crash", "snap"];
+  const sizes = [
+    [40, 20, 80],
+    [60, 25, 110],
+    [90, 30, 60],
+    [120.6, 60.6, 161.1],
+    [150, 50, 200],
+    [200, 120, 60],
+  ];
+
+  for (const style of styles) {
+    for (const [L, W, H] of sizes) {
+      it(`${style} ${L}×${W}×${H}: closed outline without overlaps`, () => {
+        for (const lock of ["slit", "friction"] as const) {
+          for (const tamper of ["none", "glueTuck", "tearStrip"] as const) {
+            const d = generate(make({ style, L, W, H, lock, tamper }));
+            const o = d.outline;
+            expect(dist(o[0].a, o[o.length - 1].b)).toBeLessThan(1e-6);
+            for (let i = 1; i < o.length; i++) expect(dist(o[i - 1].b, o[i].a)).toBeLessThan(1e-6);
+            expect(findSelfIntersection(samplePath(o, 1))).toBeNull();
+            expect(d.issues.filter((x) => x.severity === "error")).toEqual([]);
+            expect(d.stats.cutLength).toBeGreaterThan(0);
+            expect(d.stats.utilization).toBeGreaterThan(40);
+            expect(d.stats.utilization).toBeLessThan(100);
+          }
+        }
+      });
+    }
+  }
+
+  it("rejects lock bottoms that are wider than long", () => {
+    const d = generate(make({ style: "crash", L: 40, W: 60, H: 100 }));
+    expect(d.issues.some((x) => x.severity === "error")).toBe(true);
+  });
+
+  it("offers a fix for an oversized tuck", () => {
+    const d = generate(make({ tuckDepth: 200 }));
+    const issue = d.issues.find((x) => x.field === "tuckDepth");
+    expect(issue?.fix?.field).toBe("tuckDepth");
+  });
+
+  it("flags overlapping flaps", () => {
+    const d = generate(make({ style: "ste", L: 60, W: 25, H: 110, dustDepth: 29.5 }));
+    expect(d.issues.find((x) => x.field === "dustDepth")).toBeDefined();
+  });
+});
+
+describe("braille", () => {
+  it("translates letters, accents and numbers", () => {
+    const { cells, unsupported } = textToBraille("Paracétamol 500 mg");
+    expect(unsupported).toEqual([]);
+    // p a r a c é t a m o l _ #e j j _ m g
+    expect(cells[0]).toEqual([1, 2, 3, 4]);
+    expect(cells[5]).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(cells[12]).toEqual([3, 4, 5, 6]);
+    expect(cells[13]).toEqual([1, 5]);
+    expect(cells.length).toBe(19);
+  });
+
+  it("wraps at word boundaries", () => {
+    const { cells } = textToBraille("abc defg hi");
+    const lines = wrapCells(cells, 8);
+    expect(lines.map((l) => l.length)).toEqual([8, 2]);
+  });
+
+  it("places dots on the chosen panel", () => {
+    const d = generate(make({ L: 120, W: 60, H: 160, braille: { ...DEFAULT_PARAMS.braille, enabled: true, text: "Doliprane 1000", panel: "front" } }));
+    const front = d.panels.find((p) => p.id === "front")!;
+    expect(d.dots.length).toBeGreaterThan(20);
+    for (const dot of d.dots) {
+      expect(dot.c.x).toBeGreaterThan(front.x);
+      expect(dot.c.x).toBeLessThan(front.x + front.w);
+      expect(dot.c.y).toBeGreaterThan(front.y);
+      expect(dot.c.y).toBeLessThan(front.y + front.h);
+    }
+  });
+});
+
+describe("size from contents", () => {
+  it("adds clearances and rounds up to 0.5 mm", () => {
+    expect(sizeFromContents(DEFAULT_CONTENTS)).toEqual({ L: 51.5, W: 12, H: 97 });
+  });
+});

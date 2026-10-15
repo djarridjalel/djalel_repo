@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+/* Djarri Design Studio tokens: ink for voice, bone for evidence, one flat
+   accent that only ever marks the thing under the pointer or the one
+   action that matters. */
+@theme {
+  --color-ink: #0a0a0b;
+  --color-slate: #14161a;
+  --color-bone: #e6e5e2;
+  --color-paper: #ffffff;
+  --color-accent: #ffce00;
+  --color-accent-dark: #6e5400;
+  --color-mute: #5c5c64;
+  --color-rule: rgba(10, 10, 11, 0.14);
+  --color-danger: #b00020;
+  --color-warn: #8a5a00;
+  --font-sans: "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html,
+body {
+  background: var(--color-bone);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Dieline preview: hairlines stay crisp at any zoom. */
+.dieline-preview path,
+.dieline-preview polygon,
+.dieline-preview circle {
+  vector-effect: non-scaling-stroke;
+}
+.dieline-preview #Cut {
+  stroke-width: 1.4px;
+}
+.dieline-preview #Crease {
+  stroke-width: 1.2px;
+  stroke-dasharray: 6 4;
+}
+.dieline-preview #Perforation {
+  stroke-width: 1.2px;
+  stroke-dasharray: 4 3 1 3;
+}
+.dieline-preview #Bleed {
+  stroke-width: 0.8px;
+}
+.dieline-preview #SafeArea {
+  stroke-width: 0.7px;
+  stroke-dasharray: 3 3;
+}
+.dieline-preview #Dimensions,
+.dieline-preview #Info {
+  stroke-width: 0.7px;
+}
+.dieline-preview #Glue,
+.dieline-preview #VarnishFree,
+.dieline-preview #Pharmacode {
+  stroke-width: 0.8px;
+}
+.dieline-preview text {
+  font-family: var(--font-sans);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
