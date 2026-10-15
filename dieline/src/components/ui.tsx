@@ -202,7 +202,7 @@ export function Button({
   title?: string;
 }) {
   const styles = {
-    primary: "bg-ink text-paper hover:bg-slate",
+    primary: "bg-ink text-paper hover:bg-accent hover:text-ink",
     accent: "bg-accent text-ink hover:brightness-95",
     secondary: "border border-rule bg-paper text-ink hover:border-ink",
     ghost: "text-mute hover:text-ink",

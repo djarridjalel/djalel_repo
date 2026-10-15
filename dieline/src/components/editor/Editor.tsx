@@ -196,16 +196,16 @@ export function Editor({
 
   return (
     <div className="flex h-dvh flex-col bg-bone">
-      <header className="flex h-14 shrink-0 items-center gap-3 bg-ink px-3 text-paper sm:px-4">
-        <Brand dark href={backHref} />
-        <span className="hidden h-5 w-px bg-paper/20 sm:block" />
+      <header className="studio-bar relative z-10 flex h-14 shrink-0 items-center gap-3 px-3 sm:px-4">
+        <Brand href={backHref} />
+        <span className="hidden h-5 w-px bg-rule sm:block" />
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           aria-label="Project name"
-          className="h-9 min-w-0 flex-1 rounded bg-transparent px-2 text-[16px] sm:text-[14px] outline-none hover:bg-paper/10 focus:bg-paper/10 sm:max-w-[320px]"
+          className="h-9 min-w-0 flex-1 rounded bg-transparent px-2 text-[16px] outline-none hover:bg-paper/70 focus:bg-paper sm:text-[14px] sm:max-w-[320px]"
         />
-        <span className="hidden font-mono text-[11px] uppercase tracking-wider text-paper/60 sm:inline">
+        <span className="hidden font-mono text-[11px] uppercase tracking-wider text-mute sm:inline">
           {save === "saved" ? "Saved" : save === "saving" ? "Saving…" : save === "unsaved" ? "Editing" : "Not saved"}
         </span>
         <div className="ml-auto flex items-center gap-2">
@@ -213,11 +213,11 @@ export function Editor({
             type="button"
             onClick={() => doExport("pdf")}
             disabled={!!busy}
-            className="hidden h-9 items-center rounded-md bg-accent px-3 text-[13px] font-medium text-ink hover:brightness-95 sm:inline-flex"
+            className="hidden h-9 items-center rounded-md bg-ink px-3 text-[13px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink sm:inline-flex"
           >
             Download PDF
           </button>
-          <Link href={backHref} className="flex h-9 items-center rounded-md px-2 text-[13px] text-paper/80 hover:text-paper">
+          <Link href={backHref} className="studio-link">
             {backHref === "/projects" ? "Projects" : "Home"}
           </Link>
         </div>
@@ -230,7 +230,7 @@ export function Editor({
             Dielines are generated from standard construction rules. Check the structure with a physical sample on the production board before ordering the cutting die.
           </p>
         </aside>
-        <main className={`${tab === "preview" ? "flex" : "hidden"} min-w-0 flex-1 flex-col bg-[#d8d7d3] lg:flex`}>
+        <main className={`${tab === "preview" ? "flex" : "hidden"} min-w-0 flex-1 flex-col bg-bone lg:flex`}>
           <Preview d={d} layers={layers} onToggleLayer={toggleLayer} />
         </main>
         <aside className={`${tab === "output" ? "block" : "hidden"} w-full overflow-y-auto border-l border-rule bg-bone lg:block lg:w-[320px] lg:shrink-0`}>
@@ -238,7 +238,7 @@ export function Editor({
         </aside>
       </div>
 
-      <nav className="grid shrink-0 grid-cols-3 border-t border-rule bg-paper pb-[env(safe-area-inset-bottom)] lg:hidden">
+      <nav className="studio-bar grid shrink-0 grid-cols-3 border-t border-rule pb-[env(safe-area-inset-bottom)] lg:hidden">
         {(
           [
             ["design", "Design"],
@@ -253,7 +253,7 @@ export function Editor({
             className={`h-12 text-[13px] ${tab === k ? "font-medium text-ink" : "text-mute"}`}
             aria-pressed={tab === k}
           >
-            <span className={`border-b-2 pb-1 ${tab === k ? "border-accent" : "border-transparent"}`}>{l}</span>
+            <span className={`border-b-2 pb-1 ${tab === k ? "border-accent-dark" : "border-transparent"}`}>{l}</span>
           </button>
         ))}
       </nav>

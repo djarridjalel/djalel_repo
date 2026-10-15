@@ -26,6 +26,30 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* The studio website's top bar: bone, translucent, a hairline under it. */
+.studio-bar {
+  background: rgba(230, 229, 226, 0.86);
+  -webkit-backdrop-filter: saturate(140%) blur(14px);
+  backdrop-filter: saturate(140%) blur(14px);
+  border-bottom: 1px solid var(--color-rule);
+  color: var(--color-ink);
+}
+
+.studio-link {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(10, 10, 11, 0.66);
+  border-bottom: 1px solid transparent;
+  padding: 6px 0;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.studio-link:hover {
+  color: var(--color-accent-dark);
+  border-bottom-color: var(--color-accent-dark);
+}
+
 /* Dieline preview: hairlines stay crisp at any zoom. */
 .dieline-preview path,
 .dieline-preview polygon,

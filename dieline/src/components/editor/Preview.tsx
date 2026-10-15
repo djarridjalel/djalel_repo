@@ -129,7 +129,7 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-rule bg-paper/60 px-3 py-2">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-rule bg-bone px-3 py-2">
         {LAYER_ORDER.filter((l) => hasContent(d, l)).map((l) => {
           const st = LAYERS[l];
           const onL = layers.has(l);

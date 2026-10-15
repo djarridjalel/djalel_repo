@@ -224,5 +224,5 @@ export function Controls({ p, d, set, onOpenContents }: { p: CartonParams; d: Di
 }
 
 function Dot() {
-  return <span className="h-2 w-2 rounded-full bg-accent" aria-label="On" />;
+  return <span className="h-2 w-2 rounded-full bg-accent-dark" aria-label="On" />;
 }

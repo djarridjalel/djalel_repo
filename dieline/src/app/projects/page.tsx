@@ -22,12 +22,12 @@ export default async function ProjectsPage() {
 
   return (
     <div className="min-h-dvh bg-bone">
-      <header className="flex h-14 items-center justify-between bg-ink px-4 text-paper sm:px-6">
-        <Brand dark href="/projects" />
+      <header className="studio-bar sticky top-0 z-20 flex h-14 items-center justify-between px-4 sm:px-6">
+        <Brand href="/projects" />
         <div className="flex items-center gap-3">
-          <span className="hidden max-w-[220px] truncate font-mono text-[12px] text-paper/60 sm:inline">{user.email}</span>
+          <span className="hidden max-w-[220px] truncate font-mono text-[12px] text-mute sm:inline">{user.email}</span>
           <form action="/auth/signout" method="post">
-            <button className="h-9 rounded-md px-3 text-[13px] text-paper/80 hover:text-paper">Sign out</button>
+            <button className="studio-link">Sign out</button>
           </form>
         </div>
       </header>

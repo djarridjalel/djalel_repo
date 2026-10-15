@@ -3,8 +3,8 @@ import { Brand } from "./Brand";
 export function AuthShell({ title, lead, children }: { title: string; lead: string; children: React.ReactNode }) {
   return (
     <div className="flex min-h-dvh flex-col bg-bone">
-      <header className="flex h-14 items-center bg-ink px-4 sm:px-6">
-        <Brand dark />
+      <header className="studio-bar flex h-14 items-center px-4 sm:px-6">
+        <Brand />
       </header>
       <main className="flex flex-1 items-start justify-center px-4 py-12 sm:items-center">
         <div className="w-full max-w-sm">

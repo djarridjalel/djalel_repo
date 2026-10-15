@@ -26,7 +26,7 @@ export function NewProjectButton({ className = "" }: { className?: string }) {
             setBusy(false);
           }
         }}
-        className={`inline-flex h-11 items-center gap-2 rounded-md bg-accent px-5 text-[14px] font-medium text-ink hover:brightness-95 disabled:opacity-50 ${className}`}
+        className={`inline-flex h-11 items-center gap-2 rounded-md bg-ink px-5 text-[14px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink disabled:opacity-50 ${className}`}
       >
         <span aria-hidden className="text-[18px] leading-none">+</span> {busy ? "Creating…" : "New carton"}
       </button>
