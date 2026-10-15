@@ -51,6 +51,36 @@ describe("carton geometry", () => {
     }
   }
 
+  it("keeps outlines clean with every carton option switched on", () => {
+    for (const style of ["rte", "ste", "crash", "snap"] as StyleId[]) {
+      for (const [L, W, H] of [[60, 25, 110], [120.6, 60.6, 161.1], [90, 30, 80]]) {
+        for (const slot of ["euro", "round"] as const) {
+          const d = generate(
+            make({
+              style, L, W, H,
+              hangTab: { enabled: true, height: 25, slot },
+              window: { ...DEFAULT_PARAMS.window, enabled: true, width: 20, height: 25, panel: "back" },
+              zipStrip: { enabled: true, fromTop: 15, width: 6 },
+              dispenser: { ...DEFAULT_PARAMS.dispenser, enabled: true, width: 20, height: 18, panel: "front" },
+            }),
+          );
+          const o = d.outline;
+          for (let i = 1; i < o.length; i++) expect(dist(o[i - 1].b, o[i].a)).toBeLessThan(1e-6);
+          expect(dist(o[0].a, o[o.length - 1].b)).toBeLessThan(1e-6);
+          expect(findSelfIntersection(samplePath(o, 1))).toBeNull();
+          expect(d.issues.filter((x) => x.severity === "error")).toEqual([]);
+          expect(d.strokes.some((s) => s.layer === "perf")).toBe(true);
+          expect(d.bbox.minY).toBeLessThan(-49);
+        }
+      }
+    }
+  });
+
+  it("flags a window that does not fit", () => {
+    const d = generate(make({ window: { ...DEFAULT_PARAMS.window, enabled: true, width: 200, height: 20 } }));
+    expect(d.issues.some((x) => x.field === "window" && x.severity === "error")).toBe(true);
+  });
+
   it("rejects lock bottoms that are wider than long", () => {
     const d = generate(make({ style: "crash", L: 40, W: 60, H: 100 }));
     expect(d.issues.some((x) => x.severity === "error")).toBe(true);

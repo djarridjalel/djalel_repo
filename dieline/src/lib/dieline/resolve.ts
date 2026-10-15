@@ -139,6 +139,26 @@ export function resolve(p: CartonParams): ResolveResult {
     }
   }
 
+  // Hanger and zip strip
+  let hangerHeight = p.hangTab.height;
+  if (p.hangTab.enabled && hangerHeight < 18) {
+    issues.push({ severity: "warning", field: "hangTab", message: "The hanger needs at least 18 mm for the slot and a strong edge above it." });
+    hangerHeight = 18;
+  }
+  if (p.hangTab.enabled && panelWidths[0] < 25) {
+    issues.push({ severity: "warning", field: "hangTab", message: "The front panel is narrow for a euro slot; use the round hole." });
+  }
+  let zipFromTop = p.zipStrip.fromTop;
+  let zipWidth = clamp(p.zipStrip.width, 3, 15);
+  if (p.zipStrip.enabled) {
+    const maxTop = bodyHeight - zipWidth - 10;
+    if (zipFromTop < 6 || zipFromTop > maxTop) {
+      issues.push({ severity: "warning", field: "zipStrip", message: `The tear strip should sit between 6 and ${down1(maxTop)} mm from the top.` });
+      zipFromTop = clamp(zipFromTop, 6, Math.max(6, maxTop));
+    }
+    if (p.zipStrip.width !== zipWidth) zipWidth = clamp(zipWidth, 3, 15);
+  }
+
   if (p.bleed < 0 || p.bleed > 10) issues.push({ severity: "warning", field: "bleed", message: "Bleed is normally 0–5 mm." });
 
   return {
@@ -159,6 +179,9 @@ export function resolve(p: CartonParams): ResolveResult {
       glueWidth: round(glueWidth, 2),
       glueAngle,
       bottomExtension: round(bottomExtension, 2),
+      hangerHeight,
+      zipFromTop,
+      zipWidth,
     },
     issues,
   };

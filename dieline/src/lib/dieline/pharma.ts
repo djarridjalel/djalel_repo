@@ -2,8 +2,8 @@
 // window, the pharmacode zone and the safe-area guides.
 
 import { MARBURG, blockSize, dotPositions, textToBraille, wrapCells } from "./braille";
-import { pt, type Pt } from "./geom";
-import type { Align, CartonParams, Dot, Issue, Panel, Region, TextItem } from "./types";
+import { pt, roundedRect, type Pt } from "./geom";
+import type { Align, CartonParams, Dot, Issue, Panel, Region, Stroke, TextItem } from "./types";
 
 export const CODING_PRESETS = {
   batchExpiry: { label: "Batch + expiry", width: 32, height: 14 },
@@ -32,6 +32,7 @@ function placeIn(panel: Panel, w: number, h: number, align: Align, offX: number,
 }
 
 export interface PharmaLayers {
+  strokes: Stroke[];
   regions: Region[];
   dots: Dot[];
   texts: TextItem[];
@@ -46,6 +47,42 @@ export function buildPharma(p: CartonParams, panels: Panel[]): PharmaLayers {
   const byId = (id: string) => panels.find((q) => q.id === id);
   const margin = Math.max(0, p.safeMargin);
   const zones: { name: string; rect: Rect }[] = [];
+  const strokes: Stroke[] = [];
+
+  // Window cut-out.
+  const win = p.window;
+  if (win.enabled) {
+    const panel = byId(win.panel);
+    if (!panel) {
+      issues.push({ severity: "warning", field: "window", message: "The window's panel does not exist on this style." });
+    } else {
+      const m = Math.max(margin, 4);
+      const { rect, fits } = placeIn(panel, win.width, win.height, win.align, win.offsetX, win.offsetY, m);
+      for (const seg of roundedRect(rect.x, rect.y, rect.w, rect.h, win.radius)) strokes.push({ seg, layer: "cut" });
+      zones.push({ name: "window", rect });
+      if (!fits) issues.push({ severity: "error", field: "window", message: `The window (${win.width} × ${win.height} mm) does not fit on ${panel.name}; keep it ${m} mm from folds and edges.` });
+    }
+  }
+
+  // Dispenser opening: a perforated panel pushed in to reach the contents.
+  const dsp = p.dispenser;
+  if (dsp.enabled) {
+    const panel = byId(dsp.panel);
+    if (!panel) {
+      issues.push({ severity: "warning", field: "dispenser", message: "The dispenser's panel does not exist on this style." });
+    } else {
+      const m = Math.max(margin, 4);
+      const x = panel.x + (panel.w - dsp.width) / 2;
+      const y = panel.y + panel.h - Math.max(dsp.fromBottom, m) - dsp.height;
+      const rect = { x, y, w: dsp.width, h: dsp.height };
+      for (const seg of roundedRect(x, y, dsp.width, dsp.height, Math.min(8, dsp.width / 4, dsp.height / 4))) strokes.push({ seg, layer: "perf" });
+      texts.push({ at: pt(x + dsp.width / 2, y + dsp.height / 2), text: "PUSH", size: Math.min(3, dsp.width / 8), layer: "label", anchor: "middle" });
+      zones.push({ name: "dispenser opening", rect });
+      if (x < panel.x + m || y < panel.y + m || dsp.width > panel.w - 2 * m) {
+        issues.push({ severity: "error", field: "dispenser", message: `The dispenser opening does not fit on ${panel.name}; keep it ${m} mm from folds and edges.` });
+      }
+    }
+  }
 
   // Safe areas on printable panels.
   if (margin > 0) {
@@ -151,5 +188,5 @@ export function buildPharma(p: CartonParams, panels: Panel[]): PharmaLayers {
     }
   }
 
-  return { regions, dots, texts, issues };
+  return { strokes, regions, dots, texts, issues };
 }

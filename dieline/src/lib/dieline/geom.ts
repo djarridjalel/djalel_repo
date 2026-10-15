@@ -287,3 +287,49 @@ export const round = (v: number, d = 2) => {
 };
 
 export const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+
+/** Closed rounded rectangle as lines and arcs (y down). */
+export function roundedRect(x: number, y: number, w: number, h: number, r: number): Seg[] {
+  const rr = Math.max(0, Math.min(r, w / 2, h / 2));
+  const A = (cx: number, cy: number, a: Pt, b: Pt) => arc(pt(cx, cy), rr, a, b, true);
+  if (rr < 1e-6) {
+    return [line(pt(x, y), pt(x + w, y)), line(pt(x + w, y), pt(x + w, y + h)), line(pt(x + w, y + h), pt(x, y + h)), line(pt(x, y + h), pt(x, y))];
+  }
+  return [
+    line(pt(x + rr, y), pt(x + w - rr, y)),
+    A(x + w - rr, y + rr, pt(x + w - rr, y), pt(x + w, y + rr)),
+    line(pt(x + w, y + rr), pt(x + w, y + h - rr)),
+    A(x + w - rr, y + h - rr, pt(x + w, y + h - rr), pt(x + w - rr, y + h)),
+    line(pt(x + w - rr, y + h), pt(x + rr, y + h)),
+    A(x + rr, y + h - rr, pt(x + rr, y + h), pt(x, y + h - rr)),
+    line(pt(x, y + h - rr), pt(x, y + rr)),
+    A(x + rr, y + rr, pt(x, y + rr), pt(x + rr, y)),
+  ];
+}
+
+export function circle(c: Pt, r: number): Seg[] {
+  return [arc(c, r, pt(c.x + r, c.y), pt(c.x - r, c.y), true), arc(c, r, pt(c.x - r, c.y), pt(c.x + r, c.y), true)];
+}
+
+/**
+ * Euro hang slot: a slot with round ends and a round bump on one long side
+ * for the hook. `dir` is +1 for a bump toward +y, -1 toward -y.
+ */
+export function euroSlot(cx: number, cy: number, width: number, height: number, bump: number, dir: 1 | -1): Seg[] {
+  const r = height / 2;
+  const x0 = cx - width / 2 + r;
+  const x1 = cx + width / 2 - r;
+  const yT = cy - r;
+  const yB = cy + r;
+  const b = Math.min(bump, (x1 - x0) / 2 - 0.5);
+  const segs: Seg[] = [];
+  if (dir === -1) {
+    segs.push(line(pt(x0, yT), pt(cx - b, yT)), arc(pt(cx, yT), b, pt(cx - b, yT), pt(cx + b, yT), true), line(pt(cx + b, yT), pt(x1, yT)));
+  } else segs.push(line(pt(x0, yT), pt(x1, yT)));
+  segs.push(arc(pt(x1, cy), r, pt(x1, yT), pt(x1, yB), true));
+  if (dir === 1) {
+    segs.push(line(pt(x1, yB), pt(cx + b, yB)), arc(pt(cx, yB), b, pt(cx + b, yB), pt(cx - b, yB), true), line(pt(cx - b, yB), pt(x0, yB)));
+  } else segs.push(line(pt(x1, yB), pt(x0, yB)));
+  segs.push(arc(pt(x0, cy), r, pt(x0, yB), pt(x0, yT), true));
+  return segs;
+}

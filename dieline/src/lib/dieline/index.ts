@@ -33,6 +33,10 @@ export const DEFAULT_PARAMS: CartonParams = {
   braille: { enabled: false, text: "", panel: "sideA", orientation: "horizontal", align: "center", offsetX: 0, offsetY: 0 },
   codingWindow: { enabled: false, preset: "batchExpiry", width: 40, height: 18, panel: "sideB", align: "bottom", offsetX: 0, offsetY: 0 },
   pharmacode: { enabled: false, width: 30, height: 8, panel: "back", align: "top", offsetX: 0, offsetY: 0 },
+  hangTab: { enabled: false, height: 25, slot: "euro" },
+  window: { enabled: false, panel: "front", width: 30, height: 40, radius: 4, align: "center", offsetX: 0, offsetY: 0 },
+  zipStrip: { enabled: false, fromTop: 15, width: 6 },
+  dispenser: { enabled: false, panel: "front", width: 40, height: 30, fromBottom: 12 },
 };
 
 /** Fills in fields added after a project was saved. */
@@ -41,6 +45,10 @@ export function normalizeParams(raw: Partial<CartonParams> | null | undefined): 
   p.braille = { ...DEFAULT_PARAMS.braille, ...(raw?.braille ?? {}) };
   p.codingWindow = { ...DEFAULT_PARAMS.codingWindow, ...(raw?.codingWindow ?? {}) };
   p.pharmacode = { ...DEFAULT_PARAMS.pharmacode, ...(raw?.pharmacode ?? {}) };
+  p.hangTab = { ...DEFAULT_PARAMS.hangTab, ...(raw?.hangTab ?? {}) };
+  p.window = { ...DEFAULT_PARAMS.window, ...(raw?.window ?? {}) };
+  p.zipStrip = { ...DEFAULT_PARAMS.zipStrip, ...(raw?.zipStrip ?? {}) };
+  p.dispenser = { ...DEFAULT_PARAMS.dispenser, ...(raw?.dispenser ?? {}) };
   return p;
 }
 
@@ -72,7 +80,7 @@ export function generate(params: CartonParams): Dieline {
     });
   }
 
-  const strokes: Stroke[] = [...blank.strokes];
+  const strokes: Stroke[] = [...blank.strokes, ...pharma.strokes];
   if (p.bleed > 0) {
     for (const ring of offsetPolygon(poly, p.bleed)) {
       for (let i = 0; i < ring.length; i++) strokes.push({ layer: "bleed", seg: line(ring[i], ring[(i + 1) % ring.length]) });

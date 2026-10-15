@@ -11,6 +11,7 @@ import {
   crashMainPiece,
   crashSidePiece,
   dustPiece,
+  hangerPiece,
   lidPiece,
   nonePiece,
   snapHookPiece,
@@ -31,7 +32,7 @@ export interface Blank {
   texts: TextItem[];
 }
 
-type Slot = "none" | "lid" | "dust" | "crashMain" | "crashSide" | "snapNotch" | "snapTongue" | "snapHookL" | "snapHookR";
+type Slot = "none" | "hanger" | "lid" | "dust" | "crashMain" | "crashSide" | "snapNotch" | "snapTongue" | "snapHookL" | "snapHookR";
 
 function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; bottomLidOn: 0 | 2 | null } {
   const top: Slot[] = ["none", "dust", "lid", "dust"];
@@ -51,6 +52,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const { t, panelWidths: pw, bodyHeight: Hp } = r;
   const xs = [0, pw[0], pw[0] + pw[1], pw[0] + pw[1] + pw[2], pw[0] + pw[1] + pw[2] + pw[3]];
   const { top, bottom, bottomLidOn } = slotsFor(p.style);
+  if (p.hangTab.enabled) top[0] = "hanger";
   const c = r.Wi / 2 + t / 2;
 
   // Dust flaps lock on the edge facing the panel that receives the tuck.
@@ -67,6 +69,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     switch (slot) {
       case "none":
         return nonePiece(w);
+      case "hanger":
+        return hangerPiece(w, r.hangerHeight, p.hangTab.slot);
       case "lid":
         return lidPiece({
           w,
@@ -138,7 +142,19 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     outline.push(...reversePath(pc.outline.map((s) => xfSeg(botXf(xs[i]), s))));
     place(pc, botXf(xs[i]), xs[i], "bottom");
   }
-  outline.push(line(pt(0, Hp), pt(0, 0)));
+  if (p.zipStrip.enabled) {
+    // Zip strip: two perforations right round the body and across the glue
+    // flap, opened from a pull tab on the free edge.
+    const y1 = r.zipFromTop;
+    const y2 = y1 + r.zipWidth;
+    const k = Math.tan((r.glueAngle * Math.PI) / 180);
+    const xEnd = (y: number) => x4 + (k > 0 ? Math.min(g, Math.min(y, Hp - y) / k) : g);
+    for (const y of [y1, y2]) strokes.push({ layer: "perf", seg: line(pt(0, y), pt(xEnd(y), y)) });
+    const tab = Math.min(6, r.zipWidth);
+    outline.push(line(pt(0, Hp), pt(0, y2)), line(pt(0, y2), pt(-tab, y2 - 0.8)), line(pt(-tab, y2 - 0.8), pt(-tab, y1 + 0.8)), line(pt(-tab, y1 + 0.8), pt(0, y1)), line(pt(0, y1), pt(0, 0)));
+  } else {
+    outline.push(line(pt(0, Hp), pt(0, 0)));
+  }
 
   for (let i = 1; i <= 3; i++) strokes.push({ layer: "crease", seg: line(pt(xs[i], 0), pt(xs[i], Hp)) });
 
@@ -196,7 +212,8 @@ function buildLabels(p: CartonParams, panels: Panel[]): TextItem[] {
     const size = clamp(Math.min(q.w, q.h) * 0.09, 2.2, 5);
     const vertical = q.id === "glueFlap";
     out.push({
-      at: pt(q.x + q.w / 2, q.y + q.h / 2),
+      // The hanger's centre holds the slot, so its name sits near the body.
+      at: pt(q.x + q.w / 2, q.id === "hanger" ? q.y + q.h - 3 : q.y + q.h / 2),
       text: q.name.toUpperCase(),
       size,
       layer: "label",

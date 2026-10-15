@@ -21,6 +21,7 @@ const PANEL_NAMES: Record<PanelId, string> = {
   glueFlap: "Glue flap",
   topTuck: "Top tuck",
   bottomTuck: "Bottom tuck",
+  hanger: "Hanger",
 };
 
 const ALIGN: { value: Align; label: string }[] = [
@@ -137,6 +138,70 @@ export function Controls({ p, d, set, onOpenContents }: { p: CartonParams; d: Di
           {p.tamper === "tearStrip" && "Two perforations across the top lid with a thumb notch; the tuck is glued, so the strip must be torn to open."}
           {p.tamper === "none" && "Plain closure, no evidence of opening."}
         </p>
+      </Section>
+
+      <Section title="Hang tab" defaultOpen={p.hangTab.enabled} aside={p.hangTab.enabled ? <Dot /> : null}>
+        <Toggle label="Hanger above the front panel" checked={p.hangTab.enabled} onChange={(v) => set({ hangTab: { ...p.hangTab, enabled: v } })} />
+        {p.hangTab.enabled && (
+          <div className="grid grid-cols-2 gap-2">
+            <NumberField label="Hanger height" value={p.hangTab.height} onChange={(v) => set({ hangTab: { ...p.hangTab, height: v ?? 25 } })} hint="Each of the two layers" />
+            <Select
+              label="Hole"
+              value={p.hangTab.slot}
+              options={[
+                { value: "euro", label: "Euro slot" },
+                { value: "round", label: "Round hole" },
+              ]}
+              onChange={(v) => set({ hangTab: { ...p.hangTab, slot: v } })}
+            />
+          </div>
+        )}
+      </Section>
+
+      <Section title="Window" defaultOpen={p.window.enabled} aside={p.window.enabled ? <Dot /> : null}>
+        <Toggle label="Window cut-out" checked={p.window.enabled} onChange={(v) => set({ window: { ...p.window, enabled: v } })} />
+        {p.window.enabled && (
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              <NumberField label="Width" value={p.window.width} onChange={(v) => set({ window: { ...p.window, width: v ?? 30 } })} />
+              <NumberField label="Height" value={p.window.height} onChange={(v) => set({ window: { ...p.window, height: v ?? 40 } })} />
+              <NumberField label="Corner" value={p.window.radius} onChange={(v) => set({ window: { ...p.window, radius: v ?? 0 } })} />
+            </div>
+            <Select label="Panel" value={p.window.panel} options={panelOptions} onChange={(v) => set({ window: { ...p.window, panel: v } })} />
+            <Segmented label="Position" value={p.window.align} options={ALIGN} onChange={(v) => set({ window: { ...p.window, align: v } })} />
+            <div className="grid grid-cols-2 gap-2">
+              <NumberField label="Shift right" value={p.window.offsetX} onChange={(v) => set({ window: { ...p.window, offsetX: v ?? 0 } })} />
+              <NumberField label="Shift down" value={p.window.offsetY} onChange={(v) => set({ window: { ...p.window, offsetY: v ?? 0 } })} />
+            </div>
+          </>
+        )}
+      </Section>
+
+      <Section title="Zip opening" defaultOpen={p.zipStrip.enabled} aside={p.zipStrip.enabled ? <Dot /> : null}>
+        <Toggle label="Zip strip round the body" checked={p.zipStrip.enabled} onChange={(v) => set({ zipStrip: { ...p.zipStrip, enabled: v } })} />
+        {p.zipStrip.enabled && (
+          <>
+            <div className="grid grid-cols-2 gap-2">
+              <NumberField label="From the top" value={p.zipStrip.fromTop} onChange={(v) => set({ zipStrip: { ...p.zipStrip, fromTop: v ?? 15 } })} />
+              <NumberField label="Strip width" value={p.zipStrip.width} onChange={(v) => set({ zipStrip: { ...p.zipStrip, width: v ?? 6 } })} />
+            </div>
+            <p className="text-[12px] leading-relaxed text-mute">Opened from the pull tab on the free edge of the front panel. Glue the top closure for tamper evidence.</p>
+          </>
+        )}
+      </Section>
+
+      <Section title="Dispenser opening" defaultOpen={p.dispenser.enabled} aside={p.dispenser.enabled ? <Dot /> : null}>
+        <Toggle label="Perforated push-in opening" checked={p.dispenser.enabled} onChange={(v) => set({ dispenser: { ...p.dispenser, enabled: v } })} />
+        {p.dispenser.enabled && (
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              <NumberField label="Width" value={p.dispenser.width} onChange={(v) => set({ dispenser: { ...p.dispenser, width: v ?? 40 } })} />
+              <NumberField label="Height" value={p.dispenser.height} onChange={(v) => set({ dispenser: { ...p.dispenser, height: v ?? 30 } })} />
+              <NumberField label="From bottom" value={p.dispenser.fromBottom} onChange={(v) => set({ dispenser: { ...p.dispenser, fromBottom: v ?? 12 } })} />
+            </div>
+            <Select label="Panel" value={p.dispenser.panel} options={panelOptions} onChange={(v) => set({ dispenser: { ...p.dispenser, panel: v } })} />
+          </>
+        )}
       </Section>
 
       <Section title="Braille" defaultOpen={p.braille.enabled} aside={p.braille.enabled ? <Dot /> : null}>

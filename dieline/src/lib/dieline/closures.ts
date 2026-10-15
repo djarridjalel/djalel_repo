@@ -5,7 +5,9 @@
 
 import {
   arc,
+  circle,
   clamp,
+  euroSlot,
   filletPolyline,
   insetConvex,
   line,
@@ -286,4 +288,27 @@ export function snapHookPiece(w: number, c: number, e: number, side45: "left" | 
     panels: [],
   };
   return side45 === "left" ? piece : mirrorPiece(piece, w);
+}
+
+/**
+ * Hanger above a panel: two sections of height `h` either side of a fold,
+ * folded back and glued so the slot goes through both layers.
+ */
+export function hangerPiece(w: number, h: number, slot: "euro" | "round"): Piece {
+  const r = clamp(w * 0.08, 1, 4);
+  const outline = filletPolyline([pt(0, 0), pt(0, 2 * h), pt(w, 2 * h), pt(w, 0)], [0, r, r, 0]);
+  const e = clamp(h * 0.42, 6, 12);
+  const strokes: Stroke[] = [S(line(pt(0, 0), pt(w, 0)), "crease"), S(line(pt(0, h), pt(w, h)), "crease")];
+  const sw = clamp(w * 0.55, 14, 30);
+  const holes =
+    slot === "euro"
+      ? [...euroSlot(w / 2, h - e, sw, 7, 4, 1), ...euroSlot(w / 2, h + e, sw, 7, 4, -1)]
+      : [...circle(pt(w / 2, h - e), 4), ...circle(pt(w / 2, h + e), 4)];
+  for (const seg of holes) strokes.push(S(seg, "cut"));
+  return {
+    outline,
+    strokes,
+    regions: [],
+    panels: [{ id: "hanger", name: "Hanger", u: 0, v: 0, w, h, printable: true }],
+  };
 }

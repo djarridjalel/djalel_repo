@@ -80,9 +80,29 @@ ok('pharmacode drawn', await p.locator('.dieline-preview #Pharmacode polygon').c
 
 // Tamper evidence
 await p.getByRole('button', { name: /^Tamper evidence/ }).click();
-await p.getByRole('button', { name: 'Tear strip' }).click();
+await p.getByRole('button', { name: 'Tear strip', exact: true }).click();
 await p.waitForTimeout(300);
 ok('tear strip adds perforations', await p.locator('.dieline-preview #Perforation path').count() > 0);
+
+// Carton options: hang tab, window, zip strip, dispenser
+const cutLen = async () => (await p.locator('.dieline-preview #Cut path').evaluate((e) => e.getAttribute('d')?.length ?? 0).catch(() => 0));
+const cut0 = await cutLen();
+await p.getByRole('button', { name: /^Hang tab/ }).click();
+await p.getByText('Hanger above the front panel').click();
+await p.getByRole('button', { name: /^Window/ }).click();
+await p.getByText('Window cut-out').click();
+await p.waitForTimeout(400);
+ok('hang tab drawn', await p.locator('.dieline-preview text', { hasText: 'HANGER' }).count() > 0);
+ok('window and slot add cut lines', (await cutLen()) > cut0);
+await p.getByRole('button', { name: /^Zip opening/ }).click();
+await p.getByText('Zip strip round the body').click();
+await p.getByRole('button', { name: /^Dispenser opening/ }).click();
+await p.getByText('Perforated push-in opening').click();
+await p.waitForTimeout(400);
+ok('dispenser drawn', await p.locator('.dieline-preview text', { hasText: 'PUSH' }).count() > 0);
+ok('carton options leave no errors', await p.locator('[data-severity="error"]').count() === 0);
+for (const t of ['Hanger above the front panel', 'Window cut-out', 'Zip strip round the body', 'Perforated push-in opening']) await p.getByText(t).click();
+await p.waitForTimeout(300);
 
 // Size from contents
 await p.getByRole('button', { name: 'Size from blister + leaflet' }).click();

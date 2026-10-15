@@ -44,6 +44,45 @@ export interface CartonParams {
   braille: BrailleParams;
   codingWindow: CodingWindowParams;
   pharmacode: PharmacodeParams;
+  hangTab: HangTabParams;
+  window: WindowParams;
+  zipStrip: ZipStripParams;
+  dispenser: DispenserParams;
+}
+
+/** Hanger above the front panel: two layers glued back to back, with the slot through both. */
+export interface HangTabParams {
+  enabled: boolean;
+  height: number;
+  slot: "euro" | "round";
+}
+
+/** Die-cut window with rounded corners. */
+export interface WindowParams {
+  enabled: boolean;
+  panel: PanelId;
+  width: number;
+  height: number;
+  radius: number;
+  align: Align;
+  offsetX: number;
+  offsetY: number;
+}
+
+/** Zip tear strip around the body, opened from a pull tab at the free edge. */
+export interface ZipStripParams {
+  enabled: boolean;
+  fromTop: number;
+  width: number;
+}
+
+/** Perforated opening that is pushed in to dispense sachets or stick packs. */
+export interface DispenserParams {
+  enabled: boolean;
+  panel: PanelId;
+  width: number;
+  height: number;
+  fromBottom: number;
 }
 
 export interface BrailleParams {
@@ -88,7 +127,8 @@ export type PanelId =
   | "bottomLid"
   | "glueFlap"
   | "topTuck"
-  | "bottomTuck";
+  | "bottomTuck"
+  | "hanger";
 
 export interface Panel {
   id: PanelId;
@@ -161,6 +201,9 @@ export interface Resolved {
   glueWidth: number;
   glueAngle: number;
   bottomExtension: number;
+  hangerHeight: number;
+  zipFromTop: number;
+  zipWidth: number;
 }
 
 export interface Stats {

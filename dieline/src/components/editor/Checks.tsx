@@ -22,7 +22,7 @@ export function Checks({ d, set }: { d: Dieline; set: (patch: Partial<CartonPara
       {d.issues.map((it, i) => {
         const s = ICON[it.severity];
         return (
-          <li key={i} className={`rounded-md border border-rule p-3 ${s.bg}`}>
+          <li key={i} data-severity={it.severity} className={`rounded-md border border-rule p-3 ${s.bg}`}>
             <p className={`mb-1 font-mono text-[10px] uppercase tracking-wider ${s.c}`}>{s.label}</p>
             <p className="text-[13px] leading-relaxed">{it.message}</p>
             {it.fix && (

@@ -28,6 +28,7 @@ Working and tested (34 unit tests, 37 end-to-end checks passing on the live site
 - Closures: slit, friction or plain tuck lock; tuck depth and radius; dust flaps; glue flap width and angle; base lock reach.
 - Tamper evidence: glued tuck with perforation, or tear strip with thumb notch.
 - Pharma layers: Braille (Marburg Medium, grade 1 with French accents), varnish-free coding window (batch/expiry or GS1 DataMatrix), pharmacode zone, glue areas, safe areas, panel names, grain arrow.
+- Carton options: hang tab (euro slot or round hole, double layer), window cut-out on any panel, zip strip round the body with a pull tab, perforated dispenser opening.
 - Size from blister and leaflet.
 - Checks with one-click fixes; production figures (flat size, cut and crease rule length, board use, blank weight).
 - Exports: PDF (true scale, one spot colour and one layer per line type, overprint, title block), SVG (named layers), DXF R12 (named layers, mm). "Die-maker only" exports cut, crease, perforation and Braille.
@@ -91,7 +92,7 @@ node scripts/e2e.mjs https://djarri-dielines.vercel.app e2e-out
 
 ## Open items
 
-1. Read the model shortlist (artifact database `selections/current`) and build the chosen models.
+1. Models chosen on the shortlist (artifact database `selections/current`): hang-tab, tear-strip, lock-tab, window, sachet-dispenser, pillow, gable, counter-display, srp-tray, fefco-0427. Done as carton options: hang tab, tear strip (zip strip), window, dispenser. Still to build, each needs its own builder beside `carton.ts`: lock-tab closure, pillow pack, gable box, counter display, shelf-ready tray, FEFCO 0427 mailer.
 2. Mockup photos for the shortlist: Cefbox's images are on `res.cloudinary.com`, which the cloud session could not reach.
 3. Validate crash-lock and snap-lock bottoms with a physical sample on production board before relying on them.
 4. Turn accounts on (see above). Add password reset once an email provider is connected.
