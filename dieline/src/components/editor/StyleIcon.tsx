@@ -1,67 +1,58 @@
-import type React from "react";
-import type { StyleId } from "@/lib/dieline/types";
+import { DEFAULT_PARAMS, generate } from "@/lib/dieline";
+import { segsToPath } from "@/lib/dieline/export/svg";
+import type { CartonParams, StyleId } from "@/lib/dieline/types";
 
-// Simplified flat blanks: four panels, the closures that make each style.
-export function StyleIcon({ style }: { style: StyleId }) {
-  const own = OWN[style];
-  if (own) return <Svg>{own}</Svg>;
-  const body = <path d="M6 18h48v24H6z M18 18v24 M30 18v24 M42 18v24 M54 20l4 2v16l-4 2" />;
-  const topLid = <path d="M30 18v-9h12v9 M31 9q0-4 4-4h2q4 0 4 4" />;
-  const dustTop = <path d="M18 18l1-5h10l1 5 M42 18l1-5h10l1 5" />;
-  const dustBottom = <path d="M18 42l1 5h10l1-5 M42 42l1 5h10l1-5" />;
-  let bottom;
-  switch (style) {
-    case "ste":
-      bottom = (
-        <>
-          {dustBottom}
-          <path d="M30 42v9h12v-9 M31 51q0 4 4 4h2q4 0 4-4" />
-        </>
-      );
-      break;
-    case "rte":
-      bottom = (
-        <>
-          {dustBottom}
-          <path d="M6 42v9h12v-9 M7 51q0 4 4 4h2q4 0 4-4" />
-        </>
-      );
-      break;
-    case "crash":
-    case "srp":
-      bottom = <path d="M6 42l1 10h6l2-3h3M18 42l3 6h4l5-6 M30 42l1 10h6l2-3h3 M42 42l3 6h4l5-6" />;
-      break;
-    case "snap":
-    case "gable":
-      bottom = <path d="M6 42v10h3v-4h6v4h3v-10 M18 42l5 5-1 5h8v-10 M30 42l4 4v6h4v-6l4-4 M42 42v10h8l-1-5 5-5" />;
-      break;
-  }
-  const gableTop = <path d="M6 18v-6h12v6 M18 18l6-6 6 6 M30 18v-6h12v6 M42 18l6-6 6 6 M8 12l2-5h6l2 5 M32 12l2-5h6l2 5" />;
-  return (
-    <Svg>
-      {style === "gable" ? gableTop : (
-        <>
-          {topLid}
-          {dustTop}
-        </>
-      )}
-      {body}
-      {style === "srp" && <path d="M6 30h12l12-12 M42 18l12 12" strokeDasharray="2 1.5" />}
-      {bottom}
-    </Svg>
-  );
+// Each icon is the style's real flat blank, drawn by the same generator as the
+// preview, so it always matches what the style produces.
+
+const ICON_SIZES: Record<StyleId, Partial<CartonParams>> = {
+  rte: { L: 60, W: 30, H: 90 },
+  ste: { L: 60, W: 30, H: 90 },
+  crash: { L: 60, W: 30, H: 90 },
+  snap: { L: 60, W: 30, H: 90 },
+  srp: { L: 150, W: 100, H: 80 },
+  gable: { L: 120, W: 80, H: 100, gable: { handleHeight: 40, holeWidth: 60, holeHeight: 20 } },
+  pillow: { L: 150, W: 100, H: 30 },
+  mailer: { L: 220, W: 160, H: 60, caliper: 1.5 },
+  display: { L: 200, W: 120, H: 40 },
+};
+
+interface IconData {
+  viewBox: string;
+  cut: string;
+  crease: string;
+  perf: string;
+  scale: number;
 }
 
-function Svg({ children }: { children: React.ReactNode }) {
+const cache = new Map<StyleId, IconData>();
+
+function iconData(style: StyleId): IconData {
+  const hit = cache.get(style);
+  if (hit) return hit;
+  const d = generate({ ...DEFAULT_PARAMS, ...ICON_SIZES[style], style, bleed: 0, showDimensions: false });
+  const pick = (layer: string) => d.strokes.filter((s) => s.layer === layer).map((s) => s.seg);
+  const { minX, minY, maxX, maxY } = d.bbox;
+  const pad = Math.max(maxX - minX, maxY - minY) * 0.03;
+  const data: IconData = {
+    viewBox: `${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`,
+    cut: segsToPath([...d.outline, ...pick("cut")]),
+    crease: segsToPath(pick("crease")),
+    perf: segsToPath(pick("perf")),
+    scale: Math.max(maxX - minX, maxY - minY),
+  };
+  cache.set(style, data);
+  return data;
+}
+
+export function StyleIcon({ style }: { style: StyleId }) {
+  const ic = iconData(style);
+  const dash = (k: number) => `${(ic.scale * k).toFixed(2)} ${(ic.scale * k * 0.7).toFixed(2)}`;
   return (
-    <svg viewBox="0 0 60 60" className="h-12 w-12" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinejoin="round" aria-hidden>
-      {children}
+    <svg viewBox={ic.viewBox} className="h-14 w-20" fill="none" stroke="currentColor" strokeLinejoin="round" strokeLinecap="round" aria-hidden>
+      <path d={ic.crease} strokeWidth={0.7} vectorEffect="non-scaling-stroke" opacity={0.45} />
+      <path d={ic.perf} strokeWidth={1} vectorEffect="non-scaling-stroke" strokeDasharray={dash(0.018)} />
+      <path d={ic.cut} strokeWidth={1.1} vectorEffect="non-scaling-stroke" />
     </svg>
   );
 }
-
-const OWN: Partial<Record<StyleId, React.ReactNode>> = {
-  pillow: <path d="M6 16v28 M30 16v28 M54 16v28l4-3v-22l-4-3 M6 16q12-9 24 0q12-9 24 0 M6 44q12 9 24 0q12 9 24 0 M6 16q12 6 24 0q12 6 24 0 M6 44q12-6 24 0q12-6 24 0" />,
-  mailer: <path d="M20 22h20v16h-20z M10 22h10v16h-10z M40 22h10v16h-10z M4 23h6v14h-6z M50 23h6v14h-6z M20 38v8h20v-8 M20 22v-6h20v6 M21 16v-10h18v10 M39 7q6 0 6 6 M21 7q-6 0-6 6" />,
-  display: <path d="M18 24h24v16h-24z M18 24v-18h24v18 M42 24h12l-6 16h-6 M18 24h-12l6 16h6 M18 40v6h24v-6 M18 46v6h24v-6" />,
-};
