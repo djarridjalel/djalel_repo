@@ -3,7 +3,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { DEFAULT_PARAMS } from "@/lib/dieline";
 import type { CartonParams } from "@/lib/dieline/types";
-import { cloudStore, loadLocalDraft, localStore } from "@/lib/projects";
+import { clearLocalDraft, cloudStore, loadLocalDraft, localStore } from "@/lib/projects";
 import { Editor } from "./Editor";
 
 export function CloudEditor({ id, name, params, userLabel }: { id: string; name: string; params: CartonParams; userLabel: string | null }) {
@@ -14,9 +14,16 @@ export function CloudEditor({ id, name, params, userLabel }: { id: string; name:
 export function DemoEditor() {
   const store = useMemo(() => localStore(), []);
   const [draft, setDraft] = useState<{ name: string; params: CartonParams } | null>(null);
+  const [session, setSession] = useState(0);
   useEffect(() => {
-    setDraft(loadLocalDraft() ?? { name: "Demo carton", params: DEFAULT_PARAMS });
+    setDraft(loadLocalDraft() ?? { name: "Untitled carton", params: DEFAULT_PARAMS });
   }, []);
   if (!draft) return <div className="h-dvh bg-bone" />;
-  return <Editor initialName={draft.name} initialParams={draft.params} store={store} backHref="/" />;
+  const startNew = () => {
+    if (!confirm("Start a new carton? The current one and its versions are removed from this browser.")) return;
+    clearLocalDraft();
+    setDraft({ name: "Untitled carton", params: DEFAULT_PARAMS });
+    setSession((n) => n + 1);
+  };
+  return <Editor key={session} initialName={draft.name} initialParams={draft.params} store={store} backHref="/" onNew={startNew} />;
 }

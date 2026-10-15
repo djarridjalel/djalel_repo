@@ -1,10 +1,19 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { SUPABASE_ANON_KEY, SUPABASE_URL, supabaseConfigured } from "@/lib/supabase/env";
+import { SUPABASE_ANON_KEY, SUPABASE_URL, authEnabled } from "@/lib/supabase/env";
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
-  if (!supabaseConfigured) return response;
+  const path = request.nextUrl.pathname;
+  if (!authEnabled) {
+    if (path === "/login" || path === "/signup" || path.startsWith("/projects")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/editor";
+      url.search = "";
+      return NextResponse.redirect(url);
+    }
+    return response;
+  }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
@@ -21,7 +30,6 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const path = request.nextUrl.pathname;
   if (!user && path.startsWith("/projects")) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";

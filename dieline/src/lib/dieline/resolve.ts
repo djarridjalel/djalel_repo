@@ -11,6 +11,8 @@ export interface ResolveResult {
 }
 
 const r1 = (v: number) => round(v, 1);
+/** Largest 0.1 mm step that stays within a maximum, so a suggested fix never re-triggers its own check. */
+const down1 = (v: number) => Math.floor(v * 10 + 1e-9) / 10;
 
 export function resolve(p: CartonParams): ResolveResult {
   const issues: Issue[] = [];
@@ -63,8 +65,8 @@ export function resolve(p: CartonParams): ResolveResult {
     issues.push({
       severity: "warning",
       field: "tuckDepth",
-      message: `Tuck depth ${tuckDepth} mm is too deep for this carton (max ${r1(tuckMax)} mm).`,
-      fix: { field: "tuckDepth", value: r1(tuckMax), label: `Use ${r1(tuckMax)} mm` },
+      message: `Tuck depth ${tuckDepth} mm is too deep for this carton (max ${down1(tuckMax)} mm).`,
+      fix: { field: "tuckDepth", value: down1(tuckMax), label: `Use ${down1(tuckMax)} mm` },
     });
     tuckDepth = tuckMax;
   }
@@ -80,7 +82,7 @@ export function resolve(p: CartonParams): ResolveResult {
   let slitLength = p.slitLength ?? slitAuto;
   const slitMax = Math.max(slitOffset + sideClear + 1.5, lidW * 0.3);
   if (p.lock === "slit" && slitLength > slitMax) {
-    issues.push({ severity: "warning", field: "slitLength", message: `Lock slits longer than ${r1(slitMax)} mm weaken the tuck.`, fix: { field: "slitLength", value: r1(slitMax), label: `Use ${r1(slitMax)} mm` } });
+    issues.push({ severity: "warning", field: "slitLength", message: `Lock slits longer than ${down1(slitMax)} mm weaken the tuck.`, fix: { field: "slitLength", value: down1(slitMax), label: `Use ${down1(slitMax)} mm` } });
     slitLength = slitMax;
   }
   if (p.lock === "slit" && slitLength < slitOffset + sideClear + 1.5) {
@@ -90,7 +92,7 @@ export function resolve(p: CartonParams): ResolveResult {
   const radiusMax = Math.max(0, Math.min(tuckDepth - slitOffset - 0.5, (lidW - 2 * sideClear) / 2 - 1));
   let tuckRadius = p.tuckRadius ?? round(Math.min(tuckDepth * 0.75, radiusMax), 1);
   if (tuckRadius > radiusMax) {
-    issues.push({ severity: "warning", field: "tuckRadius", message: `Tuck corner radius is limited to ${r1(radiusMax)} mm by the tuck depth.`, fix: { field: "tuckRadius", value: r1(radiusMax), label: `Use ${r1(radiusMax)} mm` } });
+    issues.push({ severity: "warning", field: "tuckRadius", message: `Tuck corner radius is limited to ${down1(radiusMax)} mm by the tuck depth.`, fix: { field: "tuckRadius", value: down1(radiusMax), label: `Use ${down1(radiusMax)} mm` } });
     tuckRadius = radiusMax;
   }
   tuckRadius = Math.max(0, tuckRadius);
@@ -100,7 +102,7 @@ export function resolve(p: CartonParams): ResolveResult {
   const dustAuto = clamp(round(Li * 0.33, 0), 6, Math.max(6, dustMax));
   let dustDepth = p.dustDepth ?? dustAuto;
   if (dustDepth > dustMax) {
-    issues.push({ severity: "warning", field: "dustDepth", message: `Dust flaps deeper than ${r1(dustMax)} mm collide when folded.`, fix: { field: "dustDepth", value: r1(dustMax), label: `Use ${r1(dustMax)} mm` } });
+    issues.push({ severity: "warning", field: "dustDepth", message: `Dust flaps deeper than ${down1(dustMax)} mm collide when folded.`, fix: { field: "dustDepth", value: down1(dustMax), label: `Use ${down1(dustMax)} mm` } });
     dustDepth = Math.max(5, dustMax);
   }
   if (dustDepth < 5) dustDepth = 5;
@@ -109,7 +111,7 @@ export function resolve(p: CartonParams): ResolveResult {
   const glueAuto = clamp(15, 8, Math.max(8, Li * 0.5));
   let glueWidth = p.glueWidth ?? glueAuto;
   if (glueWidth > Li - 3) {
-    const v = r1(Math.max(8, Li - 5));
+    const v = down1(Math.max(8, Li - 5));
     issues.push({ severity: "warning", field: "glueWidth", message: "Glue flap is wider than the panel it is glued to.", fix: { field: "glueWidth", value: v, label: `Use ${v} mm` } });
     glueWidth = Math.max(5, Li - 5);
   }
@@ -125,7 +127,7 @@ export function resolve(p: CartonParams): ResolveResult {
     const maxE = c - 3;
     if (bottomExtension > maxE) {
       if (p.bottomExtension != null) {
-        issues.push({ severity: "warning", field: "bottomExtension", message: `Base lock extension is limited to ${r1(maxE)} mm for these dimensions.`, fix: { field: "bottomExtension", value: r1(maxE), label: `Use ${r1(maxE)} mm` } });
+        issues.push({ severity: "warning", field: "bottomExtension", message: `Base lock extension is limited to ${down1(maxE)} mm for these dimensions.`, fix: { field: "bottomExtension", value: down1(maxE), label: `Use ${down1(maxE)} mm` } });
       }
       bottomExtension = Math.max(3, maxE);
     }

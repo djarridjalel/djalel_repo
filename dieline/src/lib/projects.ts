@@ -107,11 +107,19 @@ export function localStore(): ProjectStore {
   };
 }
 
+export function clearLocalDraft() {
+  try {
+    localStorage.removeItem(LOCAL_KEY);
+  } catch {
+    // Nothing stored, or storage unavailable.
+  }
+}
+
 export function loadLocalDraft(): { name: string; params: CartonParams } | null {
   try {
     const s = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? "null");
     if (!s?.params) return null;
-    return { name: s.name ?? "Demo carton", params: normalizeParams(s.params) };
+    return { name: s.name ?? "Untitled carton", params: normalizeParams(s.params) };
   } catch {
     return null;
   }

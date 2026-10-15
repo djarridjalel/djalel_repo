@@ -25,12 +25,14 @@ export function Editor({
   store,
   userLabel,
   backHref,
+  onNew,
 }: {
   initialName: string;
   initialParams: CartonParams;
   store: ProjectStore;
   userLabel?: string | null;
   backHref: string;
+  onNew?: () => void;
 }) {
   const [params, setParams] = useState<CartonParams>(() => normalizeParams(initialParams));
   const [name, setName] = useState(initialName);
@@ -208,7 +210,7 @@ export function Editor({
         <span className="hidden font-mono text-[11px] uppercase tracking-wider text-mute sm:inline">
           {save === "saved" ? "Saved" : save === "saving" ? "Saving…" : save === "unsaved" ? "Editing" : "Not saved"}
         </span>
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex items-center gap-4">
           <button
             type="button"
             onClick={() => doExport("pdf")}
@@ -217,6 +219,11 @@ export function Editor({
           >
             Download PDF
           </button>
+          {onNew && (
+            <button type="button" onClick={onNew} className="studio-link">
+              New
+            </button>
+          )}
           <Link href={backHref} className="studio-link">
             {backHref === "/projects" ? "Projects" : "Home"}
           </Link>

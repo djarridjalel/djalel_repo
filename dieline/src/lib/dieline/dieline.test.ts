@@ -62,6 +62,30 @@ describe("carton geometry", () => {
     expect(issue?.fix?.field).toBe("tuckDepth");
   });
 
+  it("clears each warning once its suggested fix is applied", () => {
+    const cases: Partial<CartonParams>[] = [
+      { tuckDepth: 200 },
+      { tuckRadius: 99 },
+      { lock: "slit", slitLength: 60 },
+      { dustDepth: 200 },
+      { glueWidth: 80, L: 40 },
+      { style: "crash", L: 120, W: 60, bottomExtension: 80 },
+      { style: "snap", L: 120, W: 60, bottomExtension: 80 },
+    ];
+    for (const L of [40, 60, 75.3, 120.6]) {
+      for (const W of [20, 25, 33.7]) {
+        for (const c of cases) {
+          const p = make({ L, W, H: 110, ...c });
+          const d = generate(p);
+          for (const issue of d.issues.filter((i) => i.fix)) {
+            const fixed = generate({ ...p, [issue.fix!.field]: issue.fix!.value });
+            expect(fixed.issues.some((i) => i.field === issue.field && i.severity !== "info" && i.fix?.field === issue.fix!.field)).toBe(false);
+          }
+        }
+      }
+    }
+  });
+
   it("flags overlapping flaps", () => {
     const d = generate(make({ style: "ste", L: 60, W: 25, H: 110, dustDepth: 29.5 }));
     expect(d.issues.find((x) => x.field === "dustDepth")).toBeDefined();

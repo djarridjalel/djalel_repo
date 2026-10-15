@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { DEFAULT_PARAMS, generate } from "@/lib/dieline";
 import { renderSvg } from "@/lib/dieline/export/svg";
-import { supabaseConfigured } from "@/lib/supabase/env";
+import { authEnabled } from "@/lib/supabase/env";
 import { supabaseServer } from "@/lib/supabase/server";
 
 const FEATURES: [string, string][] = [
@@ -16,7 +16,7 @@ const FEATURES: [string, string][] = [
 
 export default async function Home() {
   let signedIn = false;
-  if (supabaseConfigured) {
+  if (authEnabled) {
     const db = await supabaseServer();
     const {
       data: { user },
@@ -34,9 +34,9 @@ export default async function Home() {
 
   const primary = signedIn
     ? { href: "/projects", label: "Open your projects" }
-    : supabaseConfigured
+    : authEnabled
       ? { href: "/signup", label: "Create a free account" }
-      : { href: "/demo", label: "Open the demo" };
+      : { href: "/editor", label: "Open the editor" };
 
   return (
     <div className="min-h-dvh bg-bone">
@@ -46,12 +46,14 @@ export default async function Home() {
           <nav className="flex items-center gap-6">
             {signedIn ? (
               <Link href="/projects" className="studio-link">Projects</Link>
-            ) : supabaseConfigured ? (
+            ) : authEnabled ? (
               <>
                 <Link href="/login" className="studio-link">Sign in</Link>
                 <Link href="/signup" className="studio-link">Sign up</Link>
               </>
-            ) : null}
+            ) : (
+              <Link href="/editor" className="studio-link">Editor</Link>
+            )}
           </nav>
         </div>
       </header>
@@ -70,13 +72,13 @@ export default async function Home() {
               <Link href={primary.href} className="inline-flex h-12 items-center rounded-md bg-ink px-6 text-[15px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink">
                 {primary.label}
               </Link>
-              {!signedIn && supabaseConfigured && (
+              {!signedIn && authEnabled && (
                 <Link href="/login" className="inline-flex h-12 items-center rounded-md border border-ink/25 px-6 text-[15px] text-ink transition-colors hover:border-ink">
                   Sign in
                 </Link>
               )}
             </div>
-            <p className="mt-4 text-[13px] text-mute">Free with an account. No software to install.</p>
+            <p className="mt-4 text-[13px] text-mute">{authEnabled ? "Free with an account. No software to install." : "Free. No account or software needed."}</p>
           </div>
           <div className="dieline-preview aspect-[4/3] w-full p-2 sm:p-6" dangerouslySetInnerHTML={{ __html: hero }} />
         </div>

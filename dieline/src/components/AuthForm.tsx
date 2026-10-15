@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { supabaseBrowser } from "@/lib/supabase/client";
-import { supabaseConfigured } from "@/lib/supabase/env";
+import { authEnabled } from "@/lib/supabase/env";
 import { Button } from "./ui";
 
 export function AuthForm({ mode }: { mode: "login" | "signup" }) {
@@ -18,10 +18,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  if (!supabaseConfigured) {
+  if (!authEnabled) {
     return (
       <p className="text-[14px] text-mute">
-        Accounts are not configured on this deployment yet. <Link className="underline" href="/demo">Open the demo</Link> instead.
+        Accounts are switched off for now. <Link className="underline" href="/editor">Open the editor</Link> instead.
       </p>
     );
   }

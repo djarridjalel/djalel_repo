@@ -6,13 +6,13 @@ import { generate, normalizeParams } from "@/lib/dieline";
 import { STYLE_NAMES } from "@/lib/dieline/export/common";
 import { renderSvg } from "@/lib/dieline/export/svg";
 import { supabaseServer } from "@/lib/supabase/server";
-import { supabaseConfigured } from "@/lib/supabase/env";
+import { authEnabled } from "@/lib/supabase/env";
 
 export const metadata = { title: "Projects · Dielines · Djarri Design Studio" };
 export const dynamic = "force-dynamic";
 
 export default async function ProjectsPage() {
-  if (!supabaseConfigured) redirect("/demo");
+  if (!authEnabled) redirect("/editor");
   const db = await supabaseServer();
   const {
     data: { user },
