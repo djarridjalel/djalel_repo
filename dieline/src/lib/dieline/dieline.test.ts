@@ -105,6 +105,31 @@ describe("carton geometry", () => {
     }
   });
 
+  it("puts the glue flap on the far left, with the joint at the back corner", () => {
+    for (const style of ["rte", "ste", "crash", "snap", "srp", "gable", "pillow"] as StyleId[]) {
+      const d = generate(make({ style, L: 120, W: 80, H: 100 }));
+      const glue = d.panels.find((q) => q.id === "glueFlap")!;
+      expect(glue.x, style).toBeLessThan(0);
+      expect(Math.min(...d.panels.filter((q) => q.id !== "glueFlap").map((q) => q.x)), style).toBeGreaterThanOrEqual(-1e-6);
+      if (style !== "pillow") {
+        const order = ["sideB", "front", "sideA", "back"].map((id) => d.panels.find((q) => q.id === id)!.x);
+        expect([...order].sort((a, b) => a - b), style).toEqual(order);
+      }
+    }
+  });
+
+  it("keeps tear lines and the zip strip off the glue", () => {
+    for (const over of [{ style: "srp" as StyleId, L: 150, W: 100, H: 80 }, { style: "rte" as StyleId, zipStrip: { enabled: true, fromTop: 30, width: 6 } }]) {
+      const d = generate(make(over));
+      expect(d.issues.filter((x) => /glue area/.test(x.message))).toEqual([]);
+    }
+  });
+
+  it("flags a cut that crosses a glue area", () => {
+    const d = generate(make({ L: 80, W: 30, H: 100, tamper: "glueTuck", tuckDepth: 20, window: { ...DEFAULT_PARAMS.window, enabled: true, panel: "topTuck", width: 6, height: 4, radius: 1 } }));
+    expect(d.issues.some((x) => x.severity === "error" && /glue area/.test(x.message))).toBe(true);
+  });
+
   it("cuts the lock tab and its lid slit to match", () => {
     const d = generate(make({ style: "rte", L: 80, W: 60, H: 150, lockTab: true }));
     const plain = generate(make({ style: "rte", L: 80, W: 60, H: 150 }));

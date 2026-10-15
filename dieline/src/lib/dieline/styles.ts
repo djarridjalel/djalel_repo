@@ -29,8 +29,8 @@ function finish(p: CartonParams, outline: Seg[], strokes: Stroke[], regions: Reg
 /* ------------------------------------------------------------------ */
 
 /**
- * Pillow pack: two faces of width W joined by a glue flap, closed at each
- * end by curved creases. Length L runs between the ends; the thickness H
+ * Pillow pack: two faces of width W joined by a glue flap on the left,
+ * closed at each end by curved creases. Length L runs between the ends; the thickness H
  * sets the curve (each crease bows in by H / 2).
  */
 export function buildPillow(p: CartonParams, r: Resolved, issues: Issue[]): Blank {
@@ -63,34 +63,37 @@ export function buildPillow(p: CartonParams, r: Resolved, issues: Issue[]): Blan
   };
   const reverse = (segs: Seg[]) => reversePath(segs);
 
+  // Glue flap on the left, glued inside the free edge of the back face.
+  const gf = [pt(0, 0), pt(0, L), pt(-g, L - g), pt(-g, g)];
   const outline: Seg[] = [
-    ...endCut(0, w, 0, 1, true),
-    ...endCut(w, 2 * w, 0, 1, false),
-    ...poly([pt(2 * w, 0), pt(2 * w + g, g), pt(2 * w + g, L - g), pt(2 * w, L)]),
-    ...reverse(endCut(w, 2 * w, L, -1, false)),
-    ...reverse(endCut(0, w, L, -1, true)),
-    line(pt(0, L), pt(0, 0)),
+    ...endCut(0, w, 0, 1, false),
+    ...endCut(w, 2 * w, 0, 1, true),
+    line(pt(2 * w, 0), pt(2 * w, L)),
+    ...reverse(endCut(w, 2 * w, L, -1, true)),
+    ...reverse(endCut(0, w, L, -1, false)),
+    ...poly([gf[1], gf[2], gf[3], gf[0]]),
   ];
   const strokes: Stroke[] = [
+    { layer: "crease", seg: line(pt(0, 0), pt(0, L)) },
     { layer: "crease", seg: line(pt(w, 0), pt(w, L)) },
-    { layer: "crease", seg: line(pt(2 * w, 0), pt(2 * w, L)) },
   ];
   for (const x0 of [0, w]) {
     strokes.push({ layer: "crease", seg: arc3(pt(x0, 0), pt(x0 + w / 2, s), pt(x0 + w, 0)) });
     strokes.push({ layer: "crease", seg: arc3(pt(x0, L), pt(x0 + w / 2, L - s), pt(x0 + w, L)) });
   }
-  const regions: Region[] = [{ layer: "glue", pts: insetConvex([pt(2 * w, 0), pt(2 * w + g, g), pt(2 * w + g, L - g), pt(2 * w, L)], 1.5), label: "Glue" }];
+  const regions: Region[] = [{ layer: "glue", pts: insetConvex(gf, 1.5), label: "Glue" }];
   const panels: Panel[] = [
     { id: "front", name: "Front", x: 0, y: s, w, h: L - 2 * s, printable: true },
     { id: "back", name: "Back", x: w, y: s, w, h: L - 2 * s, printable: true },
-    { id: "glueFlap", name: "Glue flap", x: 2 * w, y: 0, w: g, h: L, printable: false },
+    { id: "glueFlap", name: "Glue flap", x: -g, y: 0, w: g, h: L, printable: false },
   ];
   const yd = L - Math.min(14, L * 0.12);
   const dims: Dimension[] = [
     { a: pt(0, yd), b: pt(w, yd), offset: 0, text: fmt(w) },
     { a: pt(w, yd), b: pt(2 * w, yd), offset: 0, text: fmt(w) },
     { a: pt(Math.min(10, w * 0.15), 0), b: pt(Math.min(10, w * 0.15), L), offset: 0, text: fmt(L) },
-    { a: pt(w + w * 0.75, 0), b: pt(w + w * 0.75, s), offset: 0, text: fmt(s) },
+    { a: pt(w * 0.75, 0), b: pt(w * 0.75, s), offset: 0, text: fmt(s) },
+    { a: pt(-g, L / 2), b: pt(0, L / 2), offset: 0, text: fmt(g) },
   ];
   return finish(p, outline, strokes, regions, panels, dims);
 }

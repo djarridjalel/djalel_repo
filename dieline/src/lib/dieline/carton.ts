@@ -2,10 +2,12 @@
 // from its closure pieces.
 //
 // Panel order on the flat blank, left to right:
-//   Front (L + t, free edge) | Side A (W + t) | Back (L + t) | Side B (W) | glue flap
-// Crease-to-crease widths carry thickness allowances so the erected carton
-// keeps the requested inside dimensions; the free-edge panel stops half a
-// caliper short of the outer face so it never protrudes.
+//   glue flap | Side B (W) | Front (L + t) | Side A (W + t) | Back (L + t, free edge)
+// The joint closes at the corner between Back and Side B, away from the
+// front and from tear lines that run down from the front. Crease-to-crease
+// widths carry thickness allowances so the erected carton keeps the
+// requested inside dimensions. On the folder-gluer the second and fourth
+// creases (Side B | Front, Side A | Back) are folded flat.
 
 import {
   crashMainPiece,
@@ -16,6 +18,7 @@ import {
   hangerPiece,
   lidPiece,
   lockTabPiece,
+  mirrorPiece,
   nonePiece,
   snapHookPiece,
   snapNotchPiece,
@@ -69,9 +72,18 @@ function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; 
   }
 }
 
+/** Physical order of the panels (0 Front, 1 Side A, 2 Back, 3 Side B) on the blank, left to right. */
+const ORDER = [3, 0, 1, 2] as const;
+
 export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const { t, panelWidths: pw, bodyHeight: Hp } = r;
-  const xs = [0, pw[0], pw[0] + pw[1], pw[0] + pw[1] + pw[2], pw[0] + pw[1] + pw[2] + pw[3]];
+  // X[i]: left edge of panel i on the blank.
+  const X = [0, 0, 0, 0];
+  let total = 0;
+  for (const i of ORDER) {
+    X[i] = total;
+    total += pw[i];
+  }
   const { top, bottom, bottomLidOn } = slotsFor(p.style);
   if (p.hangTab.enabled && hasTopLid(p.style)) top[0] = "hanger";
   // Lock tab on the panel that receives each tuck.
@@ -127,10 +139,11 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         const lidOn = which === "top" ? 2 : (bottomLidOn ?? 2);
         return dustPiece({ w, depth: r.dustDepth, lockSide: lockSideFor(i as 1 | 3, lidOn), lock: p.lock, slitLength: r.slitLength });
       }
+      // Mirrored so the glued corners sit on the creases folded flat on the gluer.
       case "crashMain":
-        return crashMainPiece({ w, t, c, e: r.bottomExtension });
+        return mirrorPiece(crashMainPiece({ w, t, c, e: r.bottomExtension }), w);
       case "crashSide":
-        return crashSidePiece(w, c);
+        return mirrorPiece(crashSidePiece(w, c), w);
       case "snapNotch":
         return snapNotchPiece(w, c, r.bottomExtension, clamp(r.Li - r.Wi + 1, 4, w - 10));
       case "snapTongue":
@@ -160,69 +173,76 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const topPieces = top.map((s, i) => makePiece(s, i, "top"));
   const botPieces = bottom.map((s, i) => makePiece(s, i, "bottom"));
 
-  topPieces.forEach((pc, i) => {
-    outline.push(...pc.outline.map((s) => xfSeg(topXf(xs[i]), s)));
-    place(pc, topXf(xs[i]), xs[i], "top");
-  });
+  for (const i of ORDER) {
+    outline.push(...topPieces[i].outline.map((s) => xfSeg(topXf(X[i]), s)));
+    place(topPieces[i], topXf(X[i]), X[i], "top");
+  }
+  // Free edge of the back panel.
+  outline.push(line(pt(total, 0), pt(total, Hp)));
+  for (const i of [...ORDER].reverse()) {
+    outline.push(...reversePath(botPieces[i].outline.map((s) => xfSeg(botXf(X[i]), s))));
+    place(botPieces[i], botXf(X[i]), X[i], "bottom");
+  }
 
-  // Glue flap
+  // Glue flap on the left of Side B, glued inside the back panel's free edge.
   const g = r.glueWidth;
   const taper = Math.min(g * Math.tan((r.glueAngle * Math.PI) / 180), Hp / 3);
-  const x4 = xs[4];
-  const gf = [pt(x4, 0), pt(x4 + g, taper), pt(x4 + g, Hp - taper), pt(x4, Hp)];
-  outline.push(line(gf[0], gf[1]), line(gf[1], gf[2]), line(gf[2], gf[3]));
-  strokes.push({ layer: "crease", seg: line(pt(x4, 0), pt(x4, Hp)) });
-  if (g > 4) regions.push({ layer: "glue", pts: insetConvex(gf, 1.5), label: "Glue" });
-  panels.push({ id: "glueFlap", name: "Glue flap", x: x4, y: 0, w: g, h: Hp, printable: false });
+  outline.push(line(pt(0, Hp), pt(-g, Hp - taper)), line(pt(-g, Hp - taper), pt(-g, taper)), line(pt(-g, taper), pt(0, 0)));
+  strokes.push({ layer: "crease", seg: line(pt(0, 0), pt(0, Hp)) });
+  panels.push({ id: "glueFlap", name: "Glue flap", x: -g, y: 0, w: g, h: Hp, printable: false });
+  /** Left edge of the glue flap at height y. */
+  const glueEdge = (y: number) => -g * (taper > 0 ? Math.min(1, y / taper, (Hp - y) / taper) : 1);
+  /** Glue area between two heights, kept 1.5 mm inside the flap. */
+  const glueBand = (ya: number, yb: number) => {
+    if (yb - ya < 6 || g <= 4) return;
+    const pts = [pt(0, ya), pt(0, yb), pt(glueEdge(yb), yb)];
+    if (Hp - taper < yb && Hp - taper > ya) pts.push(pt(-g, Hp - taper));
+    if (taper < yb && taper > ya) pts.push(pt(-g, taper));
+    pts.push(pt(glueEdge(ya), ya));
+    regions.push({ layer: "glue", pts: insetConvex(pts, 1.5), label: "Glue" });
+  };
 
-  for (let i = 3; i >= 0; i--) {
-    const pc = botPieces[i];
-    outline.push(...reversePath(pc.outline.map((s) => xfSeg(botXf(xs[i]), s))));
-    place(pc, botXf(xs[i]), xs[i], "bottom");
-  }
+  const perf = (seg: Seg) => strokes.push({ layer: "perf", seg });
   if (p.zipStrip.enabled) {
     // Zip strip: two perforations right round the body and across the glue
-    // flap, opened from a pull tab on the free edge.
+    // flap, which is left unglued where the strip passes. It is opened from
+    // a thumb tab cut into the strip near the front's left corner.
     const y1 = r.zipFromTop;
     const y2 = y1 + r.zipWidth;
-    const k = Math.tan((r.glueAngle * Math.PI) / 180);
-    const xEnd = (y: number) => x4 + (k > 0 ? Math.min(g, Math.min(y, Hp - y) / k) : g);
-    for (const y of [y1, y2]) strokes.push({ layer: "perf", seg: line(pt(0, y), pt(xEnd(y), y)) });
-    const tab = Math.min(6, r.zipWidth);
-    outline.push(line(pt(0, Hp), pt(0, y2)), line(pt(0, y2), pt(-tab, y2 - 0.8)), line(pt(-tab, y2 - 0.8), pt(-tab, y1 + 0.8)), line(pt(-tab, y1 + 0.8), pt(0, y1)), line(pt(0, y1), pt(0, 0)));
-  } else {
-    outline.push(line(pt(0, Hp), pt(0, 0)));
-  }
+    for (const y of [y1, y2]) perf(line(pt(glueEdge(y), y), pt(total, y)));
+    glueBand(0, y1 - 1.5);
+    glueBand(y2 + 1.5, Hp);
+    const m = Math.min(0.6, r.zipWidth * 0.1);
+    const rr = r.zipWidth / 2 - m;
+    const cx = X[0] + clamp(pw[0] * 0.15, rr + 4, 15);
+    strokes.push({ layer: "cut", seg: arc3(pt(cx, y1 + m), pt(cx - rr, (y1 + y2) / 2), pt(cx, y2 - m)) });
+  } else glueBand(0, Hp);
 
   if (p.style === "srp") {
-    // Tear-away front: across the front, down both sides from the back
-    // corners, and through the glue flap glued behind the front.
+    // Tear-away front: across the front, then down both sides from the back
+    // corners. The joint sits at a back corner, so the tear never crosses it.
     const d = clamp(p.srp.tearDepth > 0 ? p.srp.tearDepth : Math.round(Hp / 2), 10, Math.max(10, Hp - 10));
-    const k = Math.tan((r.glueAngle * Math.PI) / 180);
-    const xEnd = x4 + (k > 0 ? Math.min(g, Math.min(d, Hp - d) / k) : g);
     const fw = Math.min(p.srp.fingerWidth, pw[0] * 0.6);
     const sg = Math.min(fw * 0.375, Hp - d - 8);
-    const cx = pw[0] / 2;
-    const perf = (seg: Seg) => strokes.push({ layer: "perf", seg });
+    const x0 = X[0];
+    const x1 = X[0] + pw[0];
+    const cx = (x0 + x1) / 2;
     if (fw >= 10 && sg >= 4) {
-      perf(line(pt(0, d), pt(cx - fw / 2, d)));
+      perf(line(pt(x0, d), pt(cx - fw / 2, d)));
       perf(arc3(pt(cx - fw / 2, d), pt(cx, d + sg), pt(cx + fw / 2, d)));
-      perf(line(pt(cx + fw / 2, d), pt(xs[1], d)));
-    } else perf(line(pt(0, d), pt(xs[1], d)));
-    perf(line(pt(xs[1], d), pt(xs[2], 0)));
-    perf(line(pt(xs[3], 0), pt(x4, d)));
-    perf(line(pt(x4, d), pt(xEnd, d)));
+      perf(line(pt(cx + fw / 2, d), pt(x1, d)));
+    } else perf(line(pt(x0, d), pt(x1, d)));
+    perf(line(pt(X[1], d), pt(X[1] + pw[1], 0)));
+    perf(line(pt(X[3], 0), pt(X[3] + pw[3], d)));
   }
 
-  for (let i = 1; i <= 3; i++) strokes.push({ layer: "crease", seg: line(pt(xs[i], 0), pt(xs[i], Hp)) });
+  for (const i of [0, 1, 2]) strokes.push({ layer: "crease", seg: line(pt(X[i], 0), pt(X[i], Hp)) });
 
   const names = ["Front", "Side A", "Back", "Side B"];
   const ids = ["front", "sideA", "back", "sideB"] as const;
-  for (let i = 0; i < 4; i++) {
-    panels.unshift({ id: ids[3 - i], name: names[3 - i], x: xs[3 - i], y: 0, w: pw[3 - i], h: Hp, printable: true });
-  }
+  for (let i = 3; i >= 0; i--) panels.unshift({ id: ids[i], name: names[i], x: X[i], y: 0, w: pw[i], h: Hp, printable: true });
 
-  const dims = buildDims(p, r, xs, panels);
+  const dims = buildDims(p, r, X, panels);
   const texts = buildLabels(p, panels);
   strokes.push(...grainArrow(p, panels));
   return { outline, strokes, regions, panels, dims, texts };
@@ -242,15 +262,16 @@ function localToPanel(lp: LocalPanel, x0: number, which: "top" | "bottom", Hp: n
 
 const fmt = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
 
-function buildDims(p: CartonParams, r: Resolved, xs: number[], panels: Panel[]): Dimension[] {
+function buildDims(p: CartonParams, r: Resolved, X: number[], panels: Panel[]): Dimension[] {
   if (!p.showDimensions) return [];
   const Hp = r.bodyHeight;
+  const pw = r.panelWidths;
   const y = Hp - Math.min(14, Hp * 0.12);
   const dims: Dimension[] = [];
-  for (let i = 0; i < 4; i++) dims.push({ a: pt(xs[i], y), b: pt(xs[i + 1], y), offset: 0, text: fmt(r.panelWidths[i]) });
-  const hx = Math.min(10, r.panelWidths[0] * 0.15);
+  for (let i = 0; i < 4; i++) dims.push({ a: pt(X[i], y), b: pt(X[i] + pw[i], y), offset: 0, text: fmt(pw[i]) });
+  const hx = X[3] + Math.min(10, pw[3] * 0.15);
   dims.push({ a: pt(hx, 0), b: pt(hx, Hp), offset: 0, text: fmt(Hp) });
-  dims.push({ a: pt(xs[4], Hp / 2), b: pt(xs[4] + r.glueWidth, Hp / 2), offset: 0, text: fmt(r.glueWidth) });
+  dims.push({ a: pt(-r.glueWidth, Hp / 2), b: pt(0, Hp / 2), offset: 0, text: fmt(r.glueWidth) });
   const lid = panels.find((q) => q.id === "topLid");
   if (lid) {
     const lx = lid.x + Math.min(12, lid.w * 0.15);
@@ -258,7 +279,7 @@ function buildDims(p: CartonParams, r: Resolved, xs: number[], panels: Panel[]):
     const tuck = panels.find((q) => q.id === "topTuck");
     if (tuck) dims.push({ a: pt(lid.x + lid.w - Math.min(14, lid.w * 0.2), tuck.y + tuck.h), b: pt(lid.x + lid.w - Math.min(14, lid.w * 0.2), tuck.y), offset: 0, text: fmt(tuck.h) });
   }
-  const dx = xs[1] + r.panelWidths[1] / 2;
+  const dx = X[1] + pw[1] / 2;
   dims.push({ a: pt(dx, 0), b: pt(dx, -r.dustDepth), offset: 0, text: fmt(r.dustDepth) });
   return dims;
 }

@@ -2,7 +2,7 @@ import ClipperLib from "clipper-lib";
 import { DEFAULT_BOARD } from "./boards";
 import { buildBlank } from "./carton";
 import { buildDisplay, buildMailer, buildPillow } from "./styles";
-import { boxOf, findSelfIntersection, line, pt, round, samplePath, segLength, signedArea, type Pt, type Seg } from "./geom";
+import { boxOf, findSelfIntersection, line, pointInPolygon, pt, round, samplePath, sampleSeg, segLength, signedArea, type Pt, type Seg } from "./geom";
 import { buildPharma } from "./pharma";
 import { resolve } from "./resolve";
 import type { CartonParams, Dieline, Issue, Stats, Stroke } from "./types";
@@ -90,6 +90,21 @@ export function generate(params: CartonParams): Dieline {
   }
 
   const strokes: Stroke[] = [...blank.strokes, ...pharma.strokes];
+
+  // Glued board cannot tear or open cleanly: no perforation or cut may cross a glue area.
+  const openings = strokes.filter((s) => s.layer === "perf" || s.layer === "cut");
+  for (const rg of [...blank.regions, ...pharma.regions].filter((q) => q.layer === "glue")) {
+    for (const s of openings) {
+      const hit = sampleSeg(s.seg, 0.5).find((q) => pointInPolygon(q, rg.pts));
+      if (!hit) continue;
+      const on = blank.panels.find((q) => hit.x >= q.x && hit.x <= q.x + q.w && hit.y >= q.y && hit.y <= q.y + q.h);
+      allIssues.unshift({
+        severity: "error",
+        message: `A ${s.layer === "perf" ? "perforation" : "cut"} crosses the glue area${on ? ` on the ${on.name.toLowerCase()}` : ""} near x ${round(hit.x, 0)}, y ${round(hit.y, 0)} mm. Glued board will not tear or open cleanly there.`,
+      });
+      break;
+    }
+  }
   if (p.bleed > 0) {
     for (const ring of offsetPolygon(poly, p.bleed)) {
       for (let i = 0; i < ring.length; i++) strokes.push({ layer: "bleed", seg: line(ring[i], ring[(i + 1) % ring.length]) });

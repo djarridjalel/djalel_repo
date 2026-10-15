@@ -43,7 +43,7 @@ const S = (seg: Seg, layer: Layer): Stroke => ({ seg, layer });
 const mirrorU = (w: number) => ({ a: -1, b: 0, c: 0, d: 1, e: w, f: 0 });
 
 /** Mirrors a piece left-to-right while keeping its outline running from u=0 to u=w. */
-function mirrorPiece(p: Piece, w: number): Piece {
+export function mirrorPiece(p: Piece, w: number): Piece {
   const m = mirrorU(w);
   return {
     outline: reversePath(p.outline.map((s) => xfSeg(m, s))),

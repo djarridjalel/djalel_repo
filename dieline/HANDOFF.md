@@ -30,7 +30,7 @@ Working and tested (34 unit tests, 37 end-to-end checks passing on the live site
 - Pharma layers: Braille (Marburg Medium, grade 1 with French accents), varnish-free coding window (batch/expiry or GS1 DataMatrix), pharmacode zone, glue areas, safe areas, panel names, grain arrow.
 - Carton options: lock tab through the lid fold (tuck ends), hang tab (euro slot or round hole, double layer), window cut-out on any panel, zip strip round the body with a pull tab, perforated dispenser opening.
 - Size from blister and leaflet.
-- Checks with one-click fixes; production figures (flat size, cut and crease rule length, board use, blank weight).
+- Checks with one-click fixes, including an error when a perforation or cut crosses a glue area; production figures (flat size, cut and crease rule length, board use, blank weight).
 - Exports: PDF (true scale, one spot colour and one layer per line type, overprint, title block), SVG (named layers), DXF R12 (named layers, mm). "Die-maker only" exports cut, crease, perforation and Braille.
 - Accounts, projects and versions are built (Supabase, row-level security) but **switched off** for testing. Without accounts, work and versions are kept in the visitor's browser.
 - Look: the studio website's bone ground, translucent top bar, DJARRI / DESIGN STUDIO mark, Poppins and IBM Plex Mono.
@@ -68,7 +68,7 @@ src/app/                pages: /, /editor, /login, /signup, /projects, /projects
 scripts/e2e.mjs         end-to-end checks against a running site
 ```
 
-Construction rules: panels are Front `L+t` (free edge), Side A `W+t`, Back `L+t`, Side B `W`, then the glue flap; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Lock bottoms need Length greater than Width.
+Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it (pillow pack: glue flap on the left too); crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Lock bottoms need Length greater than Width.
 
 ### Adding a carton style
 
