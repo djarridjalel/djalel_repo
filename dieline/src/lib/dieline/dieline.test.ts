@@ -5,9 +5,19 @@ import { DEFAULT_PARAMS, generate } from "./index";
 import { DEFAULT_CONTENTS, sizeFromContents } from "./sizing";
 import type { CartonParams, StyleId } from "./types";
 
-const make = (over: Partial<CartonParams>): CartonParams => ({ ...DEFAULT_PARAMS, ...over });
+// Fixtures keep the original test baseline (inside sizes, automatic flaps) so they do not move with the editor defaults.
+const make = (over: Partial<CartonParams>): CartonParams => ({ ...DEFAULT_PARAMS, dimMode: "inside", L: 60, W: 25, H: 110, dustDepth: null, glueWidth: null, ...over });
 
 describe("carton geometry", () => {
+  it("starts from the studio's default carton", () => {
+    const d = generate(DEFAULT_PARAMS);
+    const p = d.params;
+    expect([p.style, p.dimMode, p.L, p.W, p.H, p.boardId, p.caliper, p.gsm, p.grain, p.lock, p.lockTab]).toEqual(["rte", "outside", 40, 40, 120, "gc1-300", 0.47, 300, "horizontal", "slit", false]);
+    expect([p.tuckDepth, p.tuckRadius, p.slitLength, p.dustDepth, p.glueWidth, p.glueAngle]).toEqual([null, null, null, 17.5, 10, null]);
+    expect([d.resolved.tuckDepth, d.resolved.glueAngle]).toEqual([13, 35]);
+    expect(d.issues.filter((x) => x.severity !== "info")).toEqual([]);
+  });
+
   it("applies thickness allowances to crease-to-crease widths", () => {
     const d = generate(make({ style: "ste", L: 120.6, W: 60.6, H: 161.1, caliper: 0.46 }));
     expect(d.resolved.panelWidths.map((v) => +v.toFixed(2))).toEqual([121.06, 61.06, 121.06, 60.6]);

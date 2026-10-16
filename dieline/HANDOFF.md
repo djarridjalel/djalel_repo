@@ -29,6 +29,7 @@ Working and tested (34 unit tests, 37 end-to-end checks passing on the live site
 - Tamper evidence: glued tuck with perforation, or tear strip with thumb notch.
 - Pharma layers: Braille (Marburg Medium, grade 1 with French accents), varnish-free coding window (batch/expiry or GS1 DataMatrix), pharmacode zone, glue areas, safe areas, panel names, grain arrow.
 - Carton options: lock tab through the lid fold (tuck ends), hang tab (euro slot or round hole, double layer), window cut-out on any panel, zip strip round the body with a pull tab, perforated dispenser opening.
+- Default carton (the studio's): reverse tuck end, outside 40 × 40 × 120 mm, GC1 300 g/m², slit lock, dust flaps 17.5 mm, glue flap 10 mm, other flaps automatic. Crash-lock and snap-lock open at 60 × 40 × 120 because lock bottoms need the length greater than the width.
 - Size from blister and leaflet.
 - Checks with one-click fixes, including an error when a perforation or cut crosses a glue area; production figures (flat size, cut and crease rule length, board use, blank weight).
 - Exports: PDF (true scale, one spot colour and one layer per line type, overprint, title block), SVG (named layers), DXF R12 (named layers, mm). "Die-maker only" exports cut, crease, perforation and Braille.
