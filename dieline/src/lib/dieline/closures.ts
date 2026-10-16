@@ -235,6 +235,30 @@ export function dustPiece(s: DustSpec): Piece {
   return s.lockSide === "left" ? piece : mirrorPiece(piece, w);
 }
 
+/**
+ * Dust flap of the standard reverse tuck end. On the side facing the panel
+ * that receives the tuck it keeps a square shoulder (caught by the tuck's
+ * lock slit) and then a long lead-in; on the side next to the lid's fold it
+ * is set back so the lid closes over it.
+ */
+export function classicDustPiece(s: DustSpec): Piece {
+  const { w, depth: d, lock } = s;
+  const c = clamp(w * 0.14, 1.5, 5);
+  const e = clamp(c * 0.55, 0.8, 3);
+  const sh = lock === "slit" ? clamp(s.slitLength, 1.5, d * 0.35) : clamp(d * 0.12, 1, 3);
+  const a1 = clamp(w * 0.117, 1.2, 5);
+  const a2 = clamp(w * 0.31, a1 + 1, Math.max(a1 + 1, w - c - 3));
+  const y1 = Math.min(sh + a1 * 0.75, d - 1);
+  const pts = [pt(0, 0), pt(0, sh), pt(a1, y1), pt(a2, d), pt(w - c, d), pt(w - c, e), pt(w, 0)];
+  const piece: Piece = {
+    outline: filletPolyline(pts),
+    strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")],
+    regions: [],
+    panels: [],
+  };
+  return s.lockSide === "left" ? piece : mirrorPiece(piece, w);
+}
+
 export interface CrashSpec {
   w: number;
   t: number;

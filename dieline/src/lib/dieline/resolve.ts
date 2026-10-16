@@ -55,7 +55,9 @@ export function resolve(p: CartonParams): ResolveResult {
     );
   }
 
-  const panelWidths: [number, number, number, number] = [Li + t, Wi + t, Li + t, Wi];
+  // The panel carrying the glue flap is one caliper short: Side B on most
+  // tubes, the front on the reverse tuck end (glue flap on the front's edge).
+  const panelWidths: [number, number, number, number] = p.style === "rte" ? [Li, Wi + t, Li + t, Wi + t] : [Li + t, Wi + t, Li + t, Wi];
   const bodyHeight = Hi + t;
   const lidDepth = Wi - t / 2;
 
@@ -120,7 +122,7 @@ export function resolve(p: CartonParams): ResolveResult {
   if (glueWidth < 10) {
     issues.push({ severity: "info", field: "glueWidth", message: "Most folder-gluers need a glue flap of at least 10–12 mm.", fix: { field: "glueWidth", value: 12, label: "Use 12 mm" } });
   }
-  const glueAngle = clamp(p.glueAngle ?? (crashBase ? 45 : 15), 0, 60);
+  const glueAngle = clamp(p.glueAngle ?? (crashBase ? 45 : p.style === "rte" ? 35 : 15), 0, 60);
 
   // Lock bottoms
   let bottomExtension = p.bottomExtension ?? round(Wi * 0.25, 1);

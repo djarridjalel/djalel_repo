@@ -4,13 +4,16 @@
 // Panel order on the flat blank, left to right:
 //   glue flap | Side B (W) | Front (L + t) | Side A (W + t) | Back (L + t, free edge)
 // The joint closes at the corner between Back and Side B, away from the
-// front and from tear lines that run down from the front. Crease-to-crease
+// front and from tear lines that run down from the front. The reverse tuck
+// end keeps the standard layout instead:
+//   glue flap | Front (L) | Side A (W + t) | Back (L + t) | Side B (W + t, free edge) Crease-to-crease
 // widths carry thickness allowances so the erected carton keeps the
 // requested inside dimensions. On the folder-gluer the second and fourth
 // creases (Side B | Front, Side A | Back) are folded flat.
 
 import {
   crashMainPiece,
+  classicDustPiece,
   crashSidePiece,
   dustPiece,
   gableEndPiece,
@@ -72,11 +75,17 @@ function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; 
   }
 }
 
-/** Physical order of the panels (0 Front, 1 Side A, 2 Back, 3 Side B) on the blank, left to right. */
-const ORDER = [3, 0, 1, 2] as const;
+/**
+ * Physical order of the panels (0 Front, 1 Side A, 2 Back, 3 Side B) on the
+ * blank, left to right after the glue flap. The reverse tuck end keeps the
+ * industry-standard layout with the glue flap on the front's edge; the other
+ * tubes put Side B next to the glue flap so the joint closes at a back corner.
+ */
+const orderFor = (style: CartonParams["style"]): readonly number[] => (style === "rte" ? [0, 1, 2, 3] : [3, 0, 1, 2]);
 
 export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const { t, panelWidths: pw, bodyHeight: Hp } = r;
+  const ORDER = orderFor(p.style);
   // X[i]: left edge of panel i on the blank.
   const X = [0, 0, 0, 0];
   let total = 0;
@@ -137,7 +146,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         });
       case "dust": {
         const lidOn = which === "top" ? 2 : (bottomLidOn ?? 2);
-        return dustPiece({ w, depth: r.dustDepth, lockSide: lockSideFor(i as 1 | 3, lidOn), lock: p.lock, slitLength: r.slitLength });
+        const spec = { w, depth: r.dustDepth, lockSide: lockSideFor(i as 1 | 3, lidOn), lock: p.lock, slitLength: r.slitLength };
+        return p.style === "rte" ? classicDustPiece(spec) : dustPiece(spec);
       }
       // Mirrored so the glued corners sit on the creases folded flat on the gluer.
       case "crashMain":
@@ -199,7 +209,11 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     if (Hp - taper < yb && Hp - taper > ya) pts.push(pt(-g, Hp - taper));
     if (taper < yb && taper > ya) pts.push(pt(-g, taper));
     pts.push(pt(glueEdge(ya), ya));
-    regions.push({ layer: "glue", pts: insetConvex(pts, 1.5), label: "Glue" });
+    const clean = pts.filter((q, i) => {
+      const n = pts[(i + 1) % pts.length];
+      return Math.hypot(q.x - n.x, q.y - n.y) > 1e-6;
+    });
+    regions.push({ layer: "glue", pts: insetConvex(clean, 1.5), label: "Glue" });
   };
 
   const perf = (seg: Seg) => strokes.push({ layer: "perf", seg });
@@ -269,7 +283,8 @@ function buildDims(p: CartonParams, r: Resolved, X: number[], panels: Panel[]): 
   const y = Hp - Math.min(14, Hp * 0.12);
   const dims: Dimension[] = [];
   for (let i = 0; i < 4; i++) dims.push({ a: pt(X[i], y), b: pt(X[i] + pw[i], y), offset: 0, text: fmt(pw[i]) });
-  const hx = X[3] + Math.min(10, pw[3] * 0.15);
+  const first = X.indexOf(0);
+  const hx = Math.min(10, pw[first] * 0.15);
   dims.push({ a: pt(hx, 0), b: pt(hx, Hp), offset: 0, text: fmt(Hp) });
   dims.push({ a: pt(-r.glueWidth, Hp / 2), b: pt(0, Hp / 2), offset: 0, text: fmt(r.glueWidth) });
   const lid = panels.find((q) => q.id === "topLid");

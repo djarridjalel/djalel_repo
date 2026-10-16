@@ -9,8 +9,11 @@ const make = (over: Partial<CartonParams>): CartonParams => ({ ...DEFAULT_PARAMS
 
 describe("carton geometry", () => {
   it("applies thickness allowances to crease-to-crease widths", () => {
-    const d = generate(make({ style: "rte", L: 120.6, W: 60.6, H: 161.1, caliper: 0.46 }));
+    const d = generate(make({ style: "ste", L: 120.6, W: 60.6, H: 161.1, caliper: 0.46 }));
     expect(d.resolved.panelWidths.map((v) => +v.toFixed(2))).toEqual([121.06, 61.06, 121.06, 60.6]);
+    // Reverse tuck end: the glue flap sits on the front, which is the short panel.
+    const rte = generate(make({ style: "rte", L: 120.6, W: 60.6, H: 161.1, caliper: 0.46 }));
+    expect(rte.resolved.panelWidths.map((v) => +v.toFixed(2))).toEqual([120.6, 61.06, 121.06, 61.06]);
     expect(+d.resolved.bodyHeight.toFixed(2)).toBe(161.56);
   });
 
@@ -105,14 +108,16 @@ describe("carton geometry", () => {
     }
   });
 
-  it("puts the glue flap on the far left, with the joint at the back corner", () => {
+  it("puts the glue flap on the far left of every tube and pillow", () => {
     for (const style of ["rte", "ste", "crash", "snap", "srp", "gable", "pillow"] as StyleId[]) {
       const d = generate(make({ style, L: 120, W: 80, H: 100 }));
       const glue = d.panels.find((q) => q.id === "glueFlap")!;
       expect(glue.x, style).toBeLessThan(0);
       expect(Math.min(...d.panels.filter((q) => q.id !== "glueFlap").map((q) => q.x)), style).toBeGreaterThanOrEqual(-1e-6);
       if (style !== "pillow") {
-        const order = ["sideB", "front", "sideA", "back"].map((id) => d.panels.find((q) => q.id === id)!.x);
+        // The reverse tuck end keeps the standard layout with the front next to the glue flap.
+        const ids = style === "rte" ? ["front", "sideA", "back", "sideB"] : ["sideB", "front", "sideA", "back"];
+        const order = ids.map((id) => d.panels.find((q) => q.id === id)!.x);
         expect([...order].sort((a, b) => a - b), style).toEqual(order);
       }
     }

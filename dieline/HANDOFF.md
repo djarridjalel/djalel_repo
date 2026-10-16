@@ -68,7 +68,7 @@ src/app/                pages: /, /editor, /login, /signup, /projects, /projects
 scripts/e2e.mjs         end-to-end checks against a running site
 ```
 
-Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it (pillow pack: glue flap on the left too); crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Lock bottoms need Length greater than Width.
+Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it (pillow pack: glue flap on the left too). The reverse tuck end is the exception: it follows the industry-standard layout supplied by the studio, glue flap, Front `L`, Side A `W+t`, Back `L+t`, Side B `W+t` (free edge), with stepped lead-in dust flaps (`classicDustPiece`) and a 35° glue flap; crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Lock bottoms need Length greater than Width.
 
 ### Adding a carton style
 
