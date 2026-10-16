@@ -131,6 +131,19 @@ describe("carton geometry", () => {
     }
   });
 
+  it("creases every fold between body panels, and the glue flap fold once", () => {
+    for (const style of ["rte", "ste", "crash", "snap", "srp", "srpSnap", "gable"] as StyleId[]) {
+      const d = generate(make({ style, L: 120, W: 80, H: 100 }));
+      const Hp = d.resolved.bodyHeight;
+      const verticals = d.strokes
+        .filter((s) => s.layer === "crease" && s.seg.kind === "line" && Math.abs(s.seg.a.x - s.seg.b.x) < 1e-6 && Math.abs(Math.abs(s.seg.a.y - s.seg.b.y) - Hp) < 1e-6)
+        .map((s) => +s.seg.a.x.toFixed(3));
+      const body = d.panels.filter((q) => ["front", "sideA", "back", "sideB"].includes(q.id));
+      const folds = body.map((q) => +q.x.toFixed(3)).filter((x) => x > 1e-6);
+      expect([...verticals].sort((a, b) => a - b), style).toEqual([0, ...folds].sort((a, b) => a - b));
+    }
+  });
+
   it("keeps tear lines and the zip strip off the glue", () => {
     for (const over of [{ style: "srp" as StyleId, L: 150, W: 100, H: 80 }, { style: "rte" as StyleId, zipStrip: { enabled: true, fromTop: 30, width: 6 } }]) {
       const d = generate(make(over));

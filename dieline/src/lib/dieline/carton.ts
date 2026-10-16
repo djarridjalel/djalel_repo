@@ -251,7 +251,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     perf(line(pt(X[3], 0), pt(X[3] + pw[3], d)));
   }
 
-  for (const i of [0, 1, 2]) strokes.push({ layer: "crease", seg: line(pt(X[i], 0), pt(X[i], Hp)) });
+  // Folds between neighbouring panels, in their order on the blank.
+  for (const i of ORDER.slice(1)) strokes.push({ layer: "crease", seg: line(pt(X[i], 0), pt(X[i], Hp)) });
 
   const names = ["Front", "Side A", "Back", "Side B"];
   const ids = ["front", "sideA", "back", "sideB"] as const;
