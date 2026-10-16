@@ -94,9 +94,9 @@ describe("carton geometry", () => {
       rte: [[60, 25, 110], [80, 60, 150]],
       ste: [[60, 25, 110], [80, 30, 120]],
       crash: [[120.6, 60.6, 161.1], [90, 30, 80]],
-      snap: [[120.6, 60.6, 161.1], [90, 30, 80]],
+      snap: [[120.6, 60.6, 161.1], [90, 30, 80], [40, 40, 120], [482, 426, 300], [162, 182, 120]],
       srp: [[150, 100, 80], [200, 120, 100], [90, 60, 60]],
-      srpSnap: [[150, 100, 80], [200, 120, 100], [90, 60, 60]],
+      srpSnap: [[150, 100, 80], [200, 120, 100], [90, 60, 60], [162, 182, 120]],
       gable: [[120, 80, 100], [310, 250, 190], [90, 60, 70]],
       mailer: [[220, 160, 60], [330, 205, 63], [150, 120, 40]],
       display: [[200, 120, 40], [300, 200, 60], [120, 80, 30]],
@@ -156,6 +156,18 @@ describe("carton geometry", () => {
     expect(d.issues.some((x) => x.severity === "error" && /glue area/.test(x.message))).toBe(true);
   });
 
+  it("draws the snap-lock bottom after the reference: tongue, two hooks with lobes, wide notch", () => {
+    const d = generate(make({ style: "snap", L: 120, W: 80, H: 100 }));
+    const Hp = d.resolved.bodyHeight;
+    const below = d.outline.filter((s) => Math.min(s.a.y, s.b.y) >= Hp - 1e-6);
+    // Two rounded hook lobes plus the tongue tab's two corner fillets.
+    expect(below.filter((s) => s.kind === "arc").length).toBeGreaterThanOrEqual(4);
+    // The notch is about 40 % of the length wide, not tied to Length minus Width.
+    const front = d.panels.find((q) => q.id === "front")!;
+    const xs = below.filter((s) => s.kind === "line" && s.a.x > front.x && s.a.x < front.x + front.w && Math.abs(s.a.y - s.b.y) < 1e-6 && s.a.y < Hp + 60).map((s) => Math.abs(s.b.x - s.a.x));
+    expect(Math.max(...xs)).toBeGreaterThan(front.w * 0.35);
+  });
+
   it("cuts the lock tab and its lid slit to match", () => {
     const d = generate(make({ style: "rte", L: 80, W: 60, H: 150, lockTab: true }));
     const plain = generate(make({ style: "rte", L: 80, W: 60, H: 150 }));
@@ -176,7 +188,9 @@ describe("carton geometry", () => {
     const baseGlue = (d: typeof snap) => d.regions.filter((r) => r.layer === "glue" && r.pts.every((q) => q.y > d.resolved.bodyHeight)).length;
     expect(baseGlue(crash)).toBeGreaterThan(0);
     expect(baseGlue(snap)).toBe(0);
-    expect(generate(make({ style: "srpSnap", L: 100, W: 95, H: 80 })).issues.some((x) => x.severity === "error")).toBe(true);
+    // Snap-lock bases close with the width larger than the length too; crash-lock bases do not.
+    expect(generate(make({ style: "srpSnap", L: 162, W: 182, H: 120 })).issues.filter((x) => x.severity === "error")).toEqual([]);
+    expect(generate(make({ style: "srp", L: 162, W: 182, H: 120 })).issues.some((x) => x.severity === "error")).toBe(true);
   });
 
   it("opens a project saved with a removed style as the default carton", () => {

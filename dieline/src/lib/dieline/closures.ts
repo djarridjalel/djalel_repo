@@ -316,44 +316,43 @@ export function crashSidePiece(w: number, c: number): Piece {
   };
 }
 
-/** Snap-lock (1-2-3) flap with a central recess reaching back to the centre line. */
-export function snapNotchPiece(w: number, c: number, e: number, notchW: number): Piece {
-  const D = c + e;
+// Snap-lock (1-2-3) bottom, after the studio's reference drawing. The two
+// length panels carry a flap with a wide centred notch and a flap with a
+// matching tongue on angled shoulders; the two width panels carry hook flaps
+// whose rounded lobes catch the notch flap. Each hook's diagonal edge faces
+// the notch panel.
+
+/** Notch flap: full width, depth D, with a centred notch of width notchW and depth notchD at its tip. */
+export function snapNotchPiece(s: { w: number; t: number; D: number; notchW: number; notchD: number }): Piece {
+  const { w, t, D, notchW, notchD } = s;
+  const i = t / 2;
   const n0 = (w - notchW) / 2;
-  const n1 = (w + notchW) / 2;
-  const pts = [pt(0, 0), pt(0, D), pt(n0, D), pt(n0, c), pt(n1, c), pt(n1, D), pt(w, D), pt(w, 0)];
-  return {
-    outline: filletPolyline(pts, [0, 0, 1, 0, 0, 1, 0, 0]),
-    strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")],
-    regions: [],
-    panels: [],
-  };
+  const n1 = n0 + notchW;
+  const flare = notchW * 0.026;
+  const pts = [pt(0, 0), pt(i, D), pt(n0 - flare, D), pt(n0, D - notchD), pt(n1, D - notchD), pt(n1 + flare, D), pt(w - i, D), pt(w, 0)];
+  return { outline: filletPolyline(pts), strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")], regions: [], panels: [] };
 }
 
-/** Snap-lock flap with 45° shoulders and a central tongue. */
-export function snapTonguePiece(w: number, c: number, e: number): Piece {
-  const D = c + e;
-  const pts = [pt(0, 0), pt(c, c), pt(c, D), pt(w - c, D), pt(w - c, c), pt(w, 0)];
-  return {
-    outline: filletPolyline(pts, [0, 0, 3, 3, 0, 0]),
-    strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")],
-    regions: [],
-    panels: [],
-  };
+/** Tongue flap: shoulders run from the hinge corners in to a centred tab of width tabW reaching depth D. */
+export function snapTonguePiece(s: { w: number; shoulder: number; D: number; tabW: number }): Piece {
+  const { w, shoulder, D, tabW } = s;
+  const a = (w - tabW) / 2;
+  const r = clamp(Math.min(tabW / 3, (D - shoulder) * 0.6), 0, 12);
+  const pts = [pt(0, 0), pt(a, shoulder), pt(a, D), pt(w - a, D), pt(w - a, shoulder), pt(w, 0)];
+  return { outline: filletPolyline(pts, [0, 0, r, r, 0, 0]), strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")], regions: [], panels: [] };
 }
 
-/** Snap-lock side flap with a hook; the 45° edge faces the recessed flap. */
-export function snapHookPiece(w: number, c: number, e: number, side45: "left" | "right"): Piece {
-  const D = c + e;
-  const hb = (D - c) * Math.tan((15 * Math.PI) / 180);
-  const pts = [pt(0, 0), pt(c, c), pt(c - hb, D), pt(w - Math.min(0.9, w * 0.02), D), pt(w, 0)];
-  const piece: Piece = {
-    outline: filletPolyline(pts, [0, 0, 3, 0, 0]),
-    strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")],
-    regions: [],
-    panels: [],
-  };
-  return side45 === "left" ? piece : mirrorPiece(piece, w);
+/** Hook flap of depth D with a rounded lobe; `diagonal` is the side facing the notch panel. */
+export function snapHookPiece(s: { w: number; t: number; D: number; diagonal: "left" | "right" }): Piece {
+  const { w, t, D } = s;
+  const r = Math.min(w * 0.167, D * 0.245);
+  const c = pt(w * 0.556, D - r);
+  const at = (deg: number) => pt(c.x + r * Math.cos((deg * Math.PI) / 180), c.y + r * Math.sin((deg * Math.PI) / 180));
+  const bottom = pt(c.x, D);
+  const barb = at(-75);
+  const outline: Seg[] = [line(pt(0, 0), pt(t / 2, D)), line(pt(t / 2, D), bottom), arc3(bottom, at(7.5), barb), line(barb, pt(w, 0))];
+  const piece: Piece = { outline, strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")], regions: [], panels: [] };
+  return s.diagonal === "right" ? piece : mirrorPiece(piece, w);
 }
 
 /**

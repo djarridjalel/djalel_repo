@@ -29,9 +29,8 @@ type Set = (patch: Partial<CartonParams>) => void;
 
 /** Starting sizes for styles whose proportions differ from a small folding carton. */
 const STYLE_SIZES: Partial<Record<StyleId, Pick<CartonParams, "L" | "W" | "H">>> = {
-  // Lock bottoms need the length clearly greater than the width.
+  // Crash-lock bottoms need the length clearly greater than the width.
   crash: { L: 60, W: 40, H: 120 },
-  snap: { L: 60, W: 40, H: 120 },
   srp: { L: 150, W: 100, H: 80 },
   srpSnap: { L: 150, W: 100, H: 80 },
   gable: { L: 120, W: 80, H: 100 },

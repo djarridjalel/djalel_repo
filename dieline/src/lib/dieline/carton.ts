@@ -106,6 +106,18 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const tabStrip = clamp(r.tuckDepth * 0.8, 6, Hp * 0.3);
   const tabTongue = clamp(Math.min(tabW * 0.23, tabStrip - 3), 3, 10);
   const c = r.Wi / 2 + t / 2;
+  // Snap-lock proportions from the reference drawing: length-panel flaps reach
+  // past the centre by the base lock reach, the tongue's tab is as long as the
+  // notch is deep, and the hooks reach 60 % across the length.
+  const snapW = pw[0];
+  const snapNotchW = clamp(snapW * 0.4, 8, snapW - 8);
+  const snap = {
+    D: c + r.bottomExtension,
+    notchW: snapNotchW,
+    notchD: clamp(c * 0.48, 3, Math.max(3, r.bottomExtension - 1)),
+    tabW: snapNotchW - 2 * Math.max(t, 0.75),
+    hookD: clamp((r.Li + t) * 0.6, 6, r.Li + t - 3),
+  };
 
   // Dust flaps lock on the edge facing the panel that receives the tuck.
   // Side A sits between Front (left) and Back (right); Side B between Back
@@ -156,14 +168,12 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
       case "crashSide":
         return mirrorPiece(crashSidePiece(w, c), w);
       case "snapNotch":
-        return snapNotchPiece(w, c, r.bottomExtension, clamp(r.Li - r.Wi + 1, 4, w - 10));
+        return snapNotchPiece({ w, t, D: snap.D, notchW: snap.notchW, notchD: snap.notchD });
       case "snapTongue":
-        return snapTonguePiece(w, c, r.bottomExtension);
+        return snapTonguePiece({ w, shoulder: snap.D - snap.notchD, D: snap.D, tabW: snap.tabW });
       case "snapHookL":
-      case "snapHookR": {
-        const e2 = clamp(r.bottomExtension * 1.33, 3, Math.max(3, r.Li / 2 - c - 1));
-        return snapHookPiece(w, c, e2, slot === "snapHookL" ? "left" : "right");
-      }
+      case "snapHookR":
+        return snapHookPiece({ w, t, D: snap.hookD, diagonal: slot === "snapHookL" ? "left" : "right" });
     }
   };
 

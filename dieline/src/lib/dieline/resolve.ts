@@ -39,12 +39,14 @@ export function resolve(p: CartonParams): ResolveResult {
   const crashBase = p.style === "crash" || p.style === "srp";
   const bottomLocks = snapBase || crashBase;
   if (Wi > Li) {
+    // Crash-lock bases need the length panels to be the long ones; snap-lock
+    // bases close either way round.
     issues.push(
-      bottomLocks
+      crashBase
         ? {
             severity: "error",
             field: "W",
-            message: "Lock bottoms need Length greater than Width: the front and back flaps form the base.",
+            message: "Crash-lock bottoms need Length greater than Width: the front and back flaps form the base.",
             fix: { field: "W", value: r1(Math.max(10, p.L - 10)), label: `Set Width to ${r1(Math.max(10, p.L - 10))}` },
           }
         : {
@@ -125,7 +127,7 @@ export function resolve(p: CartonParams): ResolveResult {
   const glueAngle = clamp(p.glueAngle ?? (crashBase ? 45 : p.style === "rte" ? 35 : 15), 0, 60);
 
   // Lock bottoms
-  let bottomExtension = p.bottomExtension ?? round(Wi * 0.25, 1);
+  let bottomExtension = p.bottomExtension ?? round(snapBase ? (Wi / 2 + t / 2) * 0.69 : Wi * 0.25, 1);
   if (bottomLocks) {
     const c = Wi / 2 + t / 2;
     const maxE = c - 3;
@@ -134,9 +136,6 @@ export function resolve(p: CartonParams): ResolveResult {
         issues.push({ severity: "warning", field: "bottomExtension", message: `Base lock extension is limited to ${down1(maxE)} mm for these dimensions.`, fix: { field: "bottomExtension", value: down1(maxE), label: `Use ${down1(maxE)} mm` } });
       }
       bottomExtension = Math.max(3, maxE);
-    }
-    if (snapBase && Li - Wi < 10) {
-      issues.push({ severity: "error", field: "L", message: "Snap-lock bottoms need Length at least 10 mm more than Width for the centre tongue. Use crash-lock or a tuck end instead." });
     }
     if (crashBase && Wi > Li - 2) {
       issues.push({ severity: "error", field: "W", message: "Crash-lock bottoms need Length clearly greater than Width." });
