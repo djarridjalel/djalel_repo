@@ -30,7 +30,7 @@ import {
   type Piece,
 } from "./closures";
 import { arc3, clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Seg, type Xf } from "./geom";
-import { hasTopLid, type CartonParams, type Dimension, type Panel, type Region, type Resolved, type Stroke, type TextItem } from "./types";
+import { hasTopLid, isTray, type CartonParams, type Dimension, type Panel, type Region, type Resolved, type Stroke, type TextItem } from "./types";
 
 export interface Blank {
   outline: Seg[];
@@ -67,6 +67,7 @@ function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; 
     case "srp":
       return { top, bottom: ["crashMain", "crashSide", "crashMain", "crashSide"], bottomLidOn: null };
     case "snap":
+    case "srpSnap":
       return { top, bottom: ["snapNotch", "snapHookL", "snapTongue", "snapHookR"], bottomLidOn: null };
     case "gable":
       return { top: ["gableRoof", "gableEnd", "gableRoof", "gableEnd"], bottom: ["snapNotch", "snapHookL", "snapTongue", "snapHookR"], bottomLidOn: null };
@@ -142,7 +143,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
           tamper: which === "top" ? p.tamper : "none",
           which,
           tabSlit: (which === "top" ? tabTop : tabBottom) ? { width: tabW + 0.4, hole: tabTongue } : undefined,
-          middleFold: which === "top" && p.style === "srp" ? { thumb: clamp(pw[2] * 0.35, 0, 60) } : undefined,
+          middleFold: which === "top" && isTray(p.style) ? { thumb: clamp(pw[2] * 0.35, 0, 60) } : undefined,
         });
       case "dust": {
         const lidOn = which === "top" ? 2 : (bottomLidOn ?? 2);
@@ -232,7 +233,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     strokes.push({ layer: "cut", seg: arc3(pt(cx, y1 + m), pt(cx - rr, (y1 + y2) / 2), pt(cx, y2 - m)) });
   } else glueBand(0, Hp);
 
-  if (p.style === "srp") {
+  if (isTray(p.style)) {
     // Tear-away front: across the front, then down both sides from the back
     // corners. The joint sits at a back corner, so the tear never crosses it.
     const d = clamp(p.srp.tearDepth > 0 ? p.srp.tearDepth : Math.round(Hp / 2), 10, Math.max(10, Hp - 10));

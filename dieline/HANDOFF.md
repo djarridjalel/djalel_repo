@@ -9,7 +9,8 @@ Last updated: 2026-10-15
 
 | What | Where |
 | --- | --- |
-| Live app | https://djarri-dielines.vercel.app (editor at `/editor`) |
+| Live app | https://dielines.djarri.com (editor at `/editor`); also https://djarri-dielines.vercel.app |
+| Domain | `djarri.com` DNS is at Hostinger (Premium Web Hosting, which cannot run Node.js apps). The `dielines` record is an ALIAS to Vercel's `c065e1b6e63f6698.vercel-dns-017.com.`; the domain is added to the Vercel project. The empty Hostinger subdomain site `dielines.djarri.com` is no longer reached and can be deleted in hPanel. |
 | Code | GitHub `djarridjalel/djalel_repo`, branch `claude/dieline-app`, folder `dieline/` |
 | Hosting | Vercel team `djalel` (`team_R3ImWvKPUJJH8XXoTq6UeC8E`), project `djarri-dielines` (`prj_nOwL5WguTII763eGsE1lWMcwgC4O`), root directory `dieline`, functions in `cdg1` (Paris) |
 | Database | Supabase org `djarridjalel_Org`, project `djarri-dielines` (ref `zrljeosfrzncwisnarox`, region `eu-west-3`) |
@@ -23,7 +24,7 @@ Environment variables on Vercel (all environments):
 
 Working and tested (34 unit tests, 37 end-to-end checks passing on the live site):
 
-- Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front, gable box with handle (snap-lock bottom), mailer box (FEFCO 0427), counter display with sloped sides and header.
+- Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front (crash-lock or snap-lock bottom), gable box with handle (snap-lock bottom), mailer box (FEFCO 0427), counter display with sloped sides and header.
 - Board library (GC1, GC2, SBS, GD2) with caliper allowances; inside or outside dimensions.
 - Closures: slit, friction or plain tuck lock; tuck depth and radius; dust flaps; glue flap width and angle; base lock reach.
 - Tamper evidence: glued tuck with perforation, or tear strip with thumb notch.
@@ -43,7 +44,7 @@ Working and tested (34 unit tests, 37 end-to-end checks passing on the live site
 
 ## Turning accounts on
 
-1. Supabase dashboard, project `djarri-dielines`: Authentication > Sign In / Providers > Email > turn off **Confirm email** (Supabase's built-in email only reaches team members). Alternatively connect an SMTP provider and set the Site URL to the live domain.
+1. Supabase dashboard, project `djarri-dielines`: Authentication > Sign In / Providers > Email > turn off **Confirm email** (Supabase's built-in email only reaches team members). Alternatively connect an SMTP provider. Either way set the Site URL to `https://dielines.djarri.com` and add `https://dielines.djarri.com/auth/callback` to the redirect URLs.
 2. Vercel: add `NEXT_PUBLIC_AUTH_ENABLED=true` and redeploy.
 3. Sign up at `/signup`; projects live at `/projects`.
 

@@ -35,7 +35,7 @@ export function resolve(p: CartonParams): ResolveResult {
     if (v > 600) issues.push({ severity: "error", field: k, message: `${name} above 600 mm is outside the folding-carton range.` });
   }
 
-  const snapBase = p.style === "snap" || p.style === "gable";
+  const snapBase = p.style === "snap" || p.style === "srpSnap" || p.style === "gable";
   const crashBase = p.style === "crash" || p.style === "srp";
   const bottomLocks = snapBase || crashBase;
   if (Wi > Li) {

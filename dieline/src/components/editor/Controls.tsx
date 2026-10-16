@@ -6,6 +6,7 @@ import { DEFAULT_PARAMS, generate } from "@/lib/dieline";
 import { CODING_PRESETS } from "@/lib/dieline/pharma";
 import {
   hasTopLid,
+  isTray,
   isTube,
   type Align,
   type CartonParams,
@@ -32,6 +33,7 @@ const STYLE_SIZES: Partial<Record<StyleId, Pick<CartonParams, "L" | "W" | "H">>>
   crash: { L: 60, W: 40, H: 120 },
   snap: { L: 60, W: 40, H: 120 },
   srp: { L: 150, W: 100, H: 80 },
+  srpSnap: { L: 150, W: 100, H: 80 },
   gable: { L: 120, W: 80, H: 100 },
   mailer: { L: 220, W: 160, H: 60 },
   display: { L: 200, W: 120, H: 40 },
@@ -53,6 +55,7 @@ const STYLES: StyleId[] = [
   "crash",
   "snap",
   "srp",
+  "srpSnap",
   "gable",
   "mailer",
   "display",
@@ -85,6 +88,7 @@ export function Controls({
   const sizeHints: Record<string, [string, string, string]> = {
     display: ["Inside width", "Inside depth", "Front wall height"],
     srp: ["Front panel width", "Side panel width (depth)", "Height"],
+    srpSnap: ["Front panel width", "Side panel width (depth)", "Height"],
   };
   const [hL, hW, hH] = sizeHints[p.style] ?? [
     "Front panel width",
@@ -324,7 +328,7 @@ export function Controls({
         </Section>
       )}
 
-      {p.style === "srp" && (
+      {isTray(p.style) && (
         <Section title="Tear-away front">
           <div className="grid grid-cols-2 gap-2">
             <NumberField

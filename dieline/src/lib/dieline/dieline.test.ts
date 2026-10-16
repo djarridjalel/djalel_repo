@@ -96,6 +96,7 @@ describe("carton geometry", () => {
       crash: [[120.6, 60.6, 161.1], [90, 30, 80]],
       snap: [[120.6, 60.6, 161.1], [90, 30, 80]],
       srp: [[150, 100, 80], [200, 120, 100], [90, 60, 60]],
+      srpSnap: [[150, 100, 80], [200, 120, 100], [90, 60, 60]],
       gable: [[120, 80, 100], [310, 250, 190], [90, 60, 70]],
       mailer: [[220, 160, 60], [330, 205, 63], [150, 120, 40]],
       display: [[200, 120, 40], [300, 200, 60], [120, 80, 30]],
@@ -118,7 +119,7 @@ describe("carton geometry", () => {
   });
 
   it("puts the glue flap on the far left of every tube", () => {
-    for (const style of ["rte", "ste", "crash", "snap", "srp", "gable"] as StyleId[]) {
+    for (const style of ["rte", "ste", "crash", "snap", "srp", "srpSnap", "gable"] as StyleId[]) {
       const d = generate(make({ style, L: 120, W: 80, H: 100 }));
       const glue = d.panels.find((q) => q.id === "glueFlap")!;
       expect(glue.x, style).toBeLessThan(0);
@@ -149,9 +150,20 @@ describe("carton geometry", () => {
     expect(d.bbox.minY).toBeLessThan(plain.bbox.minY + 1);
   });
 
-  it("adds the tear-away perforation to the shelf-ready tray", () => {
-    const d = generate(make({ style: "srp", L: 150, W: 100, H: 80 }));
-    expect(d.stats.perfLength).toBeGreaterThan(150 + 2 * 100);
+  it("adds the tear-away perforation to both shelf-ready trays", () => {
+    for (const style of ["srp", "srpSnap"] as StyleId[]) {
+      const d = generate(make({ style, L: 150, W: 100, H: 80 }));
+      expect(d.stats.perfLength, style).toBeGreaterThan(150 + 2 * 100);
+    }
+  });
+
+  it("gives the snap-lock tray a snap-lock bottom and no glued base corners", () => {
+    const snap = generate(make({ style: "srpSnap", L: 150, W: 100, H: 80 }));
+    const crash = generate(make({ style: "srp", L: 150, W: 100, H: 80 }));
+    const baseGlue = (d: typeof snap) => d.regions.filter((r) => r.layer === "glue" && r.pts.every((q) => q.y > d.resolved.bodyHeight)).length;
+    expect(baseGlue(crash)).toBeGreaterThan(0);
+    expect(baseGlue(snap)).toBe(0);
+    expect(generate(make({ style: "srpSnap", L: 100, W: 95, H: 80 })).issues.some((x) => x.severity === "error")).toBe(true);
   });
 
   it("opens a project saved with a removed style as the default carton", () => {

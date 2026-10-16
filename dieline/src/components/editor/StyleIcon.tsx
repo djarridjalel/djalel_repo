@@ -11,6 +11,7 @@ const ICON_SIZES: Record<StyleId, Partial<CartonParams>> = {
   crash: { L: 60, W: 30, H: 90 },
   snap: { L: 60, W: 30, H: 90 },
   srp: { L: 150, W: 100, H: 80 },
+  srpSnap: { L: 150, W: 100, H: 80 },
   gable: { L: 120, W: 80, H: 100, gable: { handleHeight: 40, holeWidth: 60, holeHeight: 20 } },
   mailer: { L: 220, W: 160, H: 60, caliper: 1.5 },
   display: { L: 200, W: 120, H: 40 },

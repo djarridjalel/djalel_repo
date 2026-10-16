@@ -13,11 +13,13 @@ export type Layer =
   | "dimension"
   | "label";
 
-export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "gable" | "mailer" | "display";
+export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "srpSnap" | "gable" | "mailer" | "display";
 
 /** Styles built as a four-panel tube with a manufacturer's joint. */
-export const TUBE_STYLES: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "gable"];
+export const TUBE_STYLES: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "srpSnap", "gable"];
 export const isTube = (s: StyleId) => TUBE_STYLES.includes(s);
+/** Shelf-ready trays with a tear-away front. */
+export const isTray = (s: StyleId) => s === "srp" || s === "srpSnap";
 /** Tube styles closed by a tuck lid at the top. */
 export const hasTopLid = (s: StyleId) => isTube(s) && s !== "gable";
 export type LockType = "slit" | "friction" | "none";
