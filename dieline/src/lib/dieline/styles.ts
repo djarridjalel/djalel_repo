@@ -1,5 +1,5 @@
-// One-piece styles that are not four-panel tubes: pillow pack, roll-end
-// mailer (FEFCO 0427) and counter display. Each builds its outline as one
+// One-piece styles that are not four-panel tubes: roll-end mailer
+// (FEFCO 0427) and counter display. Each builds its outline as one
 // closed path, clockwise on the flat blank, like the tube builder.
 
 import { buildLabels } from "./carton";
@@ -22,80 +22,6 @@ function mirrorClose(right: Seg[], w: number): Seg[] {
 
 function finish(p: CartonParams, outline: Seg[], strokes: Stroke[], regions: Region[], panels: Panel[], dims: Dimension[]): Blank {
   return { outline, strokes, regions, panels, dims: p.showDimensions ? dims : [], texts: buildLabels(p, panels) };
-}
-
-/* ------------------------------------------------------------------ */
-/* Pillow pack                                                         */
-/* ------------------------------------------------------------------ */
-
-/**
- * Pillow pack: two faces of width W joined by a glue flap on the left,
- * closed at each end by curved creases. Length L runs between the ends; the thickness H
- * sets the curve (each crease bows in by H / 2).
- */
-export function buildPillow(p: CartonParams, r: Resolved, issues: Issue[]): Blank {
-  const w = r.Wi + r.t;
-  const L = r.Li + r.t;
-  const s = clamp(r.Hi / 2, 2, w * 0.45);
-  if (r.Hi > w * 0.6) issues.push({ severity: "warning", field: "H", message: `A pillow pack this thick (${p.H} mm) does not close well on a ${p.W} mm face. Keep the height under ${fmt(w * 0.6)} mm.` });
-  if (r.Hi < 6) issues.push({ severity: "info", field: "H", message: "Very flat pillow packs need a light board to curve without cracking." });
-  const g = clamp(r.glueWidth ?? 15, 8, Math.min(25, L / 4));
-  const rn = clamp(w * 0.03, 2.5, 6);
-
-  // Cut arc over one end of a face, bulging outward by s; with a thumb notch on the free-edge face.
-  const endCut = (x0: number, x1: number, y: number, dir: 1 | -1, notch: boolean): Seg[] => {
-    const xm = (x0 + x1) / 2;
-    const a = pt(x0, y);
-    const b = pt(x1, y);
-    const top = pt(xm, y - dir * s);
-    const full = arc3(a, top, b);
-    if (!notch || full.kind !== "arc") return [full];
-    const yAt = (x: number) => full.c.y - dir * Math.sqrt(full.r * full.r - (x - full.c.x) ** 2);
-    const n0 = pt(xm - rn, yAt(xm - rn));
-    const n1 = pt(xm + rn, yAt(xm + rn));
-    const q0 = (x0 + xm - rn) / 2;
-    const q1 = (x1 + xm + rn) / 2;
-    return [
-      arc3(a, pt(q0, yAt(q0)), n0),
-      arc3(n0, pt(xm, (n0.y + n1.y) / 2 + dir * rn), n1),
-      arc3(n1, pt(q1, yAt(q1)), b),
-    ];
-  };
-  const reverse = (segs: Seg[]) => reversePath(segs);
-
-  // Glue flap on the left, glued inside the free edge of the back face.
-  const gf = [pt(0, 0), pt(0, L), pt(-g, L - g), pt(-g, g)];
-  const outline: Seg[] = [
-    ...endCut(0, w, 0, 1, false),
-    ...endCut(w, 2 * w, 0, 1, true),
-    line(pt(2 * w, 0), pt(2 * w, L)),
-    ...reverse(endCut(w, 2 * w, L, -1, true)),
-    ...reverse(endCut(0, w, L, -1, false)),
-    ...poly([gf[1], gf[2], gf[3], gf[0]]),
-  ];
-  const strokes: Stroke[] = [
-    { layer: "crease", seg: line(pt(0, 0), pt(0, L)) },
-    { layer: "crease", seg: line(pt(w, 0), pt(w, L)) },
-  ];
-  for (const x0 of [0, w]) {
-    strokes.push({ layer: "crease", seg: arc3(pt(x0, 0), pt(x0 + w / 2, s), pt(x0 + w, 0)) });
-    strokes.push({ layer: "crease", seg: arc3(pt(x0, L), pt(x0 + w / 2, L - s), pt(x0 + w, L)) });
-  }
-  const regions: Region[] = [{ layer: "glue", pts: insetConvex(gf, 1.5), label: "Glue" }];
-  const panels: Panel[] = [
-    { id: "front", name: "Front", x: 0, y: s, w, h: L - 2 * s, printable: true },
-    { id: "back", name: "Back", x: w, y: s, w, h: L - 2 * s, printable: true },
-    { id: "glueFlap", name: "Glue flap", x: -g, y: 0, w: g, h: L, printable: false },
-  ];
-  const yd = L - Math.min(14, L * 0.12);
-  const dims: Dimension[] = [
-    { a: pt(0, yd), b: pt(w, yd), offset: 0, text: fmt(w) },
-    { a: pt(w, yd), b: pt(2 * w, yd), offset: 0, text: fmt(w) },
-    { a: pt(Math.min(10, w * 0.15), 0), b: pt(Math.min(10, w * 0.15), L), offset: 0, text: fmt(L) },
-    { a: pt(w * 0.75, 0), b: pt(w * 0.75, s), offset: 0, text: fmt(s) },
-    { a: pt(-g, L / 2), b: pt(0, L / 2), offset: 0, text: fmt(g) },
-  ];
-  return finish(p, outline, strokes, regions, panels, dims);
 }
 
 /* ------------------------------------------------------------------ */

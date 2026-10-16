@@ -8,7 +8,6 @@ export const STYLE_NAMES: Record<StyleId, { name: string; ecma: string }> = {
   snap: { name: "Snap-lock (1-2-3) bottom, tuck top", ecma: "ECMA A55.20 family" },
   srp: { name: "Shelf-ready tray, tear-away front", ecma: "Crash-lock bottom, tuck top" },
   gable: { name: "Gable box with handle", ecma: "Snap-lock bottom" },
-  pillow: { name: "Pillow pack", ecma: "Curved creases, glued side seam" },
   mailer: { name: "Mailer box", ecma: "FEFCO 0427" },
   display: { name: "Counter display", ecma: "Sloped sides, header card" },
 };

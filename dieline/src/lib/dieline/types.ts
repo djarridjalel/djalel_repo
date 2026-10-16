@@ -13,7 +13,7 @@ export type Layer =
   | "dimension"
   | "label";
 
-export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "gable" | "pillow" | "mailer" | "display";
+export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "gable" | "mailer" | "display";
 
 /** Styles built as a four-panel tube with a manufacturer's joint. */
 export const TUBE_STYLES: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "gable"];

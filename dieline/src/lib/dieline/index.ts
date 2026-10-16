@@ -1,7 +1,8 @@
 import ClipperLib from "clipper-lib";
 import { DEFAULT_BOARD } from "./boards";
 import { buildBlank } from "./carton";
-import { buildDisplay, buildMailer, buildPillow } from "./styles";
+import { STYLE_NAMES } from "./export/common";
+import { buildDisplay, buildMailer } from "./styles";
 import { boxOf, findSelfIntersection, line, pointInPolygon, pt, round, samplePath, sampleSeg, segLength, signedArea, type Pt, type Seg } from "./geom";
 import { buildPharma } from "./pharma";
 import { resolve } from "./resolve";
@@ -47,6 +48,8 @@ export const DEFAULT_PARAMS: CartonParams = {
 /** Fills in fields added after a project was saved. */
 export function normalizeParams(raw: Partial<CartonParams> | null | undefined): CartonParams {
   const p = { ...DEFAULT_PARAMS, ...(raw ?? {}) } as CartonParams;
+  // Styles that were removed from the app open as the default carton.
+  if (!(p.style in STYLE_NAMES)) p.style = DEFAULT_PARAMS.style;
   p.braille = { ...DEFAULT_PARAMS.braille, ...(raw?.braille ?? {}) };
   p.codingWindow = { ...DEFAULT_PARAMS.codingWindow, ...(raw?.codingWindow ?? {}) };
   p.pharmacode = { ...DEFAULT_PARAMS.pharmacode, ...(raw?.pharmacode ?? {}) };
@@ -75,7 +78,7 @@ export function generate(params: CartonParams): Dieline {
   const p = normalizeParams(params);
   const { r, issues } = resolve(p);
   const blank =
-    p.style === "pillow" ? buildPillow(p, r, issues) : p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : buildBlank(p, r);
+    p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : buildBlank(p, r);
   const pharma = buildPharma(p, blank.panels);
   const allIssues: Issue[] = [...issues, ...pharma.issues];
 

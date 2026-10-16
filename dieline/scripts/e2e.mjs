@@ -40,7 +40,7 @@ ok('preview fits its frame', vb === '100%', vb);
 
 const stat = async (label) => (await p.locator('dt', { hasText: label }).locator('xpath=following-sibling::dd').textContent())?.trim();
 const flat0 = await stat('Flat size');
-for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray', 'Gable box', 'Pillow pack', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
+for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray', 'Gable box', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
   await p.getByRole('button', { name: new RegExp(s) }).first().click();
   await p.waitForTimeout(250);
   const flat = await stat('Flat size');

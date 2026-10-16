@@ -23,7 +23,7 @@ Environment variables on Vercel (all environments):
 
 Working and tested (34 unit tests, 37 end-to-end checks passing on the live site):
 
-- Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front, gable box with handle (snap-lock bottom), pillow pack, mailer box (FEFCO 0427), counter display with sloped sides and header.
+- Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front, gable box with handle (snap-lock bottom), mailer box (FEFCO 0427), counter display with sloped sides and header.
 - Board library (GC1, GC2, SBS, GD2) with caliper allowances; inside or outside dimensions.
 - Closures: slit, friction or plain tuck lock; tuck depth and radius; dust flaps; glue flap width and angle; base lock reach.
 - Tamper evidence: glued tuck with perforation, or tear strip with thumb notch.
@@ -58,7 +58,7 @@ src/lib/dieline/        geometry engine, no React
   resolve.ts            defaults ("auto" values), allowances, checks and fixes
   closures.ts           lids, dust flaps, crash-lock and snap-lock flaps (local frame)
   carton.ts             assembles the four-panel tube and its closures (incl. shelf-ready tray, gable)
-  styles.ts             one-piece styles that are not tubes: pillow pack, mailer 0427, counter display
+  styles.ts             one-piece styles that are not tubes: mailer 0427, counter display
   pharma.ts, braille.ts Braille, coding window, pharmacode, safe areas
   sizing.ts             size from blister and leaflet
   index.ts              generate(params) -> Dieline (adds bleed, stats, overlap check)
@@ -68,7 +68,7 @@ src/app/                pages: /, /editor, /login, /signup, /projects, /projects
 scripts/e2e.mjs         end-to-end checks against a running site
 ```
 
-Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it (pillow pack: glue flap on the left too). The reverse tuck end is the exception: it follows the industry-standard layout supplied by the studio, glue flap, Front `L`, Side A `W+t`, Back `L+t`, Side B `W+t` (free edge), with stepped lead-in dust flaps (`classicDustPiece`) and a 35° glue flap; crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Lock bottoms need Length greater than Width.
+Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it. The reverse tuck end is the exception: it follows the industry-standard layout supplied by the studio, glue flap, Front `L`, Side A `W+t`, Back `L+t`, Side B `W+t` (free edge), with stepped lead-in dust flaps (`classicDustPiece`) and a 35° glue flap; crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Lock bottoms need Length greater than Width.
 
 ### Adding a carton style
 
@@ -78,7 +78,7 @@ Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t
 4. Add the style to the size grid in `dieline.test.ts`; the outline must close and never cross itself.
 5. Add an icon in `StyleIcon.tsx`.
 
-Styles that are not four-panel tubes get their own builder in `styles.ts` (see `buildPillow`, `buildMailer`, `buildDisplay`): build the right half of the outline clockwise from top centre to bottom centre and mirror it with `mirrorClose`, then dispatch to it in `generate()` (`index.ts`), add the style to `StyleId`, `STYLE_NAMES`, `StyleIcon` and the editor's style list.
+Styles that are not four-panel tubes get their own builder in `styles.ts` (see `buildMailer`, `buildDisplay`): build the right half of the outline clockwise from top centre to bottom centre and mirror it with `mirrorClose`, then dispatch to it in `generate()` (`index.ts`), add the style to `StyleId`, `STYLE_NAMES`, `StyleIcon` and the editor's style list.
 
 ## Commands
 
@@ -93,7 +93,7 @@ node scripts/e2e.mjs https://djarri-dielines.vercel.app e2e-out
 
 ## Open items
 
-1. All ten models chosen on the shortlist (artifact database `selections/current`) are built: hang tab, tear strip (zip strip), lock tab, window, dispenser (carton options) and shelf-ready tray, gable, pillow, mailer 0427, counter display (styles). The new styles follow the Cefbox reference drawings (gable, pillow, mailer, lock tab) or are the studio's own parametric design (counter display); all need a physical sample before production.
+1. All ten models chosen on the shortlist (artifact database `selections/current`) are built: hang tab, tear strip (zip strip), lock tab, window, dispenser (carton options) and shelf-ready tray, gable, mailer 0427, counter display (styles); the pillow pack was built and later removed at the studio's request. The new styles follow the Cefbox reference drawings (gable, mailer, lock tab) or are the studio's own parametric design (counter display); all need a physical sample before production.
 2. Mockup photos for the shortlist: Cefbox's images are on `res.cloudinary.com`, which the cloud session could not reach.
 3. Validate crash-lock and snap-lock bottoms with a physical sample on production board before relying on them.
 4. Turn accounts on (see above). Add password reset once an email provider is connected.

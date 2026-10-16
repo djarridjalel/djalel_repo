@@ -87,7 +87,6 @@ describe("carton geometry", () => {
       snap: [[120.6, 60.6, 161.1], [90, 30, 80]],
       srp: [[150, 100, 80], [200, 120, 100], [90, 60, 60]],
       gable: [[120, 80, 100], [310, 250, 190], [90, 60, 70]],
-      pillow: [[180, 120, 40], [100, 70, 20], [250, 180, 45]],
       mailer: [[220, 160, 60], [330, 205, 63], [150, 120, 40]],
       display: [[200, 120, 40], [300, 200, 60], [120, 80, 30]],
     };
@@ -108,18 +107,16 @@ describe("carton geometry", () => {
     }
   });
 
-  it("puts the glue flap on the far left of every tube and pillow", () => {
-    for (const style of ["rte", "ste", "crash", "snap", "srp", "gable", "pillow"] as StyleId[]) {
+  it("puts the glue flap on the far left of every tube", () => {
+    for (const style of ["rte", "ste", "crash", "snap", "srp", "gable"] as StyleId[]) {
       const d = generate(make({ style, L: 120, W: 80, H: 100 }));
       const glue = d.panels.find((q) => q.id === "glueFlap")!;
       expect(glue.x, style).toBeLessThan(0);
       expect(Math.min(...d.panels.filter((q) => q.id !== "glueFlap").map((q) => q.x)), style).toBeGreaterThanOrEqual(-1e-6);
-      if (style !== "pillow") {
-        // The reverse tuck end keeps the standard layout with the front next to the glue flap.
-        const ids = style === "rte" ? ["front", "sideA", "back", "sideB"] : ["sideB", "front", "sideA", "back"];
-        const order = ids.map((id) => d.panels.find((q) => q.id === id)!.x);
-        expect([...order].sort((a, b) => a - b), style).toEqual(order);
-      }
+      // The reverse tuck end keeps the standard layout with the front next to the glue flap.
+      const ids = style === "rte" ? ["front", "sideA", "back", "sideB"] : ["sideB", "front", "sideA", "back"];
+      const order = ids.map((id) => d.panels.find((q) => q.id === id)!.x);
+      expect([...order].sort((a, b) => a - b), style).toEqual(order);
     }
   });
 
@@ -147,9 +144,9 @@ describe("carton geometry", () => {
     expect(d.stats.perfLength).toBeGreaterThan(150 + 2 * 100);
   });
 
-  it("flags a pillow pack that is too thick to close", () => {
-    const d = generate(make({ style: "pillow", L: 150, W: 60, H: 50 }));
-    expect(d.issues.some((x) => x.field === "H")).toBe(true);
+  it("opens a project saved with a removed style as the default carton", () => {
+    const d = generate(make({ style: "pillow" as StyleId }));
+    expect(d.params.style).toBe(DEFAULT_PARAMS.style);
   });
 
   it("flags a window that does not fit", () => {

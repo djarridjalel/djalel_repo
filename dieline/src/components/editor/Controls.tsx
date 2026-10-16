@@ -30,7 +30,6 @@ type Set = (patch: Partial<CartonParams>) => void;
 const STYLE_SIZES: Partial<Record<StyleId, Pick<CartonParams, "L" | "W" | "H">>> = {
   srp: { L: 150, W: 100, H: 80 },
   gable: { L: 120, W: 80, H: 100 },
-  pillow: { L: 150, W: 100, H: 30 },
   mailer: { L: 220, W: 160, H: 60 },
   display: { L: 200, W: 120, H: 40 },
 };
@@ -52,7 +51,6 @@ const STYLES: StyleId[] = [
   "snap",
   "srp",
   "gable",
-  "pillow",
   "mailer",
   "display",
 ];
@@ -82,11 +80,6 @@ export function Controls({
   const lid = hasTopLid(p.style);
   const tube = isTube(p.style);
   const sizeHints: Record<string, [string, string, string]> = {
-    pillow: [
-      "Between the curved ends",
-      "Face width",
-      "Thickness at the middle",
-    ],
     display: ["Inside width", "Inside depth", "Front wall height"],
     srp: ["Front panel width", "Side panel width (depth)", "Height"],
   };
@@ -372,17 +365,6 @@ export function Controls({
         </Section>
       )}
 
-      {p.style === "pillow" && (
-        <Section title="Glue flap">
-          <NumberField
-            label="Glue flap width"
-            auto
-            value={p.glueWidth}
-            resolved={r.glueWidth}
-            onChange={(v) => set({ glueWidth: v })}
-          />
-        </Section>
-      )}
 
       {lid && (
         <Section title="Tamper evidence" defaultOpen={false}>
