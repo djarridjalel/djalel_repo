@@ -38,6 +38,14 @@ await p.waitForTimeout(500);
 const vb = await p.evaluate(() => document.querySelector('.dieline-preview svg')?.getAttribute('width'));
 ok('preview fits its frame', vb === '100%', vb);
 
+// Studio defaults on a fresh visit
+const val = async (label) => p.getByLabel(label, { exact: true }).first().inputValue();
+const ph = async (label) => p.getByLabel(label, { exact: true }).first().getAttribute('placeholder');
+const defaults = [await val('Length'), await val('Width'), await val('Height'), await val('Caliper'), await val('Grammage'), await val('Dust flap depth'), await val('Glue flap width')].join(' ');
+ok('default size, board and flaps', defaults === '40 40 120 0.47 300 17.5 10', defaults);
+ok('default size is outside', (await p.getByRole('button', { name: 'Outside', exact: true }).getAttribute('aria-pressed')) === 'true');
+ok('default tuck and slit are automatic', /13/.test((await ph('Tuck depth')) ?? '') && /4\.7/.test((await ph('Slit length')) ?? '') && /35/.test((await ph('Glue flap angle')) ?? ''), `${await ph('Tuck depth')} / ${await ph('Slit length')} / ${await ph('Glue flap angle')}`);
+
 const stat = async (label) => (await p.locator('dt', { hasText: label }).locator('xpath=following-sibling::dd').textContent())?.trim();
 const flat0 = await stat('Flat size');
 for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray, tear', 'Shelf-ready tray, snap', 'Gable box', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
@@ -140,6 +148,15 @@ await p.getByPlaceholder(/Note for v1/).fill('first proof');
 await p.getByRole('button', { name: 'Save v1' }).click();
 await p.waitForTimeout(1500);
 ok('version v1 listed', await p.getByText('first proof').count() > 0);
+// Delete a version, with its confirmation step
+await p.getByPlaceholder(/Note for v2/).fill('to delete');
+await p.getByRole('button', { name: 'Save v2' }).click();
+await p.waitForTimeout(800);
+await p.getByRole('button', { name: 'Delete version 2' }).click();
+ok('delete asks to confirm', await p.getByText('Delete v2?').count() > 0);
+await p.getByRole('button', { name: 'Delete', exact: true }).click();
+await p.waitForTimeout(500);
+ok('version deleted', (await p.getByText('to delete').count()) === 0 && (await p.getByText('first proof').count()) > 0);
 await p.screenshot({ path: `${OUT}/editor-full.png` });
 await p.reload({ waitUntil: 'networkidle' });
 await p.waitForTimeout(600);

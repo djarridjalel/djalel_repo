@@ -26,6 +26,7 @@ export interface ProjectStore {
   save(patch: { name?: string; params?: CartonParams }): Promise<void>;
   listVersions(): Promise<VersionRow[]>;
   createVersion(params: CartonParams, label: string | null): Promise<VersionRow>;
+  deleteVersion(id: string): Promise<void>;
 }
 
 export function cloudStore(projectId: string): ProjectStore {
@@ -62,6 +63,10 @@ export function cloudStore(projectId: string): ProjectStore {
         .single();
       if (error) throw error;
       return data as VersionRow;
+    },
+    async deleteVersion(id) {
+      const { error } = await db.from("project_versions").delete().eq("id", id).eq("project_id", projectId);
+      if (error) throw error;
     },
   };
 }
@@ -103,6 +108,10 @@ export function localStore(): ProjectStore {
       };
       write({ ...s, versions: [row, ...versions] });
       return row;
+    },
+    async deleteVersion(id) {
+      const s = read();
+      write({ ...s, versions: (s.versions ?? []).filter((v) => v.id !== id) });
     },
   };
 }

@@ -42,6 +42,7 @@ export function Editor({
   const [contentsOpen, setContentsOpen] = useState(false);
   const [versions, setVersions] = useState<VersionRow[]>([]);
   const [versionLabel, setVersionLabel] = useState("");
+  const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [exportSet, setExportSet] = useState<"shown" | "production">("shown");
 
@@ -92,6 +93,17 @@ export function Editor({
       const row = await store.createVersion(params, versionLabel.trim() || null);
       setVersions((v) => [row, ...v]);
       setVersionLabel("");
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const deleteVersion = async (id: string) => {
+    setBusy("delete");
+    try {
+      await store.deleteVersion(id);
+      setVersions((v) => v.filter((x) => x.id !== id));
+      setConfirmDelete(null);
     } finally {
       setBusy(null);
     }
@@ -172,9 +184,26 @@ export function Editor({
                   </p>
                   <p className="font-mono text-[11px] text-mute">{new Date(v.created_at).toLocaleString()}</p>
                 </div>
-                <button type="button" className="shrink-0 text-[12px] underline-offset-2 hover:underline" onClick={() => setParams(normalizeParams(v.params))}>
-                  Restore
-                </button>
+                {confirmDelete === v.id ? (
+                  <div className="flex shrink-0 items-center gap-3 text-[12px]">
+                    <span className="text-mute">Delete v{v.version}?</span>
+                    <button type="button" className="font-medium text-danger underline-offset-2 hover:underline" disabled={busy === "delete"} onClick={() => deleteVersion(v.id)}>
+                      Delete
+                    </button>
+                    <button type="button" className="underline-offset-2 hover:underline" onClick={() => setConfirmDelete(null)}>
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex shrink-0 items-center gap-3 text-[12px]">
+                    <button type="button" className="underline-offset-2 hover:underline" onClick={() => setParams(normalizeParams(v.params))}>
+                      Restore
+                    </button>
+                    <button type="button" className="text-mute underline-offset-2 hover:text-danger hover:underline" aria-label={`Delete version ${v.version}`} onClick={() => setConfirmDelete(v.id)}>
+                      Delete
+                    </button>
+                  </div>
+                )}
               </li>
             ))}
           </ul>
