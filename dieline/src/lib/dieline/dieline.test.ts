@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { textToBraille, wrapCells } from "./braille";
-import { dist, samplePath, findSelfIntersection } from "./geom";
+import { buildBlank } from "./carton";
+import { foldTube } from "./fold";
+import { dist, samplePath, findSelfIntersection, translateXf, xfSeg } from "./geom";
 import { DEFAULT_PARAMS, generate } from "./index";
+import { resolve } from "./resolve";
 import { DEFAULT_CONTENTS, sizeFromContents } from "./sizing";
 import type { CartonParams, StyleId } from "./types";
 
@@ -156,7 +159,7 @@ describe("carton geometry", () => {
     expect(d.issues.some((x) => x.severity === "error" && /glue area/.test(x.message))).toBe(true);
   });
 
-  it("draws the snap-lock bottom after the reference: tongue, two hooks with lobes, wide notch", () => {
+  it("draws the snap-lock bottom to the studio rules: tongue, two hooks with lobes, wide notch", () => {
     const d = generate(make({ style: "snap", L: 120, W: 80, H: 100 }));
     const Hp = d.resolved.bodyHeight;
     const below = d.outline.filter((s) => Math.min(s.a.y, s.b.y) >= Hp - 1e-6);
@@ -241,6 +244,64 @@ describe("carton geometry", () => {
   it("flags overlapping flaps", () => {
     const d = generate(make({ style: "ste", L: 60, W: 25, H: 110, dustDepth: 29.5 }));
     expect(d.issues.find((x) => x.field === "dustDepth")).toBeDefined();
+  });
+});
+
+describe("closing check", () => {
+  const SIZES: [StyleId, number[][]][] = [
+    ["rte", [[40, 40, 120], [60, 25, 110], [80, 60, 150], [30, 80, 60]]],
+    ["ste", [[40, 40, 120], [80, 30, 120]]],
+    ["crash", [[60, 40, 120], [90, 30, 80], [200, 150, 100]]],
+    ["snap", [[40, 40, 120], [90, 30, 80], [162, 182, 120]]],
+    ["srp", [[150, 100, 80], [90, 60, 60]]],
+    ["srpSnap", [[150, 100, 80], [163, 183, 120]]],
+    ["gable", [[120, 80, 100], [310, 250, 190]]],
+    ["mailer", [[220, 160, 60], [150, 100, 40]]],
+    ["display", [[200, 120, 40], [300, 200, 60]]],
+  ];
+
+  it("closes and locks every style across sizes and boards", () => {
+    for (const caliper of [0.355, 0.47, 0.8]) {
+      for (const [style, list] of SIZES) {
+        for (const [L, W, H] of list) {
+          for (const base of [{ ...DEFAULT_PARAMS }, make({})]) {
+            const d = generate({ ...base, caliper, style, L, W, H });
+            const tag = `${style} ${L}×${W}×${H} @${caliper} ${base.dimMode}`;
+            expect(d.fold.checks.length, tag).toBeGreaterThan(0);
+            expect(d.fold.checks.filter((c) => !c.ok).map((c) => `${c.id}: ${c.detail}`), tag).toEqual([]);
+          }
+        }
+      }
+    }
+  });
+
+  it("folds both ends of a tube and draws each one", () => {
+    const d = generate(make({ style: "snap", L: 120, W: 80, H: 100 }));
+    expect(d.fold.views.map((v) => v.id)).toEqual(["top", "bottom"]);
+    expect(d.fold.checks.map((c) => c.id)).toEqual(expect.arrayContaining(["top.cover", "top.dust", "top.tuck", "bottom.align", "bottom.fit", "bottom.hooks"]));
+  });
+
+  it("reproduces the studio snap-lock: notch and tab line up, tab fits, hooks hold", () => {
+    const d = generate({ ...DEFAULT_PARAMS, style: "srpSnap", L: 163, W: 183, H: 120 });
+    const detail = (id: string) => d.fold.checks.find((c) => c.id === id)!.detail;
+    expect(detail("bottom.align")).toMatch(/0\.5 mm behind/);
+    expect(detail("bottom.fit")).toMatch(/Notch 66\.7 mm, tab 63\.5 mm/);
+  });
+
+  it("fails a snap-lock whose tongue misses the notch", () => {
+    const p = make({ style: "snap", L: 120, W: 80, H: 100 });
+    const { r } = resolve(p);
+    const blank = buildBlank(p, r);
+    const shifted = blank.closures!.map((c) => (c.slot === "snapTongue" ? { ...c, outline: c.outline.map((s) => xfSeg(translateXf(0, 8), s)) } : c));
+    const o = { Lb: (r.panelWidths[0] + r.panelWidths[2]) / 2, Wb: (r.panelWidths[1] + r.panelWidths[3]) / 2, t: r.t, bodyHeight: r.bodyHeight };
+    expect(foldTube(blank.closures!, o).checks.find((c) => c.id === "bottom.align")!.ok).toBe(true);
+    expect(foldTube(shifted, o).checks.find((c) => c.id === "bottom.align")!.ok).toBe(false);
+  });
+
+  it("blocks a gable whose handle is too short for the slots", () => {
+    const d = generate(make({ style: "gable", L: 120, W: 80, H: 100, gable: { ...DEFAULT_PARAMS.gable, handleHeight: 15 } }));
+    expect(d.fold.checks.find((c) => c.id === "top.slot")!.ok).toBe(false);
+    expect(d.issues.some((i) => i.severity === "error" && i.field === "fold")).toBe(true);
   });
 });
 

@@ -54,9 +54,17 @@ for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tr
   const flat = await stat('Flat size');
   const blocking = await p.getByText('Blocking').count();
   ok(`style ${s} renders without blocking checks`, !!flat && blocking === 0, flat);
+  const folds = [await p.locator('[data-fold-check="ok"]').count(), await p.locator('[data-fold-check="fail"]').count()];
+  ok(`style ${s} closes in the closing check`, folds[0] > 0 && folds[1] === 0, `${folds[0]} pass, ${folds[1]} fail`);
   await p.screenshot({ path: `${OUT}/style-${s.split(' ')[0].toLowerCase()}.png` });
 }
 
+for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
+await p.getByRole('button', { name: /Gable box/ }).first().click();
+await p.getByLabel('Handle height').fill('15');
+await p.waitForTimeout(250);
+ok('closing check flags a short gable handle', (await p.locator('[data-fold-check="fail"]').count()) > 0 && (await p.locator('[data-severity="error"]', { hasText: 'gable slots' }).count()) > 0);
+await p.getByRole('button', { name: /Reverse tuck end/ }).first().click();
 for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
 await p.waitForTimeout(300);
 

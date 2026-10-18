@@ -2,6 +2,7 @@ import ClipperLib from "clipper-lib";
 import { DEFAULT_BOARD } from "./boards";
 import { buildBlank } from "./carton";
 import { STYLE_NAMES } from "./export/common";
+import { foldTube } from "./fold";
 import { buildDisplay, buildMailer } from "./styles";
 import { boxOf, findSelfIntersection, line, pointInPolygon, pt, round, samplePath, sampleSeg, segLength, signedArea, type Pt, type Seg } from "./geom";
 import { buildPharma } from "./pharma";
@@ -94,6 +95,13 @@ export function generate(params: CartonParams): Dieline {
 
   const strokes: Stroke[] = [...blank.strokes, ...pharma.strokes];
 
+  const fold = blank.closures
+    ? foldTube(blank.closures, { Lb: (r.panelWidths[0] + r.panelWidths[2]) / 2, Wb: (r.panelWidths[1] + r.panelWidths[3]) / 2, t: r.t, bodyHeight: r.bodyHeight })
+    : (blank.fold ?? { views: [], checks: [] });
+  for (const c of fold.checks) {
+    if (!c.ok) allIssues.push({ severity: c.severity, field: "fold", message: `${c.closure}: ${c.label.charAt(0).toLowerCase()}${c.label.slice(1)} — failed. ${c.detail}` });
+  }
+
   // Glued board cannot tear or open cleanly: no perforation or cut may cross a glue area.
   const openings = strokes.filter((s) => s.layer === "perf" || s.layer === "cut");
   for (const rg of [...blank.regions, ...pharma.regions].filter((q) => q.layer === "glue")) {
@@ -164,5 +172,6 @@ export function generate(params: CartonParams): Dieline {
     bbox: boxOf([...poly, ...strokes.filter((s) => s.layer === "bleed").map((s) => s.seg.a)]),
     stats,
     issues: allIssues,
+    fold,
   };
 }

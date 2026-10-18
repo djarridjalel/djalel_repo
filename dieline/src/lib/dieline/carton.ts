@@ -29,6 +29,7 @@ import {
   type LocalPanel,
   type Piece,
 } from "./closures";
+import type { ClosurePiece, FoldResult } from "./fold";
 import { arc3, clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Seg, type Xf } from "./geom";
 import { hasTopLid, isTray, type CartonParams, type Dimension, type Panel, type Region, type Resolved, type Stroke, type TextItem } from "./types";
 
@@ -39,6 +40,10 @@ export interface Blank {
   panels: Panel[];
   dims: Dimension[];
   texts: TextItem[];
+  /** End closures in their local frames, for the closing check. */
+  closures?: ClosurePiece[];
+  /** Closing checks computed by builders that are not tubes. */
+  fold?: FoldResult;
 }
 
 type Slot =
@@ -106,17 +111,25 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const tabStrip = clamp(r.tuckDepth * 0.8, 6, Hp * 0.3);
   const tabTongue = clamp(Math.min(tabW * 0.23, tabStrip - 3), 3, 10);
   const c = r.Wi / 2 + t / 2;
-  // Snap-lock proportions from the reference drawing: length-panel flaps reach
-  // past the centre by the base lock reach, the tongue's tab is as long as the
-  // notch is deep, and the hooks reach 60 % across the length.
-  const snapW = pw[0];
-  const snapNotchW = clamp(snapW * 0.4, 8, snapW - 8);
+  // Snap-lock proportions from the studio's working sample: the front and
+  // back flaps reach past the centre line by the base lock reach, which is
+  // also the notch depth and the tab length, so the tongue narrows to its tab
+  // exactly where the notch begins. Each hook lobe sits 2 mm outside a side
+  // edge of the tab, part-way along it.
+  const snapLb = pw[0];
+  const snapE = r.bottomExtension;
+  const snapNotchW = clamp(snapLb * 0.4, 8, snapLb - 8);
+  const snapTabW = snapNotchW - 2 * Math.max(t, 0.75);
+  const snapLobeDepth = snapLb / 2 + snapTabW / 2 + 2;
+  const snapR = Math.max(3, Math.min(Math.min(pw[1], pw[3]) * 0.167, snapLb * 0.147, snapLb - snapLobeDepth - 1.5));
   const snap = {
-    D: c + r.bottomExtension,
+    D: c + snapE,
     notchW: snapNotchW,
-    notchD: clamp(c * 0.48, 3, Math.max(3, r.bottomExtension - 1)),
-    tabW: snapNotchW - 2 * Math.max(t, 0.75),
-    hookD: clamp((r.Li + t) * 0.6, 6, r.Li + t - 3),
+    notchD: snapE,
+    tabW: snapTabW,
+    r: snapR,
+    lobeDepth: snapLobeDepth,
+    lobeFromNotch: c - snapE + 0.614 * snapE,
   };
 
   // Dust flaps lock on the edge facing the panel that receives the tuck.
@@ -170,10 +183,10 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
       case "snapNotch":
         return snapNotchPiece({ w, t, D: snap.D, notchW: snap.notchW, notchD: snap.notchD });
       case "snapTongue":
-        return snapTonguePiece({ w, shoulder: snap.D - snap.notchD, D: snap.D, tabW: snap.tabW });
+        return snapTonguePiece({ w, shoulder: c, D: snap.D, tabW: snap.tabW });
       case "snapHookL":
       case "snapHookR":
-        return snapHookPiece({ w, t, D: snap.hookD, diagonal: slot === "snapHookL" ? "left" : "right" });
+        return snapHookPiece({ w, t, r: snap.r, lobeDepth: snap.lobeDepth, lobeFromNotch: snap.lobeFromNotch, diagonal: slot === "snapHookL" ? "left" : "right" });
     }
   };
 
@@ -193,6 +206,22 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
 
   const topPieces = top.map((s, i) => makePiece(s, i, "top"));
   const botPieces = bottom.map((s, i) => makePiece(s, i, "bottom"));
+  const handle = p.gable.handleHeight;
+  const metaFor = (slot: Slot): Record<string, number> | undefined =>
+    slot === "lid"
+      ? { tuckDepth: r.tuckDepth }
+      : slot === "crashMain"
+        ? // Mirrored pieces: the glued triangle lies beyond the 45° crease u = v.
+          { glueBeyondUeqV: 1 }
+      : slot === "gableRoof"
+        ? { roof: Math.max(5, r.Wi / 2 - t / 2), handleEnd: handle * 0.7 }
+        : slot === "gableEnd"
+          ? { slotH: Math.min(handle * 0.7 + 6, handle - 6), slotW: Math.max(2 * t + 1, 2.5) }
+          : undefined;
+  const closures: ClosurePiece[] = [
+    ...top.map((slot, i) => ({ which: "top" as const, panel: i as 0 | 1 | 2 | 3, slot, w: pw[i], outline: topPieces[i].outline, meta: metaFor(slot) })),
+    ...bottom.map((slot, i) => ({ which: "bottom" as const, panel: i as 0 | 1 | 2 | 3, slot, w: pw[i], outline: botPieces[i].outline, meta: metaFor(slot) })),
+  ];
 
   for (const i of ORDER) {
     outline.push(...topPieces[i].outline.map((s) => xfSeg(topXf(X[i]), s)));
@@ -271,7 +300,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const dims = buildDims(p, r, X, panels);
   const texts = buildLabels(p, panels);
   strokes.push(...grainArrow(p, panels));
-  return { outline, strokes, regions, panels, dims, texts };
+  return { outline, strokes, regions, panels, dims, texts, closures };
 }
 
 function localToPanel(lp: LocalPanel, x0: number, which: "top" | "bottom", Hp: number): Panel {

@@ -127,7 +127,7 @@ export function resolve(p: CartonParams): ResolveResult {
   const glueAngle = clamp(p.glueAngle ?? (crashBase ? 45 : p.style === "rte" ? 35 : 15), 0, 60);
 
   // Lock bottoms
-  let bottomExtension = p.bottomExtension ?? round(snapBase ? (Wi / 2 + t / 2) * 0.69 : Wi * 0.25, 1);
+  let bottomExtension = p.bottomExtension ?? round(snapBase ? (Wi / 2 + t / 2) * 0.48 : Wi * 0.25, 1);
   if (bottomLocks) {
     const c = Wi / 2 + t / 2;
     const maxE = c - 3;

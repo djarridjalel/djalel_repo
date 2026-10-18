@@ -1,3 +1,4 @@
+import type { FoldResult } from "./fold";
 import type { Box, Pt, Seg } from "./geom";
 
 export type Layer =
@@ -267,4 +268,6 @@ export interface Dieline {
   bbox: Box;
   stats: Stats;
   issues: Issue[];
+  /** Closing check: each closure folded flat, with pass/fail checks. */
+  fold: FoldResult;
 }

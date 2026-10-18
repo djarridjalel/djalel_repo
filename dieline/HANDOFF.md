@@ -22,7 +22,7 @@ Environment variables on Vercel (all environments):
 
 ## State today
 
-Working and tested (34 unit tests, 37 end-to-end checks passing on the live site):
+Working and tested (52 unit tests and the end-to-end checks in `scripts/e2e.mjs` passing on the live site):
 
 - Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front (crash-lock or snap-lock bottom), gable box with handle (snap-lock bottom), mailer box (FEFCO 0427), counter display with sloped sides and header.
 - Board library (GC1, GC2, SBS, GD2) with caliper allowances; inside or outside dimensions.
@@ -32,6 +32,7 @@ Working and tested (34 unit tests, 37 end-to-end checks passing on the live site
 - Carton options: lock tab through the lid fold (tuck ends), hang tab (euro slot or round hole, double layer), window cut-out on any panel, zip strip round the body with a pull tab, perforated dispenser opening.
 - Default carton (the studio's): reverse tuck end, outside 40 × 40 × 120 mm, GC1 300 g/m², slit lock, dust flaps 17.5 mm, glue flap 10 mm, other flaps automatic. Crash-lock opens at 60 × 40 × 120 because crash-lock bottoms need the length greater than the width; snap-lock bottoms close either way round.
 - Size from blister and leaflet.
+- Closing check: every style is folded closed in software and its locks measured (lid cover, dust flap clearance, tuck depth; crash-lock reach past the centre, tongues passing, base closed; snap-lock tongue meeting the notch, tab fit and length, hooks over both tab edges; gable roofs meeting and handle slots; mailer and display walls, tabs and slots). Each closed end is drawn end-on under Checks, and a failed lock blocks export like any other error.
 - Checks with one-click fixes, including an error when a perforation or cut crosses a glue area; production figures (flat size, cut and crease rule length, board use, blank weight).
 - Exports: PDF (true scale, one spot colour and one layer per line type, overprint, title block), SVG (named layers), DXF R12 (named layers, mm). "Die-maker only" exports cut, crease, perforation and Braille.
 - Accounts, projects and versions are built (Supabase, row-level security) but **switched off** for testing. Without accounts, work and versions are kept in the visitor's browser.
@@ -60,6 +61,7 @@ src/lib/dieline/        geometry engine, no React
   resolve.ts            defaults ("auto" values), allowances, checks and fixes
   closures.ts           lids, dust flaps, crash-lock and snap-lock flaps (local frame)
   carton.ts             assembles the four-panel tube and its closures (incl. shelf-ready tray, gable)
+  fold.ts               closing check: folds tube closures onto the opening and measures the locks
   styles.ts             one-piece styles that are not tubes: mailer 0427, counter display
   pharma.ts, braille.ts Braille, coding window, pharmacode, safe areas
   sizing.ts             size from blister and leaflet
@@ -70,14 +72,14 @@ src/app/                pages: /, /editor, /login, /signup, /projects, /projects
 scripts/e2e.mjs         end-to-end checks against a running site
 ```
 
-Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it. The reverse tuck end is the exception: it follows the industry-standard layout supplied by the studio, glue flap, Front `L`, Side A `W+t`, Back `L+t`, Side B `W+t` (free edge), with stepped lead-in dust flaps (`classicDustPiece`) and a 35° glue flap; crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Crash-lock bottoms need Length greater than Width. Snap-lock (1-2-3) bottoms follow the studio's reference drawing: tongue flap with angled shoulders and a tab, notch flap with a notch about 40 % of the length wide, hook flaps with rounded lobes reaching 60 % across the length, each hook's diagonal facing the notch panel.
+Construction rules: left to right the blank is glue flap, Side B `W`, Front `L+t`, Side A `W+t`, Back `L+t` (free edge), so the joint closes at the back corner and tear lines from the front never cross it. The reverse tuck end is the exception: it follows the industry-standard layout supplied by the studio, glue flap, Front `L`, Side A `W+t`, Back `L+t`, Side B `W+t` (free edge), with stepped lead-in dust flaps (`classicDustPiece`) and a 35° glue flap; crash-lock glued corners sit on the creases folded flat on the gluer (Side B | Front, Side A | Back); any perforation or cut crossing a glue area is reported as an error; body height `H+t`; lid hinge one caliper out so the lid closes over the dust flaps; lid depth `W-t/2`. Crash-lock bottoms need Length greater than Width. Snap-lock (1-2-3) bottoms follow the studio's rules (checked against the studio's `new_Boite.pdf`, 163 × 183 × 120): the tongue narrows to its tab exactly at the notch's inner edge, on the centre line; the tab is as long as the notch is deep (the base lock reach); notch width 40 % of the length, tab width the notch less one caliper of play each side (at least 0.75 mm); each hook's lobe centre sits 2 mm outside the far tab edge, 0.614 of the way along the tab from its tip, and each hook's diagonal faces the notch panel.
 
 ### Adding a carton style
 
 1. Add the id to `StyleId` in `types.ts` and a name/ECMA code in `export/common.ts`.
 2. Draw new closure pieces in `closures.ts` (outline from `(0,0)` to `(w,0)`, `v` pointing away from the body).
 3. Map which piece sits on which panel in `slotsFor()` in `carton.ts`; add limits and fixes in `resolve.ts`.
-4. Add the style to the size grid in `dieline.test.ts`; the outline must close and never cross itself.
+4. Add the style to the size grids in `dieline.test.ts` (outline and closing check); the outline must close, never cross itself, and every closing check must pass. Tube closures are checked in `fold.ts`; give new slots a branch there (or `meta` from `metaFor()` in `carton.ts`). One-piece styles return their own checks from `finish()` in `styles.ts`.
 5. Add an icon in `StyleIcon.tsx`.
 
 Styles that are not four-panel tubes get their own builder in `styles.ts` (see `buildMailer`, `buildDisplay`): build the right half of the outline clockwise from top centre to bottom centre and mirror it with `mirrorClose`, then dispatch to it in `generate()` (`index.ts`), add the style to `StyleId`, `STYLE_NAMES`, `StyleIcon` and the editor's style list.

@@ -5,9 +5,11 @@
 import { buildLabels } from "./carton";
 import { arc3, clamp, filletPolyline, insetConvex, line, polygon, pt, reversePath, roundedRect, xfSeg, type Pt, type Seg, type Xf } from "./geom";
 import type { Blank } from "./carton";
+import type { FoldCheck } from "./fold";
 import type { CartonParams, Dimension, Issue, Panel, Region, Resolved, Stroke } from "./types";
 
 const fmt = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
+const mm = (v: number) => fmt(v);
 const mirrorX = (w: number): Xf => ({ a: -1, b: 0, c: 0, d: 1, e: w, f: 0 });
 
 /** Chains points into line segments, with optional fillets at the inner points. */
@@ -20,9 +22,19 @@ function mirrorClose(right: Seg[], w: number): Seg[] {
   return [...right, ...reversePath(right.map((s) => xfSeg(mirrorX(w), s)))];
 }
 
-function finish(p: CartonParams, outline: Seg[], strokes: Stroke[], regions: Region[], panels: Panel[], dims: Dimension[]): Blank {
-  return { outline, strokes, regions, panels, dims: p.showDimensions ? dims : [], texts: buildLabels(p, panels) };
+function finish(p: CartonParams, outline: Seg[], strokes: Stroke[], regions: Region[], panels: Panel[], dims: Dimension[], checks: FoldCheck[] = []): Blank {
+  return { outline, strokes, regions, panels, dims: p.showDimensions ? dims : [], texts: buildLabels(p, panels), fold: { views: [], checks } };
 }
+
+/** A closing check for builders that are not tubes. */
+const check = (id: string, closure: string, label: string, ok: boolean, detail: string, severity: "error" | "warning" = "error"): FoldCheck => ({
+  id,
+  closure,
+  label,
+  ok,
+  severity,
+  detail,
+});
 
 /* ------------------------------------------------------------------ */
 /* Roll-end tuck-front mailer, FEFCO 0427                              */
@@ -46,6 +58,8 @@ export function buildMailer(p: CartonParams, r: Resolved, issues: Issue[]): Blan
   const E = bw / 2 - 2.5 * t;
   const xi = H + 3 * t + (H - t / 2);
   const tp = Math.max(1.5, 1.6 * t);
+  // Base slots: 3.5 boards wide, and never narrower than the tab plus a board of play.
+  const sd = Math.max(3.5 * t, tp + t);
   const tc = tp / 2;
   const yLid = bw + H - t / 2;
   const yA = bw + H + t / 2;
@@ -119,7 +133,7 @@ export function buildMailer(p: CartonParams, r: Resolved, issues: Issue[]): Blan
     [0.2 * bw, 0.4 * bw],
     [0.6 * bw, 0.8 * bw],
   ]) {
-    for (const seg of polygon(Ms([[0, y0], [3.5 * t, y0], [3.5 * t, y1], [0, y1]]))) half.push({ layer: "cut", seg });
+    for (const seg of polygon(Ms([[0, y0], [sd, y0], [sd, y1], [0, y1]]))) half.push({ layer: "cut", seg });
   }
   const strokes: Stroke[] = [...half, ...half.map((s) => ({ ...s, seg: xfSeg(mirrorX(bl), s.seg) }))];
   strokes.push({ layer: "crease", seg: line(M(2 * t, t / 2), M(bl - 2 * t, t / 2)) });
@@ -136,7 +150,7 @@ export function buildMailer(p: CartonParams, r: Resolved, issues: Issue[]): Blan
     rect("topLid", "Lid", 4 * t, yLid, bl - 4 * t, yT),
     rect("topTuck", "Lid front", t, yT, bl - t, yT + H),
     rect("back", "Back", t, bw - t / 2, bl - t, bw + H - t),
-    rect("base", "Base", 3.5 * t, t / 2, bl - 3.5 * t, bw - t / 2, false),
+    rect("base", "Base", sd, t / 2, bl - sd, bw - t / 2, false),
     rect("front", "Front", 2 * t, -(H - t), bl - 2 * t, t / 2),
     rect("sideA", "Side A", bl, 0, bl + H, bw),
     rect("sideB", "Side B", -H, 0, 0, bw),
@@ -150,7 +164,17 @@ export function buildMailer(p: CartonParams, r: Resolved, issues: Issue[]): Blan
     { a: pt(side.x, side.y + side.h * 0.3), b: pt(side.x + side.w, side.y + side.h * 0.3), offset: 0, text: fmt(H) },
     { a: pt(lid.x + Math.min(12, lid.w * 0.1), lid.y), b: pt(lid.x + Math.min(12, lid.w * 0.1), lid.y + lid.h), offset: 0, text: fmt(lid.h) },
   ];
-  return finish(p, outline, strokes, [], panels, dims);
+  // Closing checks: what happens when the walls roll in and the lid closes.
+  const earGap = bw - 2 * E;
+  const tabLen = 0.2 * bw - 2 * tc;
+  const dustRun = yT - 1.7 * t - 0.16 * Hd - yA - Hd;
+  const checks = [
+    check("ears", "Walls", "Front and back corner ears clear each other", earGap >= 2 * t, `${mm(earGap)} mm between the ears inside each side wall.`),
+    check("tabs", "Walls", "Side wall tabs fit the base slots", 0.2 * bw - tabLen >= 1 && sd >= tp + t * 0.5, `Tabs ${mm(tabLen)} × ${mm(tp)} mm into slots ${mm(0.2 * bw)} × ${mm(sd)} mm.`),
+    check("inner", "Walls", "Inner side walls reach the base", H - t / 2 >= H - 1.5 * t, `Inner wall ${mm(H - t / 2)} mm in an outer wall of ${mm(H)} mm.`),
+    check("dust", "Lid", "Lid dust flaps have room along the lid", dustRun >= 0, dustRun >= 0 ? `${mm(dustRun)} mm of straight edge between the rounded corners.` : `The rounded corners overlap by ${mm(-dustRun)} mm; the box is too tall for its width.`),
+  ];
+  return finish(p, outline, strokes, [], panels, dims, checks);
 }
 
 /* ------------------------------------------------------------------ */
@@ -263,5 +287,14 @@ export function buildDisplay(p: CartonParams, r: Resolved, issues: Issue[]): Bla
     { a: pt(L * 0.25, W), b: pt(L * 0.25, W + Hf), offset: 0, text: fmt(Hf) },
     { a: pt(L * 0.25, -Hb), b: pt(L * 0.25, 0), offset: 0, text: fmt(Hb) },
   ];
-  return finish(p, outline, strokes, regions, panels, dims);
+  // Closing checks: corner flaps folded onto the front and back walls, and the inner front wall into its slots.
+  const flapGap = L - 2 * g;
+  const foot = 2 * t;
+  const checks = [
+    check("front", "Walls", "Corner flaps on the front wall clear each other", flapGap >= 2, `${mm(flapGap)} mm between the two corner flaps.`),
+    check("back", "Walls", "Corner flaps on the back wall clear each other", flapGap >= 2, `${mm(flapGap)} mm between the two corner flaps.`),
+    check("height", "Walls", "Corner flaps fit within the wall heights", g <= Hf && Hb >= Hs, `Flaps ${mm(g)} mm wide on a ${mm(Hf)} mm front wall; back wall ${mm(Hb)} mm for ${mm(Hs)} mm sides.`),
+    check("lock", "Front", "Inner front wall lands in the base slots", foot >= 0.5 * t && foot <= 4 * t, `Its foot sits ${mm(foot)} mm from the fold, inside slots ${mm(0.5 * t)}–${mm(4 * t)} mm.`),
+  ];
+  return finish(p, outline, strokes, regions, panels, dims, checks);
 }

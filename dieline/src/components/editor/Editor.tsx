@@ -9,7 +9,7 @@ import { downloadDieline } from "@/lib/download";
 import type { ProjectStore, VersionRow } from "@/lib/projects";
 import { Brand } from "../Brand";
 import { Button } from "../ui";
-import { Checks, Stats } from "./Checks";
+import { Checks, ClosingCheck, Stats } from "./Checks";
 import { ContentsDialog } from "./ContentsDialog";
 import { Controls } from "./Controls";
 import { Preview } from "./Preview";
@@ -122,6 +122,10 @@ export function Editor({
       <div>
         <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Checks</h2>
         <Checks d={d} set={set} />
+      </div>
+      <div>
+        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Closing check</h2>
+        <ClosingCheck d={d} />
       </div>
       <div>
         <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Download</h2>

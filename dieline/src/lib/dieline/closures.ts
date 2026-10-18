@@ -316,11 +316,13 @@ export function crashSidePiece(w: number, c: number): Piece {
   };
 }
 
-// Snap-lock (1-2-3) bottom, after the studio's reference drawing. The two
-// length panels carry a flap with a wide centred notch and a flap with a
-// matching tongue on angled shoulders; the two width panels carry hook flaps
-// whose rounded lobes catch the notch flap. Each hook's diagonal edge faces
-// the notch panel.
+// Snap-lock (1-2-3) bottom, after the studio's working sample. The front
+// flap carries a wide notch at its tip, the back flap a tongue whose tab is
+// as wide as the notch (less clearance); the tongue narrows to its tab
+// exactly where the notch begins, on the centre line, so closed the tab drops
+// through the notch. The side flaps carry hooks whose rounded lobes sit just
+// outside the tab's side edges and hold it. Each hook's diagonal edge faces
+// the notch flap.
 
 /** Notch flap: full width, depth D, with a centred notch of width notchW and depth notchD at its tip. */
 export function snapNotchPiece(s: { w: number; t: number; D: number; notchW: number; notchD: number }): Piece {
@@ -342,11 +344,15 @@ export function snapTonguePiece(s: { w: number; shoulder: number; D: number; tab
   return { outline: filletPolyline(pts, [0, 0, r, r, 0, 0]), strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")], regions: [], panels: [] };
 }
 
-/** Hook flap of depth D with a rounded lobe; `diagonal` is the side facing the notch panel. */
-export function snapHookPiece(s: { w: number; t: number; D: number; diagonal: "left" | "right" }): Piece {
-  const { w, t, D } = s;
-  const r = Math.min(w * 0.167, D * 0.245);
-  const c = pt(w * 0.556, D - r);
+/**
+ * Hook flap. The lobe (radius r) is centred `lobeDepth` from the hinge and
+ * `lobeFromNotch` from the end next to the notch flap; the flap is as deep as
+ * the lobe's far edge. `diagonal` is the side facing the notch flap.
+ */
+export function snapHookPiece(s: { w: number; t: number; r: number; lobeDepth: number; lobeFromNotch: number; diagonal: "left" | "right" }): Piece {
+  const { w, t, r } = s;
+  const c = pt(w - s.lobeFromNotch, s.lobeDepth);
+  const D = s.lobeDepth + r;
   const at = (deg: number) => pt(c.x + r * Math.cos((deg * Math.PI) / 180), c.y + r * Math.sin((deg * Math.PI) / 180));
   const bottom = pt(c.x, D);
   const barb = at(-75);
