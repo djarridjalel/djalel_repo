@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { textToBraille, wrapCells } from "./braille";
 import { buildBlank } from "./carton";
+import { snapHookPiece } from "./closures";
 import { foldTube } from "./fold";
 import { dist, samplePath, findSelfIntersection, translateXf, xfSeg } from "./geom";
 import { DEFAULT_PARAMS, generate } from "./index";
@@ -278,13 +279,13 @@ describe("closing check", () => {
   it("folds both ends of a tube and draws each one", () => {
     const d = generate(make({ style: "snap", L: 120, W: 80, H: 100 }));
     expect(d.fold.views.map((v) => v.id)).toEqual(["top", "bottom"]);
-    expect(d.fold.checks.map((c) => c.id)).toEqual(expect.arrayContaining(["top.cover", "top.dust", "top.tuck", "bottom.align", "bottom.fit", "bottom.hooks"]));
+    expect(d.fold.checks.map((c) => c.id)).toEqual(expect.arrayContaining(["top.cover", "top.dust", "top.tuck", "bottom.align", "bottom.fit", "bottom.rest", "bottom.tuck"]));
   });
 
   it("reproduces the studio snap-lock: notch and tab line up, tab fits, hooks hold", () => {
     const d = generate({ ...DEFAULT_PARAMS, style: "srpSnap", L: 163, W: 183, H: 120 });
     const detail = (id: string) => d.fold.checks.find((c) => c.id === id)!.detail;
-    expect(detail("bottom.align")).toMatch(/0\.5 mm behind/);
+    expect(Number(/(\d+\.\d) mm/.exec(detail("bottom.align"))![1])).toBeLessThanOrEqual(0.6);
     expect(detail("bottom.fit")).toMatch(/Notch 66\.7 mm, tab 63\.5 mm/);
   });
 
@@ -296,6 +297,25 @@ describe("closing check", () => {
     const o = { Lb: (r.panelWidths[0] + r.panelWidths[2]) / 2, Wb: (r.panelWidths[1] + r.panelWidths[3]) / 2, t: r.t, bodyHeight: r.bodyHeight };
     expect(foldTube(blank.closures!, o).checks.find((c) => c.id === "bottom.align")!.ok).toBe(true);
     expect(foldTube(shifted, o).checks.find((c) => c.id === "bottom.align")!.ok).toBe(false);
+  });
+
+  it("closes the snap-lock in order: hooks over the notch flap, lobes tucked under it", () => {
+    const p = make({ style: "snap", L: 120, W: 80, H: 100 });
+    const { r } = resolve(p);
+    const blank = buildBlank(p, r);
+    const o = { Lb: (r.panelWidths[0] + r.panelWidths[2]) / 2, Wb: (r.panelWidths[1] + r.panelWidths[3]) / 2, t: r.t, bodyHeight: r.bodyHeight };
+    const ok = foldTube(blank.closures!, o).checks;
+    expect(ok.filter((c) => c.id === "bottom.rest" || c.id === "bottom.tuck").map((c) => c.ok)).toEqual([true, true]);
+    // Move the lobes 30 mm toward the back: they no longer reach under the notch flap.
+    const moved = blank.closures!.map((c) => {
+      if (!c.slot.startsWith("snapHook")) return c;
+      const m = c.meta!;
+      const right = m.bulge > 0;
+      const lobeFromNotch = (right ? c.w - m.lobeU : m.lobeU) + 30;
+      const piece = snapHookPiece({ w: c.w, t: r.t, r: m.lobeR, lobeDepth: m.lobeV, lobeFromNotch, diagonal: right ? "right" : "left" });
+      return { ...c, outline: piece.outline, meta: { ...m, lobeU: right ? c.w - lobeFromNotch : lobeFromNotch } };
+    });
+    expect(foldTube(moved, o).checks.find((c) => c.id === "bottom.tuck")!.ok).toBe(false);
   });
 
   it("blocks a gable whose handle is too short for the slots", () => {

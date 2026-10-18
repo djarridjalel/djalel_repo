@@ -94,6 +94,7 @@ function FoldPicture({ v }: { v: FoldView }) {
           ))}
         </span>
       </figcaption>
+      {v.note && <p className="mb-2 text-[12px] leading-relaxed text-mute">{v.note} Dashed shapes are tucked out of sight.</p>}
       <svg viewBox={`${-pad} ${-pad} ${v.Lb + 2 * pad} ${v.Wb + 2 * pad}`} className="mx-auto block max-h-56 w-full" role="img" aria-label={v.title}>
         <rect x={0} y={0} width={v.Lb} height={v.Wb} fill="none" stroke="currentColor" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
         {v.flaps.map((f, i) => (
@@ -102,6 +103,8 @@ function FoldPicture({ v }: { v: FoldView }) {
         {v.marks.map((m, i) =>
           m.kind === "centre" ? (
             <path key={`m${i}`} d={path(m.pts, false)} fill="none" stroke="#b00020" strokeWidth={1} strokeDasharray="4 3" vectorEffect="non-scaling-stroke" />
+          ) : m.kind === "hidden" ? (
+            <path key={`m${i}`} d={path(m.pts)} fill="#6b6b6b" fillOpacity={0.12} stroke="#555" strokeWidth={1} strokeDasharray="3 2" vectorEffect="non-scaling-stroke" />
           ) : (
             <path key={`m${i}`} d={path(m.pts)} fill="none" stroke="#b86e00" strokeWidth={2} strokeDasharray="5 3" vectorEffect="non-scaling-stroke" />
           ),

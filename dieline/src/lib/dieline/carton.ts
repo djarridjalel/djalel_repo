@@ -207,7 +207,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const topPieces = top.map((s, i) => makePiece(s, i, "top"));
   const botPieces = bottom.map((s, i) => makePiece(s, i, "bottom"));
   const handle = p.gable.handleHeight;
-  const metaFor = (slot: Slot): Record<string, number> | undefined =>
+  const metaFor = (slot: Slot, i: number): Record<string, number> | undefined =>
     slot === "lid"
       ? { tuckDepth: r.tuckDepth }
       : slot === "crashMain"
@@ -217,10 +217,15 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         ? { roof: Math.max(5, r.Wi / 2 - t / 2), handleEnd: handle * 0.7 }
         : slot === "gableEnd"
           ? { slotH: Math.min(handle * 0.7 + 6, handle - 6), slotW: Math.max(2 * t + 1, 2.5) }
-          : undefined;
+          : slot === "snapHookL" || slot === "snapHookR"
+            ? // The rounded lobe, as drawn: centre, radius and the side it bulges to.
+              slot === "snapHookR"
+              ? { lobeU: pw[i] - snap.lobeFromNotch, lobeV: snap.lobeDepth, lobeR: snap.r, bulge: 1 }
+              : { lobeU: snap.lobeFromNotch, lobeV: snap.lobeDepth, lobeR: snap.r, bulge: -1 }
+            : undefined;
   const closures: ClosurePiece[] = [
-    ...top.map((slot, i) => ({ which: "top" as const, panel: i as 0 | 1 | 2 | 3, slot, w: pw[i], outline: topPieces[i].outline, meta: metaFor(slot) })),
-    ...bottom.map((slot, i) => ({ which: "bottom" as const, panel: i as 0 | 1 | 2 | 3, slot, w: pw[i], outline: botPieces[i].outline, meta: metaFor(slot) })),
+    ...top.map((slot, i) => ({ which: "top" as const, panel: i as 0 | 1 | 2 | 3, slot, w: pw[i], outline: topPieces[i].outline, meta: metaFor(slot, i) })),
+    ...bottom.map((slot, i) => ({ which: "bottom" as const, panel: i as 0 | 1 | 2 | 3, slot, w: pw[i], outline: botPieces[i].outline, meta: metaFor(slot, i) })),
   ];
 
   for (const i of ORDER) {

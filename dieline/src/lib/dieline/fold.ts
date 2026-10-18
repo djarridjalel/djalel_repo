@@ -26,7 +26,9 @@ export interface FoldView {
   Lb: number;
   Wb: number;
   flaps: { kind: FlapKind; poly: Pt[] }[];
-  marks: { kind: "centre" | "tab"; pts: Pt[] }[];
+  marks: { kind: "centre" | "tab" | "hidden"; pts: Pt[] }[];
+  /** How the closure is folded, in order. */
+  note?: string;
 }
 
 export interface FoldCheck {
@@ -136,10 +138,24 @@ export function foldTube(pieces: ClosurePiece[], o: { Lb: number; Wb: number; t:
     if (slots.includes("snapNotch")) {
       const notch = flapOf("snapNotch")!;
       const tongue = flapOf("snapTongue")!;
-      const hooks = end.filter((p) => p.slot.startsWith("snapHook")).map((p) => inter([foldPoly(localPoly(p), p, Lb, Wb)], [opening])[0] ?? []);
-      hooks.forEach((h) => show("hook", h));
+      // Each hook's rounded lobe: the half disc on the side it bulges to.
+      const hooks = end
+        .filter((p) => p.slot.startsWith("snapHook"))
+        .map((p) => {
+          const local = localPoly(p);
+          const m = p.meta ?? {};
+          const disc = Array.from({ length: 72 }, (_, k) => pt((m.lobeU ?? 0) + (m.lobeR ?? 0) * Math.cos((k * Math.PI) / 36), (m.lobeV ?? 0) + (m.lobeR ?? 0) * Math.sin((k * Math.PI) / 36)));
+          const side = (m.bulge ?? 1) > 0 ? rect(m.lobeU ?? 0, -1e3, 1e4, 1e4) : rect(-1e4, -1e3, m.lobeU ?? 0, 1e4);
+          const lobeLocal = inter(inter([local], [disc]), [side]);
+          const fold = (ps: Pt[][]) => inter(ps.map((q) => foldPoly(q, p, Lb, Wb)), [opening]);
+          return { body: fold(diff([local], lobeLocal)), lobe: fold(lobeLocal) };
+        });
+      // Closing order: notch flap, hooks over it with their lobes tucked under it, tongue over everything.
       show("notch", notch.poly);
+      hooks.forEach((h) => h.body.forEach((b) => show("hook", b)));
       show("tongue", tongue.poly);
+      hooks.forEach((h) => h.lobe.forEach((l) => view.marks.push({ kind: "hidden", pts: l })));
+      view.note = "Fold the notch flap first, then the two hook flaps over it with their round lobes tucked under it, then the tongue flap over everything with its tab tucked under the notch flap.";
       const cx = Lb / 2;
       // Notch: the front flap is solid from its hinge to the notch's inner edge.
       const nSpans = crossings(notch.poly, cx, true);
@@ -163,7 +179,9 @@ export function foldTube(pieces: ClosurePiece[], o: { Lb: number; Wb: number; t:
           continue;
         }
         if (w > tabW + 0.6) {
-          shoulder = y;
+          // Shallow shoulders widen slowly: trace them back to where they leave the tab.
+          const slope = (extent(crossings(tongue.poly, y + 1)) - w) / 1;
+          shoulder = slope > 0.01 ? y - (w - tabW) / slope : y;
           break;
         }
       }
@@ -179,11 +197,17 @@ export function foldTube(pieces: ClosurePiece[], o: { Lb: number; Wb: number; t:
       const tabLen = shoulder - tabTip;
       const notchD = notchEnd - notchInner;
       add("length", "Tab is as long as the notch is deep", Math.abs(tabLen - notchD) <= 3, `Tab ${r1(tabLen)} mm long, notch ${r1(notchD)} mm deep.`, "warning");
-      const held = hooks.map((h) => bounds(inter([h], [tab])));
-      const left = held.some((b) => b && b.x0 <= cx - tabW / 2 + 0.5 && b.x1 - b.x0 >= 3);
-      const right = held.some((b) => b && b.x1 >= cx + tabW / 2 - 0.5 && b.x1 - b.x0 >= 3);
-      const widths = held.map((b) => (b ? b.x1 - b.x0 : 0));
-      add("hooks", "Hook lobes hold both sides of the tab", left && right, `The hooks overlap the tab by ${widths.map(r1).join(" and ")} mm${left && right ? ", one over each side edge" : "; both side edges must be covered"}.`);
+      // The hooks lie on the notch flap beside the notch; their lobes slide under it past the notch's inner edge.
+      const ears = inter([notch.poly], [rect(-1, notchInner + 0.5, Lb + 1, Wb + 1)]);
+      const rest = hooks.map((h) => area(inter(h.body, ears)));
+      add("rest", "Hook flaps lie over the notch flap", rest.every((a) => a >= 1), `Each hook overlaps the notch flap beside the notch by ${rest.map((a) => r1(a / 100)).join(" and ")} cm².`);
+      const tucks = hooks.map((h) => {
+        const a = area(h.lobe);
+        const b = bounds(h.lobe);
+        return { a, under: a ? area(inter(h.lobe, [notch.poly])) / a : 0, past: b ? notchInner - b.y0 : 0 };
+      });
+      const tucked = tucks.every((k) => k.a > 1 && k.under >= 0.95 && k.past >= 3);
+      add("tuck", "Hook lobes tuck under the notch flap", tucked, tucked ? `Each round lobe slides ${tucks.map((k) => r1(k.past)).join(" and ")} mm under the notch flap, past the notch's inner edge.` : `The lobes are ${tucks.map((k) => r1(k.under * 100)).join(" % and ")} % under the notch flap and reach ${tucks.map((k) => r1(k.past)).join(" and ")} mm past its inner edge; each must be fully under it and at least 3 mm past the edge.`);
     } else if (slots.includes("crashMain")) {
       const mains = end.filter((p) => p.slot === "crashMain").map((p) => ({ p, poly: inter([foldPoly(localPoly(p), p, Lb, Wb)], [opening])[0] ?? [] }));
       const sides = end.filter((p) => p.slot === "crashSide").map((p) => inter([foldPoly(localPoly(p), p, Lb, Wb)], [opening])[0] ?? []);
