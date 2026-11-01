@@ -402,12 +402,14 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
             const byArea = (ps: Pt[][]) => ps.sort((a, b) => area([b]) - area([a]))[0];
             const inner = add(byArea(halves.inside), bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
             lid = add(byArea(halves.outside), inner, [pt(0, vm), pt(pw[i], vm)], 0, stage(1, n), 2);
-            // On the shelf: once the front has come away, the lid's front half stands up on the middle crease as a header, thumb tab on top.
-            if (lid >= 0) Object.assign(F.faces[lid], { angle2: -90, p0: 0.5, p1: 0.85 });
+            // On the shelf, once the front has come away: the lid stands up above the back wall, its front half folds down
+            // over the middle crease on the tray side so the thumb tab stands at the top, and the tuck goes down inside the back wall.
+            if (inner >= 0) Object.assign(F.faces[inner], { angle2: -89.4, p0: 0.5, p1: 0.75 });
+            if (lid >= 0) Object.assign(F.faces[lid], { angle2: -178, p0: 0.55, p1: 0.85 });
           } else if (parts.inside[0]) lid = add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
           for (const q of parts.outside) {
             const tk = add(q, lid, [pt(0, vT), pt(pw[i], vT)], 90, stage(1.6, n), 1);
-            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: 88, p0: 0.6, p1: 0.95 });
+            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: -88, p0: 0.6, p1: 0.95 });
           }
           continue;
         }
