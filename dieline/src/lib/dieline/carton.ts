@@ -434,7 +434,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
           const turn = 90 - (Math.atan2(gableRise, gableRun) * 180) / Math.PI;
           const parts = split(local, rect(-1, -1, pw[i] + 1, roof));
           const rf = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], turn, stage(0, n), i === 2 ? 1 : 0) : -1;
-          for (const q of parts.outside) add(q, rf, [pt(0, roof), pt(pw[i], roof)], -turn, stage(0.8, n), 0);
+          // The handle turns back exactly as the roof turns in, so it rises straight up and the two halves meet back to back.
+          for (const q of parts.outside) add(q, rf, [pt(0, roof), pt(pw[i], roof)], -turn, stage(0, n), i === 2 ? 1 : 0);
           continue;
         }
         if (slot === "crashMain") {

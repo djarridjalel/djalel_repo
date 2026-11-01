@@ -399,10 +399,11 @@ describe("3D folding", () => {
               const d = [x[0] - M[12], x[1] - M[13], x[2] - M[14]];
               return { x: M[0] * d[0] + M[1] * d[1] + M[2] * d[2], y: M[4] * d[0] + M[5] * d[1] + M[6] * d[2] };
             };
+            // Test A's outline and spokes from its centre, so two equal panels crossing like an X are caught too.
             const A = Wd[a];
-            for (let i = 0; i < A.length; i++) {
-              const p = A[i];
-              const q = A[(i + 1) % A.length];
+            const c: V = [0, 1, 2].map((j) => A.reduce((sum, v) => sum + v[j], 0) / A.length) as V;
+            const segs: [V, V][] = A.flatMap((v, i) => [[v, A[(i + 1) % A.length]] as [V, V], [c, v] as [V, V]]);
+            for (const [p, q] of segs) {
               const dp = (p[0] - B[0][0]) * n[0] + (p[1] - B[0][1]) * n[1] + (p[2] - B[0][2]) * n[2];
               const dq = (q[0] - B[0][0]) * n[0] + (q[1] - B[0][1]) * n[1] + (q[2] - B[0][2]) * n[2];
               if (!((dp > 0.05 && dq < -0.05) || (dp < -0.05 && dq > 0.05))) continue;
