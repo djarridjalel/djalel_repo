@@ -365,13 +365,15 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         addPanel(i, body[parent], [pt(x, 0), pt(x, Hp)]);
       }
     }
-    F.add([pt(0, 0), pt(-g, taper), pt(-g, Hp - taper), pt(0, Hp)], body[ORDER[0]], [pt(0, 0), pt(0, Hp)], 90, 0, 0.14);
+    // Glued inside the back panel's free edge.
+    F.add([pt(0, 0), pt(-g, taper), pt(-g, Hp - taper), pt(0, Hp)], body[ORDER[0]], [pt(0, 0), pt(0, Hp)], 90, 0, 0.14, -1);
 
     for (const which of ["bottom", "top"] as const) {
       const slots = which === "top" ? top : bottom;
       const pieces = which === "top" ? topPieces : botPieces;
       const [a, b] = which === "bottom" ? [0.42, 0.7] : [0.72, 1];
-      const stage = (k: number, n: number): [number, number] => [a + ((b - a) * k) / n, Math.min(b, a + ((b - a) * (k + 1.3)) / n)];
+      // Each flap (or set of flaps) in turn, one after the other, so none sweeps through another.
+      const stage = (k: number, n: number): [number, number] => [a + ((b - a) * k) / n, Math.min(b, a + ((b - a) * (k + 1)) / n)];
       const map = (i: number) => (q: { x: number; y: number }) => (which === "top" ? pt(X[i] + q.x, -q.y) : pt(X[i] + q.x, Hp + q.y));
       const tuck = slots.includes("lid");
       const snapEnd = slots.includes("snapNotch");
@@ -392,6 +394,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
           const vT = t + r.lidDepth;
           const parts = split(local, rect(-1, -1, pw[i] + 1, vT));
           let lid = -1;
+          let liftFace = -1;
           // Shelf-ready tray lid: a crease across the middle, broken by a half-round thumb cut whose tab stays with the front half.
           const thumbR = Math.min(clamp(pw[i] * 0.35, 0, 60) / 2, r.lidDepth / 2 - 3);
           if (which === "top" && isTray(p.style) && thumbR > 3 && parts.inside[0]) {
@@ -400,21 +403,29 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
             const back = split(rect(-1, -1, pw[i] + 1, vm), disc).outside;
             const halves = split(parts.inside[0], back[0] ?? []);
             const byArea = (ps: Pt[][]) => ps.sort((a, b) => area([b]) - area([a]))[0];
-            const inner = add(byArea(halves.inside), bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
+            const inner = add(byArea(halves.inside), bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(1, n), 2);
             lid = add(byArea(halves.outside), inner, [pt(0, vm), pt(pw[i], vm)], 0, stage(1, n), 2);
+            liftFace = inner;
             // On the shelf, once the front has come away: the lid stands up above the back wall, its front half folds down
             // over the middle crease on the tray side so the thumb tab stands at the top, and the tuck goes down inside the back wall.
-            if (inner >= 0) Object.assign(F.faces[inner], { angle2: -89.4, p0: 0.5, p1: 0.75 });
-            if (lid >= 0) Object.assign(F.faces[lid], { angle2: -178, p0: 0.55, p1: 0.85 });
-          } else if (parts.inside[0]) lid = add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
+            if (inner >= 0) Object.assign(F.faces[inner], { angle2: -90, p0: 0.5, p1: 0.72 });
+            if (lid >= 0) Object.assign(F.faces[lid], { angle2: -178, p0: 0.72, p1: 0.95 });
+          } else if (parts.inside[0]) liftFace = lid = add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(1, n), 2);
           for (const q of parts.outside) {
-            const tk = add(q, lid, [pt(0, vT), pt(pw[i], vT)], 91.5, stage(1.6, n), -1);
-            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: -89.5, p0: 0.6, p1: 0.95 });
+            // The tuck is folded in early and held pointing down while the lid comes over, so it drops in behind the receiving panel.
+            const [l0, l1] = stage(1, n);
+            const tk = add(q, lid, [pt(0, vT), pt(pw[i], vT)], 135, [l0, l0 + (l1 - l0) * 0.6], 1);
+            if (tk >= 0) F.faces[tk].cap = { face: liftFace, sum: 180 };
+            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: -90, lift2: 2 * Math.max(t, 0.35), p0: 0.45, p1: 0.55 });
           }
           continue;
         }
         if (slot === "dust") {
-          add(local, bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), 0);
+          // Drawn a board or two short on the side the tuck passes, where real board gives way to it.
+          const trim = 2 * Math.max(t, 0.35) + 0.5;
+          const recv = lockSideFor(i as 1 | 3, which === "top" ? 2 : (bottomLidOn ?? 2));
+          const keep = recv === "left" ? rect(trim, -1, pw[i] + 1, 1e4) : rect(-1, -1, pw[i] - trim, 1e4);
+          add(split(local, keep).inside[0] ?? local, bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), 0);
           continue;
         }
         if (slot === "gableRoof") {
@@ -429,7 +440,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         if (slot === "crashMain") {
           // The glued triangle beyond the 45° crease is folded onto the side flap on the gluer.
           const parts = split(local, [pt(-1, -1), pt(1e4, -1), pt(1e4, 1e4)]);
-          const main = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.5, stage(0, n), 1) : -1;
+          const main = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0.5, n), 1) : -1;
           for (const q of parts.outside) add(q, main, [pt(0, 0), pt(1, 1)], -180, [0, 0.12], 1);
           continue;
         }
@@ -444,8 +455,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         if (slot === "snapTongue") {
           // The tongue lies over everything; its tab dips under the notch flap.
           const parts = split(local, rect(-1, -1, pw[i] + 1, c));
-          const tongue = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 88.8, stage(2, n), 3) : -1;
-          for (const q of parts.outside) add(q, tongue, [pt(0, c), pt(pw[i], c)], 3, stage(2.5, n), 0);
+          const tongue = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(2, n), 3) : -1;
+          for (const q of parts.outside) add(q, tongue, [pt(0, c), pt(pw[i], c)], 0, stage(2, n), 0.5);
           continue;
         }
         if (slot === "snapHookL" || slot === "snapHookR") {
@@ -455,13 +466,14 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
           const halfPlane = mm.bulge > 0 ? rect(mm.lobeU, -1e3, 1e4, 1e4) : rect(-1e4, -1e3, mm.lobeU, 1e4);
           const lobe = split(split(local, disc).inside[0] ?? [], halfPlane).inside;
           const rest = lobe.length ? split(local, lobe[0]).outside : [local];
-          const hook = add(rest.sort((p1, p2) => area([p2]) - area([p1]))[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
-          for (const q of lobe) add(q, hook, [pt(mm.lobeU, 0), pt(mm.lobeU, 1)], 4, stage(1.6, n), 0);
+          const hook = add(rest.sort((p1, p2) => area([p2]) - area([p1]))[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(1, n), 2);
+          for (const q of lobe) add(q, hook, [pt(mm.lobeU, 0), pt(mm.lobeU, 1)], 0, stage(1, n), 0);
         }
       }
     }
     const tall = Math.max(Hp, pw[0], pw[1]);
-    return tray ? { faces: F.faces, present: "On shelf", away: { x: 0, y: -0.35 * tall, z: 1.4 * tall } } : { faces: F.faces };
+    const gap = Math.max(t, 0.35);
+    return tray ? { faces: F.faces, gap, present: "On shelf", away: { x: 0, y: -0.35 * tall, z: 1.4 * tall } } : { faces: F.faces, gap };
   }
 }
 

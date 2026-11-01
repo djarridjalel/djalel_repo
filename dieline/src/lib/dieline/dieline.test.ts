@@ -4,7 +4,7 @@ import { buildBlank } from "./carton";
 import { snapHookPiece } from "./closures";
 import { foldTube } from "./fold";
 import { apply, pose, removedFaces } from "./fold3d";
-import { dist, samplePath, findSelfIntersection, translateXf, xfSeg } from "./geom";
+import { dist, pointInPolygon, samplePath, findSelfIntersection, translateXf, xfSeg } from "./geom";
 import { DEFAULT_PARAMS, generate } from "./index";
 import { resolve } from "./resolve";
 import { DEFAULT_CONTENTS, sizeFromContents } from "./sizing";
@@ -354,6 +354,75 @@ describe("3D folding", () => {
       // Gable handles and display headers stand above the body; closed flaps are fanned a degree or so to show their order.
       if (style === "gable" || style === "display") continue;
       size.forEach((v, k) => expect(Math.abs(v - want[k]), `${style} ${size} vs ${want}`).toBeLessThan(5));
+    }
+  });
+
+  it("never folds one face through another", () => {
+    type V = [number, number, number];
+    const edgeDist = (q: { x: number; y: number }, poly: { x: number; y: number }[]) => {
+      let best = Infinity;
+      for (let i = 0; i < poly.length; i++) {
+        const a = poly[i];
+        const c = poly[(i + 1) % poly.length];
+        const dx = c.x - a.x;
+        const dy = c.y - a.y;
+        const k = Math.max(0, Math.min(1, ((q.x - a.x) * dx + (q.y - a.y) * dy) / (dx * dx + dy * dy || 1)));
+        best = Math.min(best, Math.hypot(a.x + k * dx - q.x, a.y + k * dy - q.y));
+      }
+      return best;
+    };
+    for (const [style, L, W, H] of SIZES) {
+      const m = generate({ ...DEFAULT_PARAMS, style, L, W, H }).model3d;
+      const gone = removedFaces(m);
+      // Crossings deeper than two boards, held for more than a moment of the slider.
+      const tol = 2 * (m.gap ?? 0.5) + 0.3;
+      const runs = new Map<string, number>();
+      const bad: string[] = [];
+      for (let t = 0; t <= (m.present ? 2 : 1) + 1e-9; t += 0.01) {
+        const P = pose(m, t);
+        const Wd = m.faces.map((f, i) => f.poly.map((q) => apply(P[i], q) as V));
+        const seen = new Set<string>();
+        for (let a = 0; a < m.faces.length; a++) {
+          for (let b = 0; b < m.faces.length; b++) {
+            if (a === b || m.faces[a].parent === b || m.faces[b].parent === a || (t > 1.3 && (gone[a] || gone[b]))) continue;
+            const B = Wd[b];
+            let n: V = [0, 0, 0];
+            for (let i = 0; i < B.length; i++) {
+              const p = B[i];
+              const q = B[(i + 1) % B.length];
+              n = [n[0] + (p[1] - q[1]) * (p[2] + q[2]), n[1] + (p[2] - q[2]) * (p[0] + q[0]), n[2] + (p[0] - q[0]) * (p[1] + q[1])];
+            }
+            const len = Math.hypot(...n);
+            n = [n[0] / len, n[1] / len, n[2] / len];
+            const M = P[b];
+            const flat = (x: V) => {
+              const d = [x[0] - M[12], x[1] - M[13], x[2] - M[14]];
+              return { x: M[0] * d[0] + M[1] * d[1] + M[2] * d[2], y: M[4] * d[0] + M[5] * d[1] + M[6] * d[2] };
+            };
+            const A = Wd[a];
+            for (let i = 0; i < A.length; i++) {
+              const p = A[i];
+              const q = A[(i + 1) % A.length];
+              const dp = (p[0] - B[0][0]) * n[0] + (p[1] - B[0][1]) * n[1] + (p[2] - B[0][2]) * n[2];
+              const dq = (q[0] - B[0][0]) * n[0] + (q[1] - B[0][1]) * n[1] + (q[2] - B[0][2]) * n[2];
+              if (!((dp > 0.05 && dq < -0.05) || (dp < -0.05 && dq > 0.05))) continue;
+              const k = dp / (dp - dq);
+              const f = flat([p[0] + (q[0] - p[0]) * k, p[1] + (q[1] - p[1]) * k, p[2] + (q[2] - p[2]) * k]);
+              if (pointInPolygon(f, m.faces[b].poly) && edgeDist(f, m.faces[b].poly) > tol) {
+                seen.add(`${a}>${b}`);
+                break;
+              }
+            }
+          }
+        }
+        for (const key of seen) {
+          const run = (runs.get(key) ?? 0) + 1;
+          runs.set(key, run);
+          if (run > 3) bad.push(`${key} at ${t.toFixed(2)}`);
+        }
+        for (const key of runs.keys()) if (!seen.has(key)) runs.delete(key);
+      }
+      expect(bad.slice(0, 5), style).toEqual([]);
     }
   });
 

@@ -19,12 +19,21 @@ export interface Face3D {
   /** Time window of the fold, within 0 (flat) … 1 (closed). */
   t0: number;
   t1: number;
-  /** Stacking order where faces end up on top of each other; higher is further out. */
+  /**
+   * Stacking order where faces end up on top of each other; higher is further out.
+   * Closing, each face moves off its parent by the difference in layers times the
+   * model's gap, along its own normal, so flaps that close onto each other stack
+   * instead of passing through one another.
+   */
   layer: number;
   /** Presentation (slider 1 → 2): a further turn in degrees, within its window p0 … p1 of that step. */
   angle2?: number;
+  /** Presentation: a further move along its own normal, in mm. */
+  lift2?: number;
   p0?: number;
   p1?: number;
+  /** Holds the fold at no more than `sum` minus the current fold of `face` (an ancestor), e.g. a tuck kept pointing down while its lid closes. */
+  cap?: { face: number; sum: number };
   /** Torn away in the presentation step, with everything hanging from it. */
   remove?: boolean;
   /** Cuts, creases and perforations inside the face, drawn on it. */
@@ -37,6 +46,8 @@ export interface Model3D {
   root?: "wall" | "base";
   /** Name of the presentation step (slider 1 → 2), when the carton has one. */
   present?: string;
+  /** Board allowance between stacked layers, in mm. */
+  gap?: number;
   /** Where the torn-away part goes in the presentation step, in blank coordinates (mm). */
   away?: { x: number; y: number; z: number };
 }
@@ -104,6 +115,9 @@ export function removedFaces(m: Model3D): boolean[] {
   return out;
 }
 
+/** How far a face's closing fold has gone at time t, 0 … 1. */
+const progress = (f: Face3D, t: number) => (f.t1 > f.t0 ? ease((t - f.t0) / (f.t1 - f.t0)) : t >= f.t1 ? 1 : 0);
+
 /** World matrices of every face at time t (0 flat … 1 closed … 2 presented, when the carton has a presentation step). */
 export function pose(m: Model3D, t: number): Mat4[] {
   const out: Mat4[] = new Array(m.faces.length);
@@ -119,10 +133,13 @@ export function pose(m: Model3D, t: number): Mat4[] {
     const cx = f.poly.reduce((s, q) => s + q.x, 0) / f.poly.length - a.x;
     const cy = f.poly.reduce((s, q) => s + q.y, 0) / f.poly.length - a.y;
     const side = Math.sign(u.x * cy - u.y * cx) || 1;
-    const k = f.t1 > f.t0 ? ease((t - f.t0) / (f.t1 - f.t0)) : t >= f.t1 ? 1 : 0;
-    const k2 = f.angle2 && t > 1 ? ease((t - 1 - (f.p0 ?? 0)) / ((f.p1 ?? 1) - (f.p0 ?? 0) || 1)) : 0;
-    const ang = (-side * (f.angle * k + (f.angle2 ?? 0) * k2) * Math.PI) / 180;
-    let mat = mul(at(f.parent), rotAbout(a, u, ang));
+    const k = progress(f, t);
+    const k2 = (f.angle2 || f.lift2) && t > 1 ? ease((t - 1 - (f.p0 ?? 0)) / ((f.p1 ?? 1) - (f.p0 ?? 0) || 1)) : 0;
+    const own = f.cap ? Math.min(f.angle * k, f.cap.sum - m.faces[f.cap.face].angle * progress(m.faces[f.cap.face], t)) : f.angle * k;
+    const ang = (-side * (own + (f.angle2 ?? 0) * k2) * Math.PI) / 180;
+    // Stack on the parent by the difference in layers, towards the printed side (outwards once closed).
+    const lift = (f.layer - m.faces[f.parent].layer) * (m.gap ?? 0) * Math.min(1, k) + (f.lift2 ?? 0) * Math.min(1, 3 * k2);
+    let mat = mul(at(f.parent), mul(rotAbout(a, u, ang), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, lift, 1]));
     if (f.remove && m.away && t > 1) {
       const kr = removal(t);
       mat = mul([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, m.away.x * kr, m.away.y * kr, m.away.z * kr, 1], mat);

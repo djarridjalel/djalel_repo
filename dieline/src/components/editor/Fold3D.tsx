@@ -5,8 +5,8 @@ import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { apply, pose, removedFaces, type Model3D } from "@/lib/dieline/fold3d";
 
-const PRINT = "#f7f6f2";
-const INSIDE = "#c9b99a";
+const PRINT = "#fbfbf9";
+const INSIDE = "#f1f0ec";
 const EDGE = "#3a3a3a";
 const LINE: Record<"cut" | "crease" | "perf", { color: string; dash: number; gap: number }> = {
   cut: { color: "#3a3a3a", dash: 0, gap: 0 },
