@@ -208,15 +208,23 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
     // Frame the closed carton when the model's size changes a lot.
     // Frame both the flat blank and the closed carton, from the printed side.
     const box = new THREE.Box3();
+    const closedBox = new THREE.Box3();
     for (const k of mini ? [1] : [0, 1]) {
       const mats = pose(model, k);
-      model.faces.forEach((f, i) => f.poly.forEach((q) => box.expandByPoint(new THREE.Vector3(...apply(mats[i], q)).applyMatrix4(c.group.matrix))));
+      model.faces.forEach((f, i) =>
+        f.poly.forEach((q) => {
+          const v = new THREE.Vector3(...apply(mats[i], q)).applyMatrix4(c.group.matrix);
+          box.expandByPoint(v);
+          if (k === 1) closedBox.expandByPoint(v);
+        }),
+      );
     }
     const size = box.getSize(new THREE.Vector3());
     const key = [size.x, size.y, size.z].map((v) => Math.round(v / 10)).join(",");
     if (key !== framed.current && model.faces.length) {
       framed.current = key;
-      const centre = box.getCenter(new THREE.Vector3());
+      // Turn about the closed carton's centre; stand far enough back to see the flat blank too.
+      const centre = closedBox.getCenter(new THREE.Vector3());
       const r = size.length() / 2;
       c.controls.target.copy(centre);
       c.camera.position.copy(centre).add(new THREE.Vector3(0.9, 0.7, -1.6).normalize().multiplyScalar(r * (mini ? 3.8 : 3)));
@@ -244,6 +252,19 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
         if (x instanceof THREE.Mesh || x instanceof THREE.Line) (x.material as THREE.Material).opacity = op;
       });
     });
+    // Keep turning about the carton's centre as it folds, without moving the view.
+    if (!mini && model.faces.length) {
+      const box = new THREE.Box3();
+      c.group.updateMatrix();
+      model.faces.forEach((f, i) => {
+        if (gone[i] && at > 1.3) return;
+        f.poly.forEach((q) => box.expandByPoint(new THREE.Vector3(...apply(mats[i], q)).applyMatrix4(c.group.matrix)));
+      });
+      const centre = box.getCenter(new THREE.Vector3());
+      const shift = centre.clone().sub(c.controls.target);
+      c.controls.target.add(shift);
+      c.camera.position.add(shift);
+    }
   }, [model, t, mini]);
 
   /** Centre and radius of the carton as it stands now, in scene coordinates. */
@@ -347,17 +368,24 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
           {noGl && <p className="p-4 text-[12px] text-mute">This browser cannot draw 3D (WebGL is off).</p>}
         </div>
         {!noGl && (
-          <div className="absolute right-3 top-3 z-10 flex max-w-[60%] flex-col items-end gap-2 text-[12px]">
-            <div className="flex flex-wrap justify-end gap-1 rounded-md border border-rule bg-paper p-1 shadow-sm">
-              <button type="button" onClick={saveAngle} className="h-8 rounded px-2.5 hover:bg-bone">
+          <div className="absolute right-3 top-3 z-10 flex max-w-[70%] flex-col items-end gap-2 text-[13px]">
+            <div className="flex flex-wrap justify-end gap-1.5">
+              <button type="button" onClick={saveAngle} className="h-9 rounded-md border border-ink bg-paper px-3 font-medium shadow-sm hover:bg-bone">
                 Save angle
               </button>
-              <button type="button" onClick={() => exportView("product")} disabled={!!busy} className="h-8 rounded px-2.5 hover:bg-bone">
-                {busy === "product" ? "…" : "Product image"}
-              </button>
-              <button type="button" onClick={() => exportView("depth")} disabled={!!busy} className="h-8 rounded px-2.5 hover:bg-bone">
-                {busy === "depth" ? "…" : "Depth map"}
-              </button>
+              {(
+                [
+                  ["product", "Product image"],
+                  ["depth", "Depth map"],
+                ] as const
+              ).map(([k, l]) => (
+                <button key={k} type="button" onClick={() => exportView(k)} disabled={!!busy} className="flex h-9 items-center gap-1.5 rounded-md bg-ink px-3 font-medium text-paper shadow-sm hover:bg-accent hover:text-ink disabled:opacity-60">
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+                    <path d="M7 1.5v8M3.5 6l3.5 3.5L10.5 6M2 12.5h10" />
+                  </svg>
+                  {busy === k ? "Rendering…" : l}
+                </button>
+              ))}
             </div>
             {angles.length > 0 && (
               <ul className="flex flex-wrap justify-end gap-1" aria-label="Saved angles">
@@ -376,7 +404,7 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
           </div>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-28 sm:flex-col sm:justify-center sm:border-l sm:border-t-0 sm:px-2 sm:py-4">
+      <div className="flex shrink-0 flex-col gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-36 sm:flex-col-reverse sm:items-center sm:border-l sm:border-t-0 sm:px-3 sm:py-5">
         <input
           type="range"
           min={0}
@@ -384,11 +412,12 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
           value={Math.round(t * 1000)}
           onChange={(e) => setT(Number(e.target.value) / 1000)}
           aria-label={model.present ? `Fold from flat to closed, then to ${model.present.toLowerCase()}` : "Fold from flat to closed"}
-          className="fold-slider h-8 min-w-0 flex-1 accent-[#1a1a1a] sm:h-auto sm:w-8"
+          className="fold-slider min-w-0 sm:min-h-0 sm:flex-1"
+          style={{ ["--fill" as string]: `${(t / steps) * 100}%` }}
         />
-        <div className="flex shrink-0 gap-3 font-mono text-[10px] uppercase tracking-wider text-mute sm:order-first sm:flex-col-reverse sm:items-center sm:gap-1">
+        <div className="flex gap-1 rounded-md border border-rule bg-paper p-1 text-[12px] font-medium sm:w-full sm:flex-col-reverse">
           {(model.present ? ["Flat", "Closed", model.present] : ["Flat", "Closed"]).map((l, k) => (
-            <button key={l} type="button" onClick={() => setT(k)} className={`whitespace-nowrap ${Math.abs(t - k) < 0.02 ? "text-ink" : "hover:text-ink"}`}>
+            <button key={l} type="button" onClick={() => setT(k)} className={`h-8 flex-1 whitespace-nowrap rounded px-1 ${Math.abs(t - k) < 0.02 ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
               {l}
             </button>
           ))}

@@ -208,7 +208,7 @@ export function buildMailer(p: CartonParams, r: Resolved, issues: Issue[]): Blan
   const lip = one([[t, yT], [bl - t, yT], [bl - t, yT + H], [t, yT + H]], fLid, [[4 * t, yT], [bl - 4 * t, yT]], 90, 0.9, 0.99, 0);
   both([[t, hingeY], [t, yT + H - t / 2], [ex, ey], [2.7 * t, yT + 1.05 * t]], [lip, lip], [[t, hingeY], [t, yT + H - t / 2]], 90, 0.84, 0.9);
 
-  return finish(p, outline, strokes, [], panels, dims, checks, { faces: F.faces, root: "base", gap: Math.max(t, 0.35) });
+  return finish(p, outline, strokes, [], panels, dims, checks, { faces: F.faces, root: "base", gap: 0.15 });
 }
 
 /* ------------------------------------------------------------------ */
@@ -342,5 +342,5 @@ export function buildDisplay(p: CartonParams, r: Resolved, issues: Issue[]): Bla
   const strip = F.add([pt(ins, yI), pt(L - ins, yI), pt(L - ins, yJ), pt(ins, yJ)], fFront, [pt(ins, yI), pt(L - ins, yI)], 90, 0.65, 0.78);
   F.add([pt(ins, yJ), pt(L - ins, yJ), pt(L - ins, yE), pt(ins, yE)], strip, [pt(ins, yJ), pt(L - ins, yJ)], 90, 0.72, 0.95);
 
-  return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "base", gap: Math.max(t, 0.35) });
+  return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "base", gap: 0.15 });
 }

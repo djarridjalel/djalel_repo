@@ -473,7 +473,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
       }
     }
     const tall = Math.max(Hp, pw[0], pw[1]);
-    const gap = Math.max(t, 0.35);
+    // Just enough to keep stacked flaps apart on screen; visually they lie on each other.
+    const gap = 0.15;
     return tray ? { faces: F.faces, gap, present: "On shelf", away: { x: 0, y: -0.35 * tall, z: 1.4 * tall } } : { faces: F.faces, gap };
   }
 }
