@@ -60,15 +60,19 @@ for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tr
 }
 
 for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
-await p.getByRole('button', { name: '3D', exact: true }).click();
+ok('flat view shows a 3D thumbnail', (await p.getByRole('button', { name: 'Show the 3D view' }).count()) === 1);
+await p.getByRole('button', { name: 'Show the 3D view' }).click();
 await p.waitForTimeout(1500);
+ok('3D thumbnail opens the 3D view', (await p.getByRole('button', { name: 'Show the flat dieline' }).count()) === 1);
 ok('3D view draws the carton', (await p.locator('main canvas').count()) === 1);
 await p.locator('input[type="range"]').fill('0');
 await p.waitForTimeout(300);
 ok('3D slider folds from flat', (await p.locator('input[type="range"]').inputValue()) === '0');
 await p.screenshot({ path: `${OUT}/3d-flat.png` });
 await p.locator('input[type="range"]').fill('1000');
-await p.getByRole('button', { name: 'Flat', exact: true }).click();
+await p.getByRole('button', { name: 'Show the flat dieline' }).click();
+await p.waitForTimeout(300);
+ok('flat thumbnail returns to the dieline', (await p.getByRole('button', { name: 'Show the 3D view' }).count()) === 1);
 await p.getByRole('button', { name: /Gable box/ }).first().click();
 await p.getByLabel('Handle height').fill('15');
 await p.waitForTimeout(250);

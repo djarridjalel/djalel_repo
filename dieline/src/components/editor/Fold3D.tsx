@@ -9,8 +9,11 @@ const PRINT = "#f7f6f2";
 const INSIDE = "#c9b99a";
 const EDGE = "#3a3a3a";
 
-/** The carton in 3D, folded from flat (0) to closed (1) with the slider beside it. */
-export function Fold3D({ model }: { model: Model3D }) {
+/**
+ * The carton in 3D, folded from flat (0) to closed (1) with the slider beside it.
+ * `mini` draws it closed and slowly turning, without controls, as a thumbnail.
+ */
+export function Fold3D({ model, mini = false }: { model: Model3D; mini?: boolean }) {
   const host = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(1);
   const [noGl, setNoGl] = useState(false);
@@ -49,6 +52,11 @@ export function Fold3D({ model }: { model: Model3D }) {
     const camera = new THREE.PerspectiveCamera(35, 1, 1, 20000);
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
+    if (mini) {
+      controls.enabled = false;
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1.5;
+    }
     const group = new THREE.Group();
     scene.add(group);
     ctx.current = { renderer, scene, camera, controls, group, faces: [] };
@@ -77,6 +85,8 @@ export function Fold3D({ model }: { model: Model3D }) {
       el.removeChild(renderer.domElement);
       ctx.current = null;
     };
+    // The thumbnail is set up once per mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Faces, rebuilt whenever the carton changes.
@@ -113,7 +123,7 @@ export function Fold3D({ model }: { model: Model3D }) {
     // Frame the closed carton when the model's size changes a lot.
     // Frame both the flat blank and the closed carton, from the printed side.
     const box = new THREE.Box3();
-    for (const k of [0, 1]) {
+    for (const k of mini ? [1] : [0, 1]) {
       const mats = pose(model, k);
       model.faces.forEach((f, i) => f.poly.forEach((q) => box.expandByPoint(new THREE.Vector3(...apply(mats[i], q)).applyQuaternion(c.group.quaternion))));
     }
@@ -124,23 +134,25 @@ export function Fold3D({ model }: { model: Model3D }) {
       const centre = box.getCenter(new THREE.Vector3());
       const r = size.length() / 2;
       c.controls.target.copy(centre);
-      c.camera.position.copy(centre).add(new THREE.Vector3(0.9, 0.7, -1.6).normalize().multiplyScalar(r * 3));
+      c.camera.position.copy(centre).add(new THREE.Vector3(0.9, 0.7, -1.6).normalize().multiplyScalar(r * (mini ? 3.8 : 3)));
       c.camera.near = r / 50;
       c.camera.far = r * 50;
       c.camera.updateProjectionMatrix();
     }
-  }, [model]);
+  }, [model, mini]);
 
   // Pose for the slider position.
   useEffect(() => {
     const c = ctx.current;
     if (!c) return;
-    const mats = pose(model, t);
+    const mats = pose(model, mini ? 1 : t);
     c.faces.forEach((o, i) => {
       o.matrix.fromArray(mats[i]);
       o.matrixWorldNeedsUpdate = true;
     });
-  }, [model, t]);
+  }, [model, t, mini]);
+
+  if (mini) return <div ref={host} className="pointer-events-none relative h-full w-full overflow-hidden" aria-hidden="true" />;
 
   return (
     <div className="flex h-full min-h-0 flex-col sm:flex-row">

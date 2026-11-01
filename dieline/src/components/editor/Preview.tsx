@@ -167,8 +167,11 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
         })}
       </div>
       {view === "3d" && (
-        <div className="min-h-0 flex-1">
+        <div className="relative min-h-0 flex-1">
           <Fold3D model={d.model3d} />
+          <Inset label="Flat" onClick={() => setView("flat")}>
+            <div className="h-full w-full p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
+          </Inset>
         </div>
       )}
       <div className={`relative min-h-0 flex-1 overflow-hidden ${view === "3d" ? "hidden" : ""}`}>
@@ -181,6 +184,11 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
           onPointerCancel={onPointerUp}
           onDoubleClick={fit}
         />
+        {view === "flat" && d.model3d.faces.length > 0 && (
+          <Inset label="3D" onClick={() => setView("3d")}>
+            <Fold3D model={d.model3d} mini />
+          </Inset>
+        )}
         <div className="absolute bottom-3 right-3 flex overflow-hidden rounded-md border border-rule bg-paper shadow-sm">
           <ZoomBtn label="Zoom out" onClick={() => zoomAt(...center(), 1 / 1.4)}>−</ZoomBtn>
           <ZoomBtn label="Fit" onClick={fit}>
@@ -192,6 +200,21 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
         </div>
       </div>
     </div>
+  );
+}
+
+/** Thumbnail of the other view in the preview's top-left corner; clicking it switches views. */
+function Inset({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Show ${label === "3D" ? "the 3D view" : "the flat dieline"}`}
+      className="absolute left-3 top-3 z-10 h-[110px] w-[150px] overflow-hidden rounded-md border border-rule bg-paper shadow-sm transition hover:border-ink sm:h-[200px] sm:w-[300px]"
+    >
+      {children}
+      <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-full bg-ink px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-paper">{label}</span>
+    </button>
   );
 }
 
