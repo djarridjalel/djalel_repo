@@ -4,6 +4,8 @@ import dynamic from "next/dynamic";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { renderSvg } from "@/lib/dieline/export/svg";
 import { LAYERS, LAYER_ORDER } from "@/lib/dieline/layers";
+import { downloadDieline } from "@/lib/download";
+import type { UploadResult } from "@/lib/upload";
 import type { Dieline, Layer } from "@/lib/dieline/types";
 
 type VB = { x: number; y: number; w: number; h: number };
@@ -20,6 +22,26 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; vb: VB; cx: number; cy: number } | null>(null);
   const [view, setView] = useState<"flat" | "3d">("flat");
+  // An uploaded design shown in 3D only; the editor's own carton is left as it is.
+  const [upload, setUpload] = useState<UploadResult | null>(null);
+  const [reading, setReading] = useState(false);
+  /** null until the user answers whether to correct the uploaded dieline's problems. */
+  const [corrected, setCorrected] = useState<boolean | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const onUpload = async (file: File | undefined) => {
+    if (!file) return;
+    setReading(true);
+    setCorrected(null);
+    try {
+      const { analysePdf } = await import("@/lib/upload");
+      setUpload(await analysePdf(file));
+    } catch {
+      setUpload({ ok: false, fileName: file.name, reason: "This PDF could not be read." });
+    } finally {
+      setReading(false);
+      setView("3d");
+    }
+  };
 
   const svg = useMemo(() => renderSvg(d, { layers, margin: 6, blankFill: "#ffffff" }), [d, layers]);
 
@@ -149,6 +171,10 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
             </button>
           ))}
         </div>
+        <button type="button" onClick={() => fileInput.current?.click()} disabled={reading} className="mr-1 h-7 rounded-full border border-rule bg-paper px-3 text-[11px] hover:border-ink">
+          {reading ? "Reading…" : "Upload design"}
+        </button>
+        <input ref={fileInput} type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => onUpload(e.target.files?.[0] ?? undefined)} />
         {view === "flat" && LAYER_ORDER.filter((l) => hasContent(d, l)).map((l) => {
           const st = LAYERS[l];
           const onL = layers.has(l);
@@ -168,7 +194,8 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
       </div>
       {view === "3d" && (
         <div className="relative min-h-0 flex-1">
-          <Fold3D model={d.model3d} />
+          {upload?.ok ? <Fold3D model={upload.model} art={upload.art} fileBase={upload.fileName.replace(/\.pdf$/i, "")} /> : <Fold3D model={d.model3d} />}
+          {upload && <UploadPanel upload={upload} corrected={corrected} onAnswer={setCorrected} onClose={() => setUpload(null)} />}
           <Inset label="Flat" onClick={() => setView("flat")}>
             <div className="h-full w-full p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
           </Inset>
@@ -199,6 +226,61 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
           <ZoomBtn label="Zoom in" onClick={() => zoomAt(...center(), 1.4)}>+</ZoomBtn>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** What was found in an uploaded PDF, with any problems in its dieline and the offer to correct them. */
+function UploadPanel({ upload, corrected, onAnswer, onClose }: { upload: UploadResult; corrected: boolean | null; onAnswer: (v: boolean) => void; onClose: () => void }) {
+  return (
+    <div className="absolute bottom-3 left-3 z-10 w-[min(92%,380px)] rounded-md border border-rule bg-paper p-3 text-[12px] leading-relaxed shadow-sm" role="status">
+      <div className="flex items-start justify-between gap-3">
+        <p className="min-w-0 truncate font-medium">{upload.fileName}</p>
+        <button type="button" onClick={onClose} className="shrink-0 text-mute hover:text-ink" aria-label="Close the uploaded design">
+          Back to my carton
+        </button>
+      </div>
+      {!upload.ok ? (
+        <p className="mt-1 text-danger">{upload.reason}</p>
+      ) : (
+        <>
+          <p className="mt-1 text-mute">Matched: {upload.label}</p>
+          {upload.issues.length > 0 && corrected === null && (
+            <div className="mt-2 rounded border border-danger/40 p-2">
+              <p className="font-medium text-danger">This dieline has {upload.issues.length === 1 ? "a problem" : `${upload.issues.length} problems`}:</p>
+              <ul className="mt-1 list-disc pl-4">
+                {upload.issues.map((c) => (
+                  <li key={c.id}>
+                    {c.closure}: {c.detail}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-1">Correct the dieline? The 3D view and the corrected dieline use the app&apos;s construction at your file&apos;s size.</p>
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={() => onAnswer(true)} className="h-8 rounded-md bg-ink px-3 font-medium text-paper">
+                  Correct it
+                </button>
+                <button type="button" onClick={() => onAnswer(false)} className="h-8 rounded-md border border-rule px-3">
+                  Keep as drawn
+                </button>
+              </div>
+            </div>
+          )}
+          {corrected === true && (
+            <p className="mt-2">
+              Corrected.{" "}
+              <button
+                type="button"
+                className="underline underline-offset-2"
+                onClick={() => downloadDieline("pdf", upload.dieline, { projectName: `${upload.fileName.replace(/\.pdf$/i, "")} corrected`, version: null, author: null }, new Set(LAYER_ORDER))}
+              >
+                Download the corrected dieline
+              </button>
+            </p>
+          )}
+          {corrected === false && <p className="mt-2 text-mute">Kept as drawn. The 3D view folds the app&apos;s construction at your size; your file&apos;s problems are listed above when you upload it again.</p>}
+        </>
+      )}
     </div>
   );
 }

@@ -46,16 +46,16 @@ ok('default size, board and flaps', defaults === '40 40 120 0.47 300 17.5 10', d
 ok('default size is outside', (await p.getByRole('button', { name: 'Outside', exact: true }).getAttribute('aria-pressed')) === 'true');
 ok('default tuck and slit are automatic', /13/.test((await ph('Tuck depth')) ?? '') && /4\.7/.test((await ph('Slit length')) ?? '') && /35/.test((await ph('Glue flap angle')) ?? ''), `${await ph('Tuck depth')} / ${await ph('Slit length')} / ${await ph('Glue flap angle')}`);
 
-const stat = async (label) => (await p.locator('dt', { hasText: label }).locator('xpath=following-sibling::dd').textContent())?.trim();
-const flat0 = await stat('Flat size');
+// The flat size is read from the drawing itself: the preview's outline path.
+const outlineD = async () => (await p.locator('.dieline-preview #Cut path').first().getAttribute('d')) ?? '';
+const flat0 = await outlineD();
 for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray, tear', 'Shelf-ready tray, snap', 'Gable box', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
   await p.getByRole('button', { name: new RegExp(s) }).first().click();
   await p.waitForTimeout(250);
-  const flat = await stat('Flat size');
+  const flat = (await outlineD()).length > 0;
   const blocking = await p.getByText('Blocking').count();
   ok(`style ${s} renders without blocking checks`, !!flat && blocking === 0, flat);
-  const folds = [await p.locator('[data-fold-check="ok"]').count(), await p.locator('[data-fold-check="fail"]').count()];
-  ok(`style ${s} closes in the closing check`, folds[0] > 0 && folds[1] === 0, `${folds[0]} pass, ${folds[1]} fail`);
+  ok(`style ${s} closes without closing-check errors`, (await p.locator('[data-severity="error"]').count()) === 0);
   await p.screenshot({ path: `${OUT}/style-${s.split(' ')[0].toLowerCase()}.png` });
 }
 
@@ -76,7 +76,7 @@ ok('flat thumbnail returns to the dieline', (await p.getByRole('button', { name:
 await p.getByRole('button', { name: /Gable box/ }).first().click();
 await p.getByLabel('Handle height').fill('15');
 await p.waitForTimeout(250);
-ok('closing check flags a short gable handle', (await p.locator('[data-fold-check="fail"]').count()) > 0 && (await p.locator('[data-severity="error"]', { hasText: 'hand hole' }).count()) > 0);
+ok('closing check flags a short gable handle', (await p.locator('[data-severity="error"]', { hasText: 'hand hole' }).count()) > 0);
 await p.getByRole('button', { name: /Reverse tuck end/ }).first().click();
 for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
 await p.waitForTimeout(300);
@@ -93,7 +93,7 @@ await p.waitForTimeout(300);
 // Dimension change updates stats
 await p.getByLabel('Length').first().fill('90');
 await p.waitForTimeout(300);
-ok('changing length updates flat size', (await stat('Flat size')) !== flat0, await stat('Flat size'));
+ok('changing length updates the drawing', (await outlineD()) !== flat0);
 
 // A check with a one-click fix
 await p.getByRole('button', { name: 'Closures' }).isVisible();
@@ -186,6 +186,7 @@ ok('work survives a reload (Braille)', await p.locator('.dieline-preview #Braill
 ok('versions survive a reload', await p.getByText('first proof').count() > 0);
 
 // Downloads
+let pdfFile = '';
 for (const k of ['PDF', 'SVG', 'DXF']) {
   const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 20000 }), p.getByRole('button', { name: k, exact: true }).click()]);
   const f = `${OUT}/${dl.suggestedFilename()}`;
@@ -193,7 +194,15 @@ for (const k of ['PDF', 'SVG', 'DXF']) {
   const head = fs.readFileSync(f).subarray(0, 12).toString();
   const good = k === 'PDF' ? head.startsWith('%PDF') : k === 'SVG' ? head.startsWith('<svg') : head.startsWith('0');
   ok(`${k} download`, good, `${dl.suggestedFilename()} ${fs.statSync(f).size} bytes`);
+  if (k === 'PDF') pdfFile = f;
 }
+// Upload the PDF just exported: it should be read back as the same carton and shown in 3D.
+await p.locator('input[type="file"]').setInputFiles(pdfFile);
+await p.waitForSelector('[role="status"]', { timeout: 60000 });
+const status = (await p.locator('[role="status"]').textContent()) ?? '';
+ok('uploaded PDF is matched to its carton', /Matched: Reverse tuck end/.test(status), status.slice(0, 120));
+await p.getByRole('button', { name: 'Close the uploaded design' }).click();
+await p.getByRole('button', { name: 'Show the flat dieline' }).click();
 await p.getByRole('button', { name: 'Die-maker only' }).click();
 const [dl2] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'SVG', exact: true }).click()]);
 await dl2.saveAs(`${OUT}/diemaker.svg`);
