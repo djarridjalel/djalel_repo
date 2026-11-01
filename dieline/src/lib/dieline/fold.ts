@@ -63,11 +63,11 @@ function clip(subject: Pt[][], clipBy: Pt[][], type: number): Pt[][] {
   c.Execute(type, out, ClipperLib.PolyFillType.pftNonZero, ClipperLib.PolyFillType.pftNonZero);
   return out.map(fromC);
 }
-const inter = (a: Pt[][], b: Pt[][]) => clip(a, b, ClipperLib.ClipType.ctIntersection);
-const diff = (a: Pt[][], b: Pt[][]) => clip(a, b, ClipperLib.ClipType.ctDifference);
+export const inter = (a: Pt[][], b: Pt[][]) => clip(a, b, ClipperLib.ClipType.ctIntersection);
+export const diff = (a: Pt[][], b: Pt[][]) => clip(a, b, ClipperLib.ClipType.ctDifference);
 const union = (a: Pt[][]) => clip(a, [], ClipperLib.ClipType.ctUnion);
-const area = (ps: Pt[][]) => ps.reduce((s, p) => s + Math.abs(ClipperLib.Clipper.Area(toC(p))) / (SC * SC), 0);
-const rect = (x0: number, y0: number, x1: number, y1: number): Pt[] => [pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)];
+export const area = (ps: Pt[][]) => ps.reduce((s, p) => s + Math.abs(ClipperLib.Clipper.Area(toC(p))) / (SC * SC), 0);
+export const rect = (x0: number, y0: number, x1: number, y1: number): Pt[] => [pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)];
 function bounds(ps: Pt[][]) {
   const all = ps.flat();
   if (!all.length) return null;

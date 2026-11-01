@@ -173,5 +173,6 @@ export function generate(params: CartonParams): Dieline {
     stats,
     issues: allIssues,
     fold,
+    model3d: blank.model3d ?? { faces: [] },
   };
 }

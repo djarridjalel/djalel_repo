@@ -29,8 +29,9 @@ import {
   type LocalPanel,
   type Piece,
 } from "./closures";
-import type { ClosurePiece, FoldResult } from "./fold";
-import { arc3, clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Seg, type Xf } from "./geom";
+import { area, rect, type ClosurePiece, type FoldResult } from "./fold";
+import { FaceList, piecePoly, split, type Model3D } from "./fold3d";
+import { arc3, clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Pt, type Seg, type Xf } from "./geom";
 import { hasTopLid, isTray, type CartonParams, type Dimension, type Panel, type Region, type Resolved, type Stroke, type TextItem } from "./types";
 
 export interface Blank {
@@ -44,6 +45,8 @@ export interface Blank {
   closures?: ClosurePiece[];
   /** Closing checks computed by builders that are not tubes. */
   fold?: FoldResult;
+  /** Faces and hinges for the 3D folding view. */
+  model3d?: Model3D;
 }
 
 type Slot =
@@ -305,7 +308,100 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const dims = buildDims(p, r, X, panels);
   const texts = buildLabels(p, panels);
   strokes.push(...grainArrow(p, panels));
-  return { outline, strokes, regions, panels, dims, texts, closures };
+  const model3d = tubeModel();
+  return { outline, strokes, regions, panels, dims, texts, closures, model3d };
+
+  /** The tube folded in 3D: glue flap, body wrapped round, then the bottom and the top closed in their working order. */
+  function tubeModel(): Model3D {
+    const F = new FaceList();
+    const body: number[] = [];
+    const rootPos = ORDER.indexOf(0);
+    body[0] = F.add([pt(X[0], 0), pt(X[0] + pw[0], 0), pt(X[0] + pw[0], Hp), pt(X[0], Hp)], -1, null);
+    for (const dir of [1, -1]) {
+      for (let j = rootPos + dir; j >= 0 && j < 4; j += dir) {
+        const i = ORDER[j];
+        const parent = ORDER[j - dir];
+        const x = dir > 0 ? X[i] : X[parent];
+        body[i] = F.add([pt(X[i], 0), pt(X[i] + pw[i], 0), pt(X[i] + pw[i], Hp), pt(X[i], Hp)], body[parent], [pt(x, 0), pt(x, Hp)], 90, 0.12, 0.4);
+      }
+    }
+    F.add([pt(0, 0), pt(-g, taper), pt(-g, Hp - taper), pt(0, Hp)], body[ORDER[0]], [pt(0, 0), pt(0, Hp)], 90, 0, 0.14);
+
+    for (const which of ["bottom", "top"] as const) {
+      const slots = which === "top" ? top : bottom;
+      const pieces = which === "top" ? topPieces : botPieces;
+      const [a, b] = which === "bottom" ? [0.42, 0.7] : [0.72, 1];
+      const stage = (k: number, n: number): [number, number] => [a + ((b - a) * k) / n, Math.min(b, a + ((b - a) * (k + 1.3)) / n)];
+      const map = (i: number) => (q: { x: number; y: number }) => (which === "top" ? pt(X[i] + q.x, -q.y) : pt(X[i] + q.x, Hp + q.y));
+      const tuck = slots.includes("lid");
+      const snapEnd = slots.includes("snapNotch");
+      const n = tuck || snapEnd ? 3 : 2;
+      for (let i = 0; i < 4; i++) {
+        const slot = slots[i];
+        const m = map(i);
+        const local = piecePoly(pieces[i].outline);
+        const hinge: [Pt, Pt] = [m(pt(0, 0)), m(pt(pw[i], 0))];
+        const bodyFace = body[i];
+        const add = (poly: Pt[], parent: number, h: [Pt, Pt], angle: number, win: [number, number], layer: number) => F.add(poly.map(m), parent, [m(h[0]), m(h[1])], angle, win[0], win[1], layer);
+        if (slot === "none") continue;
+        if (slot === "hanger" || slot === "lockTab" || slot === "gableEnd") {
+          F.add(local.map(m), bodyFace, hinge, 0);
+          continue;
+        }
+        if (slot === "lid") {
+          const vT = t + r.lidDepth;
+          const parts = split(local, rect(-1, -1, pw[i] + 1, vT));
+          const lid = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2) : -1;
+          for (const q of parts.outside) add(q, lid, [pt(0, vT), pt(pw[i], vT)], 90, stage(1.6, n), 1);
+          continue;
+        }
+        if (slot === "dust") {
+          add(local, bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), 0);
+          continue;
+        }
+        if (slot === "gableRoof") {
+          const roof = Math.max(5, r.Wi / 2 - t / 2);
+          const parts = split(local, rect(-1, -1, pw[i] + 1, roof));
+          const rf = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), i === 2 ? 1 : 0) : -1;
+          for (const q of parts.outside) add(q, rf, [pt(0, roof), pt(pw[i], roof)], -90, stage(0.8, n), 0);
+          continue;
+        }
+        if (slot === "crashMain") {
+          // The glued triangle beyond the 45° crease is folded onto the side flap on the gluer.
+          const parts = split(local, [pt(-1, -1), pt(1e4, -1), pt(1e4, 1e4)]);
+          const main = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.5, stage(0, n), 1) : -1;
+          for (const q of parts.outside) add(q, main, [pt(0, 0), pt(1, 1)], -180, [0, 0.12], 1);
+          continue;
+        }
+        if (slot === "crashSide") {
+          add(local, bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), 0);
+          continue;
+        }
+        if (slot === "snapNotch") {
+          add(local, bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), 1);
+          continue;
+        }
+        if (slot === "snapTongue") {
+          // The tongue lies over everything; its tab dips under the notch flap.
+          const parts = split(local, rect(-1, -1, pw[i] + 1, c));
+          const tongue = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 88.8, stage(2, n), 3) : -1;
+          for (const q of parts.outside) add(q, tongue, [pt(0, c), pt(pw[i], c)], 3, stage(2.5, n), 0);
+          continue;
+        }
+        if (slot === "snapHookL" || slot === "snapHookR") {
+          // The hook lies over the notch flap; its round lobe dips under it.
+          const mm = metaFor(slot, i)!;
+          const disc = Array.from({ length: 48 }, (_, k) => pt(mm.lobeU + mm.lobeR * Math.cos((k * Math.PI) / 24), mm.lobeV + mm.lobeR * Math.sin((k * Math.PI) / 24)));
+          const halfPlane = mm.bulge > 0 ? rect(mm.lobeU, -1e3, 1e4, 1e4) : rect(-1e4, -1e3, mm.lobeU, 1e4);
+          const lobe = split(split(local, disc).inside[0] ?? [], halfPlane).inside;
+          const rest = lobe.length ? split(local, lobe[0]).outside : [local];
+          const hook = add(rest.sort((p1, p2) => area([p2]) - area([p1]))[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
+          for (const q of lobe) add(q, hook, [pt(mm.lobeU, 0), pt(mm.lobeU, 1)], 4, stage(1.6, n), 0);
+        }
+      }
+    }
+    return { faces: F.faces };
+  }
 }
 
 function localToPanel(lp: LocalPanel, x0: number, which: "top" | "bottom", Hp: number): Panel {

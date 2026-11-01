@@ -1,11 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
+import dynamic from "next/dynamic";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { renderSvg } from "@/lib/dieline/export/svg";
 import { LAYERS, LAYER_ORDER } from "@/lib/dieline/layers";
 import type { Dieline, Layer } from "@/lib/dieline/types";
 
 type VB = { x: number; y: number; w: number; h: number };
+
+const Fold3D = dynamic(() => import("./Fold3D").then((m) => m.Fold3D), {
+  ssr: false,
+  loading: () => <p className="p-4 text-[12px] text-mute">Loading 3D…</p>,
+});
 
 export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<Layer>; onToggleLayer: (l: Layer) => void }) {
   const host = useRef<HTMLDivElement>(null);
@@ -13,6 +19,7 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
   const vb = useRef<VB | null>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; vb: VB; cx: number; cy: number } | null>(null);
+  const [view, setView] = useState<"flat" | "3d">("flat");
 
   const svg = useMemo(() => renderSvg(d, { layers, margin: 6, blankFill: "#ffffff" }), [d, layers]);
 
@@ -130,7 +137,19 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex flex-wrap items-center gap-1.5 border-b border-rule bg-bone px-3 py-2">
-        {LAYER_ORDER.filter((l) => hasContent(d, l)).map((l) => {
+        <div className="mr-1 flex overflow-hidden rounded-full border border-rule bg-paper text-[11px]" role="group" aria-label="View">
+          {(
+            [
+              ["flat", "Flat"],
+              ["3d", "3D"],
+            ] as const
+          ).map(([v, l]) => (
+            <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v} className={`h-7 px-3 ${view === v ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
+              {l}
+            </button>
+          ))}
+        </div>
+        {view === "flat" && LAYER_ORDER.filter((l) => hasContent(d, l)).map((l) => {
           const st = LAYERS[l];
           const onL = layers.has(l);
           return (
@@ -147,7 +166,12 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
           );
         })}
       </div>
-      <div className="relative min-h-0 flex-1 overflow-hidden">
+      {view === "3d" && (
+        <div className="min-h-0 flex-1">
+          <Fold3D model={d.model3d} />
+        </div>
+      )}
+      <div className={`relative min-h-0 flex-1 overflow-hidden ${view === "3d" ? "hidden" : ""}`}>
         <div
           ref={host}
           className="dieline-preview absolute inset-0 cursor-grab touch-none select-none active:cursor-grabbing"

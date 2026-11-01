@@ -3,6 +3,7 @@ import { textToBraille, wrapCells } from "./braille";
 import { buildBlank } from "./carton";
 import { snapHookPiece } from "./closures";
 import { foldTube } from "./fold";
+import { apply, pose } from "./fold3d";
 import { dist, samplePath, findSelfIntersection, translateXf, xfSeg } from "./geom";
 import { DEFAULT_PARAMS, generate } from "./index";
 import { resolve } from "./resolve";
@@ -322,6 +323,38 @@ describe("closing check", () => {
     const d = generate(make({ style: "gable", L: 120, W: 80, H: 100, gable: { ...DEFAULT_PARAMS.gable, handleHeight: 15 } }));
     expect(d.fold.checks.find((c) => c.id === "top.slot")!.ok).toBe(false);
     expect(d.issues.some((i) => i.severity === "error" && i.field === "fold")).toBe(true);
+  });
+});
+
+describe("3D folding", () => {
+  const SIZES: [StyleId, number, number, number][] = [
+    ["rte", 80, 40, 100],
+    ["ste", 80, 40, 100],
+    ["crash", 80, 40, 100],
+    ["snap", 80, 40, 100],
+    ["srp", 150, 100, 80],
+    ["srpSnap", 163, 183, 120],
+    ["gable", 120, 80, 100],
+    ["mailer", 220, 160, 60],
+    ["display", 200, 120, 40],
+  ];
+  const extent = (d: ReturnType<typeof generate>, t: number) => {
+    const P = pose(d.model3d, t);
+    const pts = d.model3d.faces.flatMap((f, i) => f.poly.map((q) => apply(P[i], q)));
+    return [0, 1, 2].map((k) => Math.max(...pts.map((q) => q[k])) - Math.min(...pts.map((q) => q[k])));
+  };
+
+  it("lies flat at the start and closes to the carton's size", () => {
+    for (const [style, L, W, H] of SIZES) {
+      const d = generate({ ...DEFAULT_PARAMS, style, L, W, H });
+      expect(d.model3d.faces.length, style).toBeGreaterThan(5);
+      expect(extent(d, 0)[2], style).toBeLessThan(1e-6);
+      const size = extent(d, 1).sort((a, b) => a - b);
+      const want = [L, W, H].sort((a, b) => a - b);
+      // Gable handles and display headers stand above the body; closed flaps are fanned a degree or so to show their order.
+      if (style === "gable" || style === "display") continue;
+      size.forEach((v, k) => expect(Math.abs(v - want[k]), `${style} ${size} vs ${want}`).toBeLessThan(5));
+    }
   });
 });
 

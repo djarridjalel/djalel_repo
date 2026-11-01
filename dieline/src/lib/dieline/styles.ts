@@ -6,6 +6,7 @@ import { buildLabels } from "./carton";
 import { arc3, clamp, filletPolyline, insetConvex, line, polygon, pt, reversePath, roundedRect, xfSeg, type Pt, type Seg, type Xf } from "./geom";
 import type { Blank } from "./carton";
 import type { FoldCheck } from "./fold";
+import { FaceList, type Model3D } from "./fold3d";
 import type { CartonParams, Dimension, Issue, Panel, Region, Resolved, Stroke } from "./types";
 
 const fmt = (v: number) => (Math.round(v * 10) / 10).toFixed(1);
@@ -22,8 +23,21 @@ function mirrorClose(right: Seg[], w: number): Seg[] {
   return [...right, ...reversePath(right.map((s) => xfSeg(mirrorX(w), s)))];
 }
 
-function finish(p: CartonParams, outline: Seg[], strokes: Stroke[], regions: Region[], panels: Panel[], dims: Dimension[], checks: FoldCheck[] = []): Blank {
-  return { outline, strokes, regions, panels, dims: p.showDimensions ? dims : [], texts: buildLabels(p, panels), fold: { views: [], checks } };
+function finish(p: CartonParams, outline: Seg[], strokes: Stroke[], regions: Region[], panels: Panel[], dims: Dimension[], checks: FoldCheck[] = [], model3d?: Model3D): Blank {
+  return { outline, strokes, regions, panels, dims: p.showDimensions ? dims : [], texts: buildLabels(p, panels), fold: { views: [], checks }, model3d };
+}
+
+type XY = [number, number];
+
+/** Adds a face and its mirror image (x → w − x), both given in a frame mapped onto the blank by `map`. */
+function mirrored(F: FaceList, map: (x: number, y: number) => Pt, w: number) {
+  return (poly: XY[], parent: [number, number], hinge: [XY, XY], angle: number, t0: number, t1: number, layer = 0): [number, number] => {
+    const one = (flip: boolean, par: number) => {
+      const m = ([x, y]: XY) => map(flip ? w - x : x, y);
+      return F.add(poly.map(m), par, [m(hinge[0]), m(hinge[1])], angle, t0, t1, layer);
+    };
+    return [one(false, parent[0]), one(true, parent[1])];
+  };
 }
 
 /** A closing check for builders that are not tubes. */
@@ -174,7 +188,25 @@ export function buildMailer(p: CartonParams, r: Resolved, issues: Issue[]): Blan
     check("inner", "Walls", "Inner side walls reach the base", H - t / 2 >= H - 1.5 * t, `Inner wall ${mm(H - t / 2)} mm in an outer wall of ${mm(H)} mm.`),
     check("dust", "Lid", "Lid dust flaps have room along the lid", dustRun >= 0, dustRun >= 0 ? `${mm(dustRun)} mm of straight edge between the rounded corners.` : `The rounded corners overlap by ${mm(-dustRun)} mm; the box is too tall for its width.`),
   ];
-  return finish(p, outline, strokes, [], panels, dims, checks);
+  // 3D: walls up with their ears tucked in, side walls rolled over, then the fLid with its dust flaps and fFront lip.
+  const F = new FaceList();
+  const both = mirrored(F, M, bl);
+  const one = (poly: XY[], parent: number, hinge: [XY, XY], angle: number, t0: number, t1: number, layer = 0) =>
+    F.add(poly.map(([x, y]) => M(x, y)), parent, [M(...hinge[0]), M(...hinge[1])], angle, t0, t1, layer);
+  const fBase = one([[0, 0], [bl, 0], [bl, bw], [0, bw]], -1, [[0, 0], [1, 0]], 0, 0, 0);
+  const fFront = one([[2 * t, -(H - t)], [bl - 2 * t, -(H - t)], [bl - 2 * t, t / 2], [2 * t, t / 2]], fBase, [[2 * t, t / 2], [bl - 2 * t, t / 2]], 90, 0.05, 0.3, 1);
+  both([[2 * t, t / 2], [0, 0], [-H, 0], [-H, -t], [-E, -4.72 * t], [-E, -(H - t)], [2 * t, -(H - t)]], [fFront, fFront], [[2 * t, t / 2], [2 * t, -(H - t)]], 90, 0.05, 0.3);
+  const fBack = one([[t, bw - t / 2], [bl - t, bw - t / 2], [bl - t, bw + H - t], [bl - 4 * t, yLid], [4 * t, yLid], [t, bw + H - t]], fBase, [[t, bw - t / 2], [bl - t, bw - t / 2]], 90, 0.05, 0.3, 1);
+  both([[t, bw - t / 2], [0, bw], [-H, bw], [-H, bw + t], [-E, bw + 4.72 * t], [-E, bw + H - t], [t, bw + H - t]], [fBack, fBack], [[t, bw - t / 2], [t, bw + H - t]], 90, 0.05, 0.3);
+  const outer = both([[0, 0], [0, bw], [-H, bw], [-H, 0]], [fBase, fBase], [[0, 0], [0, bw]], 90, 0.32, 0.47, 2);
+  const strip = both([[-H, 0], [-H, bw], [-(H + 3 * t), bw - t], [-(H + 3 * t), t]], outer, [[-H, 0], [-H, bw]], 90, 0.47, 0.57, 2);
+  both([[-(H + 3 * t), t], [-(H + 3 * t), bw - t], [-xi, bw - t], [-xi, t]], strip, [[-(H + 3 * t), t], [-(H + 3 * t), bw - t]], 90, 0.5, 0.62);
+  const fLid = one([[4 * t, yLid], [bl - 4 * t, yLid], [bl - 4 * t, yT], [4 * t, yT]], fBack, [[4 * t, yLid], [bl - 4 * t, yLid]], 90, 0.7, 0.85, 3);
+  both([[4 * t, yA], [4 * t - Hd, yA], [4 * t - Hd, yT - 1.7 * t - 0.16 * Hd], [2.83 * t, yT - 1.7 * t], [4 * t, yT - 1.7 * t]], [fLid, fLid], [[4 * t, yA], [4 * t, yT]], 90, 0.64, 0.74);
+  const lip = one([[t, yT], [bl - t, yT], [bl - t, yT + H], [t, yT + H]], fLid, [[4 * t, yT], [bl - 4 * t, yT]], 90, 0.84, 0.97, 2);
+  both([[t, hingeY], [t, yT + H - t / 2], [ex, ey], [2.7 * t, yT + 1.05 * t]], [lip, lip], [[t, hingeY], [t, yT + H - t / 2]], 90, 0.8, 0.9);
+
+  return finish(p, outline, strokes, [], panels, dims, checks, { faces: F.faces, root: "base" });
 }
 
 /* ------------------------------------------------------------------ */
@@ -296,5 +328,17 @@ export function buildDisplay(p: CartonParams, r: Resolved, issues: Issue[]): Bla
     check("height", "Walls", "Corner flaps fit within the wall heights", g <= Hf && Hb >= Hs, `Flaps ${mm(g)} mm wide on a ${mm(Hf)} mm front wall; back wall ${mm(Hb)} mm for ${mm(Hs)} mm sides.`),
     check("lock", "Front", "Inner front wall lands in the base slots", foot >= 0.5 * t && foot <= 4 * t, `Its foot sits ${mm(foot)} mm from the fold, inside slots ${mm(0.5 * t)}–${mm(4 * t)} mm.`),
   ];
-  return finish(p, outline, strokes, regions, panels, dims, checks);
+  // 3D: back, fFront and sloped sides up together, corner flaps glued inside, then the inner fFront wall rolled over into the fBase.
+  const F = new FaceList();
+  const pair = mirrored(F, (x, y) => pt(x, y), L);
+  const fBase = F.add([pt(0, 0), pt(L, 0), pt(L, W), pt(0, W)], -1, null);
+  F.add([pt(0, -Hb), pt(L, -Hb), pt(L, 0), pt(0, 0)], fBase, [pt(0, 0), pt(L, 0)], 90, 0.1, 0.4, 1);
+  const fFront = F.add([pt(0, W), pt(L, W), pt(L, W + Hf), pt(0, W + Hf)], fBase, [pt(0, W), pt(L, W)], 90, 0.1, 0.4, 1);
+  const fSide = pair([[L, 0], [L + Hs, 0], [L + Hf, W], [L, W]], [fBase, fBase], [[L, 0], [L, W]], 90, 0.1, 0.4);
+  pair([[L, 0], [L + Hs, 0], [L + Hs, -2], [L + Hs - 2, -g], [L + 1.5, -g], [L, -g + 1]], fSide, [[L, 0], [L + Hs, 0]], 90, 0.1, 0.4);
+  pair([[L, W], [L + Hf, W], [L + Hf, W + 2], [L + Hf - 2, W + g], [L + 1.5, W + g], [L, W + g - 1]], fSide, [[L, W], [L + Hf, W]], 90, 0.1, 0.4);
+  const strip = F.add([pt(ins, yI), pt(L - ins, yI), pt(L - ins, yJ), pt(ins, yJ)], fFront, [pt(ins, yI), pt(L - ins, yI)], 90, 0.55, 0.75);
+  F.add([pt(ins, yJ), pt(L - ins, yJ), pt(L - ins, yE), pt(ins, yE)], strip, [pt(ins, yJ), pt(L - ins, yJ)], 90, 0.6, 0.9);
+
+  return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "base" });
 }

@@ -22,7 +22,7 @@ Environment variables on Vercel (all environments):
 
 ## State today
 
-Working and tested (53 unit tests and the end-to-end checks in `scripts/e2e.mjs` passing on the live site):
+Working and tested (54 unit tests and the end-to-end checks in `scripts/e2e.mjs` passing on the live site):
 
 - Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front (crash-lock or snap-lock bottom), gable box with handle (snap-lock bottom), mailer box (FEFCO 0427), counter display with sloped sides and header.
 - Board library (GC1, GC2, SBS, GD2) with caliper allowances; inside or outside dimensions.
@@ -33,6 +33,7 @@ Working and tested (53 unit tests and the end-to-end checks in `scripts/e2e.mjs`
 - Default carton (the studio's): reverse tuck end, outside 40 × 40 × 120 mm, GC1 300 g/m², slit lock, dust flaps 17.5 mm, glue flap 10 mm, other flaps automatic. Crash-lock opens at 60 × 40 × 120 because crash-lock bottoms need the length greater than the width; snap-lock bottoms close either way round.
 - Size from blister and leaflet.
 - Closing check: every style is folded closed in software and its locks measured (lid cover, dust flap clearance, tuck depth; crash-lock reach past the centre, tongues passing, base closed; snap-lock tongue meeting the notch, tab fit and length, hook flaps lying over the notch flap with their round lobes tucked under it; gable roofs meeting and handle slots; mailer and display walls, tabs and slots). Each closed end is drawn end-on under Checks, and a failed lock blocks export like any other error.
+- 3D view (Preview › 3D): every style folds from the flat blank to the closed carton with a slider, in its closing order; drag to turn it, pinch or scroll to zoom. Faces and hinges come from the same pieces as the dieline (`model3d` from `buildBlank`, `buildMailer`, `buildDisplay`), so it follows every change. Closed flaps are fanned a degree apart to show which lies over which; the snap-lock hook lobes and the tongue's tab dip under the notch flap.
 - Checks with one-click fixes, including an error when a perforation or cut crosses a glue area; production figures (flat size, cut and crease rule length, board use, blank weight).
 - Exports: PDF (true scale, one spot colour and one layer per line type, overprint, title block), SVG (named layers), DXF R12 (named layers, mm). "Die-maker only" exports cut, crease, perforation and Braille.
 - Accounts, projects and versions are built (Supabase, row-level security) but **switched off** for testing. Without accounts, work and versions are kept in the visitor's browser.
@@ -62,12 +63,13 @@ src/lib/dieline/        geometry engine, no React
   closures.ts           lids, dust flaps, crash-lock and snap-lock flaps (local frame)
   carton.ts             assembles the four-panel tube and its closures (incl. shelf-ready tray, gable)
   fold.ts               closing check: folds tube closures onto the opening and measures the locks
+  fold3d.ts             3D folding: rigid faces hinged on the creases, posed from flat (0) to closed (1)
   styles.ts             one-piece styles that are not tubes: mailer 0427, counter display
   pharma.ts, braille.ts Braille, coding window, pharmacode, safe areas
   sizing.ts             size from blister and leaflet
   index.ts              generate(params) -> Dieline (adds bleed, stats, overlap check)
   export/               svg.ts, pdf.ts (pdf-lib), dxf.ts, common.ts (title block)
-src/components/editor/  editor UI (Controls, Preview, Checks, Editor)
+src/components/editor/  editor UI (Controls, Preview, Fold3D, Checks, Editor)
 src/app/                pages: /, /editor, /login, /signup, /projects, /projects/[id]
 scripts/e2e.mjs         end-to-end checks against a running site
 ```

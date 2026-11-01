@@ -1,4 +1,5 @@
 import type { FoldResult } from "./fold";
+import type { Model3D } from "./fold3d";
 import type { Box, Pt, Seg } from "./geom";
 
 export type Layer =
@@ -270,4 +271,6 @@ export interface Dieline {
   issues: Issue[];
   /** Closing check: each closure folded flat, with pass/fail checks. */
   fold: FoldResult;
+  /** Faces and hinges for the 3D folding view. */
+  model3d: Model3D;
 }
