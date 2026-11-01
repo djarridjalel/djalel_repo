@@ -201,13 +201,30 @@ export function foldTube(pieces: ClosurePiece[], o: { Lb: number; Wb: number; t:
       const ears = inter([notch.poly], [rect(-1, notchInner + 0.5, Lb + 1, Wb + 1)]);
       const rest = hooks.map((h) => area(inter(h.body, ears)));
       add("rest", "Hook flaps lie over the notch flap", rest.every((a) => a >= 1), `Each hook overlaps the notch flap beside the notch by ${rest.map((a) => r1(a / 100)).join(" and ")} cm².`);
+      const [hA, hB] = hooks.map((h) => [...h.body, ...h.lobe]);
+      const crossed = hA && hB ? area(inter(hA, hB)) : 0;
+      const [bA, bB] = [bounds(hA ?? []), bounds(hB ?? [])];
+      const between = bA && bB ? Math.max(bB.x0 - bA.x1, bA.x0 - bB.x1) : 0;
+      add("apart", "Hook flaps meet without overlapping", crossed < 1, crossed < 1 ? `The hook flaps stop ${r1(Math.max(0, between))} mm apart at the centre.` : `The hook flaps overlap each other by ${r1(crossed / 100)} cm²; each must stop short of the centre.`);
       const tucks = hooks.map((h) => {
         const a = area(h.lobe);
         const b = bounds(h.lobe);
         return { a, under: a ? area(inter(h.lobe, [notch.poly])) / a : 0, past: b ? notchInner - b.y0 : 0 };
       });
-      const tucked = tucks.every((k) => k.a > 1 && k.under >= 0.95 && k.past >= 3);
-      add("tuck", "Hook lobes tuck under the notch flap", tucked, tucked ? `Each round lobe slides ${tucks.map((k) => r1(k.past)).join(" and ")} mm under the notch flap, past the notch's inner edge.` : `The lobes are ${tucks.map((k) => r1(k.under * 100)).join(" % and ")} % under the notch flap and reach ${tucks.map((k) => r1(k.past)).join(" and ")} mm past its inner edge; each must be fully under it and at least 3 mm past the edge.`);
+      const under = tucks.every((k) => k.a > 1 && k.under >= 0.95 && k.past >= 1);
+      const deep = tucks.every((k) => k.past >= 3);
+      const pastText = tucks.map((k) => r1(k.past)).join(" and ");
+      add(
+        "tuck",
+        "Hook lobes tuck under the notch flap",
+        under && deep,
+        !under
+          ? `The lobes are ${tucks.map((k) => r1(k.under * 100)).join(" % and ")} % under the notch flap and reach ${pastText} mm past its inner edge; each must be fully under it.`
+          : deep
+            ? `Each round lobe slides ${pastText} mm under the notch flap, past the notch's inner edge.`
+            : `The lobes slide only ${pastText} mm under the notch flap; under 3 mm they grip weakly on so small a carton.`,
+        under ? "warning" : "error",
+      );
     } else if (slots.includes("crashMain")) {
       const mains = end.filter((p) => p.slot === "crashMain").map((p) => ({ p, poly: inter([foldPoly(localPoly(p), p, Lb, Wb)], [opening])[0] ?? [] }));
       const sides = end.filter((p) => p.slot === "crashSide").map((p) => inter([foldPoly(localPoly(p), p, Lb, Wb)], [opening])[0] ?? []);
@@ -242,17 +259,26 @@ export function foldTube(pieces: ClosurePiece[], o: { Lb: number; Wb: number; t:
       const tuck = lid.piece.meta?.tuckDepth ?? 0;
       add("tuck", "Tuck fits inside the carton", tuck <= o.bodyHeight - 3, `Tuck ${r1(tuck)} mm deep in a ${r1(o.bodyHeight)} mm body.`);
     } else if (slots.includes("gableRoof")) {
-      const roofs = end.filter((p) => p.slot === "gableRoof").map((p) => inter([foldPoly(localPoly(p, p.meta?.roof), p, Lb, Wb)], [opening])[0] ?? []);
+      // Sloped roofs, seen from above: each covers its horizontal run.
+      const roofs = end
+        .filter((p) => p.slot === "gableRoof")
+        .map((p) => {
+          const m = p.meta ?? {};
+          const k = m.roof ? Math.sqrt(Math.max(0, m.roof ** 2 - (m.rise ?? 0) ** 2)) / m.roof : 1;
+          return inter([foldPoly(localPoly(p, m.roof).map((q) => pt(q.x, q.y * k)), p, Lb, Wb)], [opening])[0] ?? [];
+        });
       roofs.forEach((r) => show("roof", r));
       view.marks.push({ kind: "centre", pts: [pt(0, Wb / 2), pt(Lb, Wb / 2)] });
       const roof = end.find((p) => p.slot === "gableRoof")!.meta ?? {};
       const endP = end.find((p) => p.slot === "gableEnd")?.meta ?? {};
-      const gap = Wb - 2 * (roof.roof ?? 0);
+      const run = Math.sqrt(Math.max(0, (roof.roof ?? 0) ** 2 - (roof.rise ?? 0) ** 2));
+      const gap = Wb - 2 * run;
       const max = 3 * t + 1.5;
       add("meet", "Roofs meet at the ridge", gap >= -0.5 && gap <= max, gap < -0.5 ? `The roofs overlap by ${r1(-gap)} mm.` : `${r1(gap)} mm between the roofs for the two handle layers (up to ${r1(max)} mm).`);
-      const slotOk = (endP.slotH ?? 0) >= (roof.handleEnd ?? 0) + 2;
-      add("slot", "Handle ends fit the gable slots", slotOk, `Slot ${r1(endP.slotH ?? 0)} mm high for a handle end of ${r1(roof.handleEnd ?? 0)} mm.`);
-      add("slotw", "Slots take both handle layers", (endP.slotW ?? 0) >= 2 * t, `Slot ${r1(endP.slotW ?? 0)} mm wide for 2 × ${r1(t)} mm of board.`);
+      const fill = (endP.apex ?? 0) - (roof.rise ?? 0);
+      add("ends", "Gable ends carry the roofs", fill >= 0 && fill <= 2 * t + 1, `The ends rise ${r1(endP.apex ?? 0)} mm under roofs that rise ${r1(roof.rise ?? 0)} mm.`);
+      const grip = (roof.holeH ?? 0) >= 20 && (roof.holeW ?? 0) >= 45;
+      add("grip", "Hand hole is big enough to carry by", grip, `Hand hole ${r1(Math.max(0, roof.holeW ?? 0))} × ${r1(roof.holeH ?? 0)} mm (needs at least 45 × 20 mm) in a ${r1(roof.handle ?? 0)} mm handle.`);
     } else continue;
 
     if (view.flaps.length) views.push(view);

@@ -316,13 +316,12 @@ export function crashSidePiece(w: number, c: number): Piece {
   };
 }
 
-// Snap-lock (1-2-3) bottom, after the studio's working sample. The front
-// flap carries a wide notch at its tip, the back flap a tongue whose tab is
-// as wide as the notch (less clearance); the tongue narrows to its tab
-// exactly where the notch begins, on the centre line, so closed the tab drops
-// through the notch. The side flaps carry hooks whose rounded lobes sit just
-// outside the tab's side edges and hold it. Each hook's diagonal edge faces
-// the notch flap.
+// Snap-lock (1-2-3) bottom. Closing order: the notch flap first; the two hook
+// flaps over it, each stopping just short of the centre with its round lobe
+// tucked under the notch flap past the notch's inner edge, so the hooks grip
+// it; the tongue flap last, over everything, its tab tucked under the notch
+// flap. The tongue narrows to its tab exactly where the notch begins, on the
+// centre line. Each hook's diagonal edge faces the notch flap.
 
 /** Notch flap: full width, depth D, with a centred notch of width notchW and depth notchD at its tip. */
 export function snapNotchPiece(s: { w: number; t: number; D: number; notchW: number; notchD: number }): Piece {
@@ -345,18 +344,19 @@ export function snapTonguePiece(s: { w: number; shoulder: number; D: number; tab
 }
 
 /**
- * Hook flap. The lobe (radius r) is centred `lobeDepth` from the hinge and
- * `lobeFromNotch` from the end next to the notch flap; the flap is as deep as
- * the lobe's far edge. `diagonal` is the side facing the notch flap.
+ * Hook flap, `D` deep. Its round lobe (radius r) is a half disc on the line
+ * `lobeFromNotch` from the end next to the notch flap, which closed is the
+ * notch's inner edge; the lobe runs from the hook's tip back to `D - 2r`,
+ * where the diagonal edge from the notch-side hinge corner meets it, and
+ * bulges towards the notch flap. `diagonal` is the side facing the notch flap.
  */
 export function snapHookPiece(s: { w: number; t: number; r: number; lobeDepth: number; lobeFromNotch: number; diagonal: "left" | "right" }): Piece {
   const { w, t, r } = s;
-  const c = pt(w - s.lobeFromNotch, s.lobeDepth);
   const D = s.lobeDepth + r;
-  const at = (deg: number) => pt(c.x + r * Math.cos((deg * Math.PI) / 180), c.y + r * Math.sin((deg * Math.PI) / 180));
-  const bottom = pt(c.x, D);
-  const barb = at(-75);
-  const outline: Seg[] = [line(pt(0, 0), pt(t / 2, D)), line(pt(t / 2, D), bottom), arc3(bottom, at(7.5), barb), line(barb, pt(w, 0))];
+  const u = w - s.lobeFromNotch;
+  const tip = pt(u, D);
+  const barb = pt(u, D - 2 * r);
+  const outline: Seg[] = [line(pt(0, 0), pt(t / 2, D)), line(pt(t / 2, D), tip), arc3(tip, pt(u + r, D - r), barb), line(barb, pt(w, 0))];
   const piece: Piece = { outline, strokes: [S(line(pt(0, 0), pt(w, 0)), "crease")], regions: [], panels: [] };
   return s.diagonal === "right" ? piece : mirrorPiece(piece, w);
 }
@@ -449,20 +449,12 @@ export function gableRoofPiece(s: { w: number; roof: number; handle: number; hol
   };
 }
 
-/** Gable end: a triangle standing above the end wall, slotted to hold the handle ends. */
-export function gableEndPiece(s: { w: number; t: number; apex: number; slotH: number }): Piece {
-  const { w, t, apex } = s;
-  const cx = w / 2;
-  const outline = filletPolyline([pt(0, 0), pt(cx, apex), pt(w, 0)], [0, Math.min(10, apex * 0.15), 0]);
-  const sw = Math.max(2 * t + 1, 2.5);
-  const sh = Math.min(s.slotH, apex - 6);
-  const strokes: Stroke[] = [
-    S(line(pt(0, 0), pt(cx - sw / 2, 0)), "crease"),
-    S(line(pt(cx + sw / 2, 0), pt(w, 0)), "crease"),
-    S(line(pt(cx - sw / 2, 0), pt(cx - sw / 2, sh)), "cut"),
-    S(line(pt(cx - sw / 2, sh), pt(cx + sw / 2, sh)), "cut"),
-    S(line(pt(cx + sw / 2, sh), pt(cx + sw / 2, 0)), "cut"),
-    S(line(pt(cx + sw / 2, 0), pt(cx - sw / 2, 0)), "cut"),
-  ];
-  return { outline, strokes, regions: [], panels: [] };
+/**
+ * Gable end: a triangle carrying the end wall up to the ridge, `apex` high.
+ * It is not creased: it stands with the wall, and the roofs rest on its sloped edges.
+ */
+export function gableEndPiece(s: { w: number; apex: number }): Piece {
+  const { w, apex } = s;
+  const outline = filletPolyline([pt(0, 0), pt(w / 2, apex), pt(w, 0)], [0, Math.min(3, apex * 0.05), 0]);
+  return { outline, strokes: [], regions: [], panels: [] };
 }

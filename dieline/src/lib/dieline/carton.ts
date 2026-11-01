@@ -114,25 +114,31 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const tabStrip = clamp(r.tuckDepth * 0.8, 6, Hp * 0.3);
   const tabTongue = clamp(Math.min(tabW * 0.23, tabStrip - 3), 3, 10);
   const c = r.Wi / 2 + t / 2;
-  // Snap-lock proportions from the studio's working sample: the front and
-  // back flaps reach past the centre line by the base lock reach, which is
-  // also the notch depth and the tab length, so the tongue narrows to its tab
-  // exactly where the notch begins. Each hook lobe sits 2 mm outside a side
-  // edge of the tab, part-way along it.
+  // Gable top: roofs slope up at 35° from the front and back walls to the
+  // ridge, resting on the gable ends; the handle stands up from the ridge.
+  const gableRun = Math.max(5, r.Wi / 2 - t / 2);
+  const gableRise = gableRun * Math.tan((35 * Math.PI) / 180);
+  const gableRoofLen = Math.hypot(gableRun, gableRise);
+  // Snap-lock proportions: the front and back flaps reach past the centre
+  // line by the base lock reach, which is also the notch depth and the tab
+  // length, so the tongue narrows to its tab exactly where the notch begins.
+  // Each hook flap stops just short of the centre; its lobe sits on the
+  // notch's inner edge, from the notch's near corner to the hook's tip.
   const snapLb = pw[0];
   const snapE = r.bottomExtension;
   const snapNotchW = clamp(snapLb * 0.4, 8, snapLb - 8);
   const snapTabW = snapNotchW - 2 * Math.max(t, 0.75);
-  const snapLobeDepth = snapLb / 2 + snapTabW / 2 + 2;
-  const snapR = Math.max(3, Math.min(Math.min(pw[1], pw[3]) * 0.167, snapLb * 0.147, snapLb - snapLobeDepth - 1.5));
+  const snapHookD = snapLb / 2 - Math.max(1.5, 2 * t);
+  const snapBarb = snapLb / 2 - snapNotchW / 2 - t;
+  const snapR = Math.max(2, (snapHookD - snapBarb) / 2);
   const snap = {
     D: c + snapE,
     notchW: snapNotchW,
     notchD: snapE,
     tabW: snapTabW,
     r: snapR,
-    lobeDepth: snapLobeDepth,
-    lobeFromNotch: c - snapE + 0.614 * snapE,
+    lobeDepth: snapHookD - snapR,
+    lobeFromNotch: c,
   };
 
   // Dust flaps lock on the edge facing the panel that receives the tuck.
@@ -154,9 +160,9 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
       case "lockTab":
         return lockTabPiece({ w, t, width: tabW, height: Math.max(8, r.tuckDepth - 1), strip: tabStrip, tongue: tabTongue });
       case "gableRoof":
-        return gableRoofPiece({ w, roof: Math.max(5, r.Wi / 2 - t / 2), handle: p.gable.handleHeight, holeW: p.gable.holeWidth, holeH: p.gable.holeHeight, glue: i === 2 });
+        return gableRoofPiece({ w, roof: gableRoofLen, handle: p.gable.handleHeight, holeW: p.gable.holeWidth, holeH: p.gable.holeHeight, glue: i === 2 });
       case "gableEnd":
-        return gableEndPiece({ w, t, apex: p.gable.handleHeight, slotH: p.gable.handleHeight * 0.7 + 6 });
+        return gableEndPiece({ w, apex: gableRise + t });
       case "lid":
         return lidPiece({
           w,
@@ -217,9 +223,9 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         ? // Mirrored pieces: the glued triangle lies beyond the 45° crease u = v.
           { glueBeyondUeqV: 1 }
       : slot === "gableRoof"
-        ? { roof: Math.max(5, r.Wi / 2 - t / 2), handleEnd: handle * 0.7 }
+        ? { roof: gableRoofLen, rise: gableRise, handle, holeW: Math.min(p.gable.holeWidth, pw[i] - 2 * clamp(pw[i] * 0.19, Math.min(3, handle * 0.035) + 4, pw[i] / 2 - 8) - 4), holeH: Math.min(p.gable.holeHeight, handle * 0.6) }
         : slot === "gableEnd"
-          ? { slotH: Math.min(handle * 0.7 + 6, handle - 6), slotW: Math.max(2 * t + 1, 2.5) }
+          ? { apex: gableRise + t }
           : slot === "snapHookL" || slot === "snapHookR"
             ? // The rounded lobe, as drawn: centre, radius and the side it bulges to.
               slot === "snapHookR"
@@ -360,10 +366,12 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
           continue;
         }
         if (slot === "gableRoof") {
-          const roof = Math.max(5, r.Wi / 2 - t / 2);
+          // Slope 35°: the roof turns in by 55° from the wall, the handle back up by the same.
+          const roof = gableRoofLen;
+          const turn = 90 - (Math.atan2(gableRise, gableRun) * 180) / Math.PI;
           const parts = split(local, rect(-1, -1, pw[i] + 1, roof));
-          const rf = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 90, stage(0, n), i === 2 ? 1 : 0) : -1;
-          for (const q of parts.outside) add(q, rf, [pt(0, roof), pt(pw[i], roof)], -90, stage(0.8, n), 0);
+          const rf = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], turn, stage(0, n), i === 2 ? 1 : 0) : -1;
+          for (const q of parts.outside) add(q, rf, [pt(0, roof), pt(pw[i], roof)], -turn, stage(0.8, n), 0);
           continue;
         }
         if (slot === "crashMain") {

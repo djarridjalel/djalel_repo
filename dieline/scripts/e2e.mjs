@@ -72,7 +72,7 @@ await p.getByRole('button', { name: 'Flat', exact: true }).click();
 await p.getByRole('button', { name: /Gable box/ }).first().click();
 await p.getByLabel('Handle height').fill('15');
 await p.waitForTimeout(250);
-ok('closing check flags a short gable handle', (await p.locator('[data-fold-check="fail"]').count()) > 0 && (await p.locator('[data-severity="error"]', { hasText: 'gable slots' }).count()) > 0);
+ok('closing check flags a short gable handle', (await p.locator('[data-fold-check="fail"]').count()) > 0 && (await p.locator('[data-severity="error"]', { hasText: 'hand hole' }).count()) > 0);
 await p.getByRole('button', { name: /Reverse tuck end/ }).first().click();
 for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
 await p.waitForTimeout(300);

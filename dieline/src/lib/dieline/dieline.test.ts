@@ -280,7 +280,7 @@ describe("closing check", () => {
   it("folds both ends of a tube and draws each one", () => {
     const d = generate(make({ style: "snap", L: 120, W: 80, H: 100 }));
     expect(d.fold.views.map((v) => v.id)).toEqual(["top", "bottom"]);
-    expect(d.fold.checks.map((c) => c.id)).toEqual(expect.arrayContaining(["top.cover", "top.dust", "top.tuck", "bottom.align", "bottom.fit", "bottom.rest", "bottom.tuck"]));
+    expect(d.fold.checks.map((c) => c.id)).toEqual(expect.arrayContaining(["top.cover", "top.dust", "top.tuck", "bottom.align", "bottom.fit", "bottom.rest", "bottom.apart", "bottom.tuck"]));
   });
 
   it("reproduces the studio snap-lock: notch and tab line up, tab fits, hooks hold", () => {
@@ -306,7 +306,7 @@ describe("closing check", () => {
     const blank = buildBlank(p, r);
     const o = { Lb: (r.panelWidths[0] + r.panelWidths[2]) / 2, Wb: (r.panelWidths[1] + r.panelWidths[3]) / 2, t: r.t, bodyHeight: r.bodyHeight };
     const ok = foldTube(blank.closures!, o).checks;
-    expect(ok.filter((c) => c.id === "bottom.rest" || c.id === "bottom.tuck").map((c) => c.ok)).toEqual([true, true]);
+    expect(ok.filter((c) => c.id === "bottom.rest" || c.id === "bottom.apart" || c.id === "bottom.tuck").map((c) => c.ok)).toEqual([true, true, true]);
     // Move the lobes 30 mm toward the back: they no longer reach under the notch flap.
     const moved = blank.closures!.map((c) => {
       if (!c.slot.startsWith("snapHook")) return c;
@@ -319,9 +319,9 @@ describe("closing check", () => {
     expect(foldTube(moved, o).checks.find((c) => c.id === "bottom.tuck")!.ok).toBe(false);
   });
 
-  it("blocks a gable whose handle is too short for the slots", () => {
+  it("blocks a gable whose handle is too short to hold a hand hole", () => {
     const d = generate(make({ style: "gable", L: 120, W: 80, H: 100, gable: { ...DEFAULT_PARAMS.gable, handleHeight: 15 } }));
-    expect(d.fold.checks.find((c) => c.id === "top.slot")!.ok).toBe(false);
+    expect(d.fold.checks.find((c) => c.id === "top.grip")!.ok).toBe(false);
     expect(d.issues.some((i) => i.severity === "error" && i.field === "fold")).toBe(true);
   });
 });
