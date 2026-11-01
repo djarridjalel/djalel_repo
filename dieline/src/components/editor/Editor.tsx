@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generate, normalizeParams } from "@/lib/dieline";
-import { LAYERS, LAYER_ORDER } from "@/lib/dieline/layers";
+import { LAYER_ORDER } from "@/lib/dieline/layers";
 import type { CartonParams, Layer } from "@/lib/dieline/types";
 import { downloadDieline } from "@/lib/download";
 import type { ProjectStore, VersionRow } from "@/lib/projects";
 import { Brand } from "../Brand";
 import { Button } from "../ui";
-import { Checks, ClosingCheck, Stats } from "./Checks";
+import { Checks } from "./Checks";
 import { ContentsDialog } from "./ContentsDialog";
 import { Controls } from "./Controls";
 import { Preview } from "./Preview";
@@ -124,10 +124,6 @@ export function Editor({
         <Checks d={d} set={set} />
       </div>
       <div>
-        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Closing check</h2>
-        <ClosingCheck d={d} />
-      </div>
-      <div>
         <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Download</h2>
         <div className="grid grid-cols-3 gap-2">
           {(["pdf", "svg", "dxf"] as const).map((k) => (
@@ -159,10 +155,6 @@ export function Editor({
             : "Every layer switched on in the preview, in its own named spot colour, plus a title block."}
         </p>
         {blocking && <p className="mt-2 text-[12px] text-danger">Fix the blocking checks before sending this dieline to production.</p>}
-      </div>
-      <div>
-        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Production</h2>
-        <Stats d={d} />
       </div>
       <div>
         <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Versions</h2>
@@ -213,21 +205,8 @@ export function Editor({
           </ul>
         )}
       </div>
-      <div className="rounded-md border border-dashed border-rule p-3">
-        <p className="text-[12px] leading-relaxed text-mute">Colour key</p>
-        <ul className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1">
-          {LAYER_ORDER.map((l) => (
-            <li key={l} className="flex items-center gap-2 text-[12px]">
-              <span className="h-2.5 w-2.5 rounded-full" style={{ background: LAYERS[l].color }} />
-              {LAYERS[l].label}
-            </li>
-          ))}
-        </ul>
-      </div>
     </div>
   );
-
-  const issueCount = d.issues.filter((i) => i.severity !== "info").length;
 
   return (
     <div className="flex h-dvh flex-col bg-bone">
@@ -283,7 +262,7 @@ export function Editor({
           [
             ["design", "Design"],
             ["preview", "Preview"],
-            ["output", issueCount ? `Checks · ${issueCount}` : "Checks & export"],
+            ["output", d.issues.some((i) => i.severity !== "info") ? `Checks · ${d.issues.filter((i) => i.severity !== "info").length}` : "Checks & export"],
           ] as const
         ).map(([k, l]) => (
           <button
