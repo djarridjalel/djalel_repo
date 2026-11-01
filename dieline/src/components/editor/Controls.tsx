@@ -38,14 +38,21 @@ const STYLE_SIZES: Partial<Record<StyleId, Pick<CartonParams, "L" | "W" | "H">>>
   display: { L: 200, W: 120, H: 40 },
 };
 
-/** Switches style, and moves to a starting size when the current one cannot be built in the new style. */
+/**
+ * Switches style. A size that is still some style's starting size (not one the
+ * user typed) follows the new style's starting size, back to the studio default
+ * for the tuck-end cartons; a size the user typed is kept unless it cannot be
+ * built in the new style.
+ */
 function styleChange(p: CartonParams, style: StyleId): Partial<CartonParams> {
-  const size = STYLE_SIZES[style];
-  if (!size) return { style };
+  const start = (s: StyleId) => STYLE_SIZES[s] ?? { L: DEFAULT_PARAMS.L, W: DEFAULT_PARAMS.W, H: DEFAULT_PARAMS.H };
+  const size = start(style);
+  const presets = [{ L: DEFAULT_PARAMS.L, W: DEFAULT_PARAMS.W, H: DEFAULT_PARAMS.H }, ...Object.values(STYLE_SIZES)];
+  const untouched = presets.some((q) => q && p.L === q.L && p.W === q.W && p.H === q.H);
+  if (untouched) return { style, ...size };
   const issues = generate({ ...p, style }).issues;
-  const untouched = p.L === DEFAULT_PARAMS.L && p.W === DEFAULT_PARAMS.W && p.H === DEFAULT_PARAMS.H;
   const unsuited = issues.some((i) => i.severity === "error" || (i.severity === "warning" && ["L", "W", "H"].includes(String(i.field))));
-  return untouched || unsuited ? { style, ...size } : { style };
+  return unsuited ? { style, ...size } : { style };
 }
 
 const STYLES: StyleId[] = [
