@@ -3,7 +3,7 @@
 // has an obvious remedy carries a one-click fix.
 
 import { clamp, round } from "./geom";
-import { hasTopLid, isTube, type CartonParams, type Issue, type Resolved } from "./types";
+import { hasTopLid, isTray, isTube, type CartonParams, type Issue, type Resolved } from "./types";
 
 export interface ResolveResult {
   r: Resolved;
@@ -63,10 +63,16 @@ export function resolve(p: CartonParams): ResolveResult {
   const bodyHeight = Hi + t;
   const lidDepth = Wi - t / 2;
 
-  // Tuck flap
-  const tuckAuto = clamp(round(Wi * 0.33, 0), 8, 25);
+  // Shelf-ready trays: depth of the tear-away front, from the top.
+  const tearDepth = clamp(p.srp.tearDepth > 0 ? p.srp.tearDepth : Math.round(bodyHeight / 2), 10, Math.max(10, bodyHeight - 10));
+
+  // Tuck flap. On a shelf-ready tray it becomes the lower part of the header,
+  // inside the back wall, so it runs down as far as the tear line to give the
+  // design more room; closed, it lies inside the tear-away front.
+  const tray = isTray(p.style);
+  const tuckAuto = tray ? Math.max(8, tearDepth - 2) : clamp(round(Wi * 0.33, 0), 8, 25);
   let tuckDepth = p.tuckDepth ?? tuckAuto;
-  const tuckMax = Math.max(6, Math.min(bodyHeight * 0.6, lidDepth + 5));
+  const tuckMax = tray ? Math.max(6, tearDepth) : Math.max(6, Math.min(bodyHeight * 0.6, lidDepth + 5));
   if (tuckDepth > tuckMax) {
     issues.push({
       severity: "warning",
@@ -96,7 +102,7 @@ export function resolve(p: CartonParams): ResolveResult {
   }
 
   const radiusMax = Math.max(0, Math.min(tuckDepth - slitOffset - 0.5, (lidW - 2 * sideClear) / 2 - 1));
-  let tuckRadius = p.tuckRadius ?? round(Math.min(tuckDepth * 0.75, radiusMax), 1);
+  let tuckRadius = p.tuckRadius ?? round(Math.min(tray ? Math.min(tuckDepth * 0.75, 12) : tuckDepth * 0.75, radiusMax), 1);
   if (tuckRadius > radiusMax) {
     issues.push({ severity: "warning", field: "tuckRadius", message: `Tuck corner radius is limited to ${down1(radiusMax)} mm by the tuck depth.`, fix: { field: "tuckRadius", value: down1(radiusMax), label: `Use ${down1(radiusMax)} mm` } });
     tuckRadius = radiusMax;
@@ -180,6 +186,7 @@ export function resolve(p: CartonParams): ResolveResult {
       bodyHeight,
       lidDepth,
       tuckDepth: round(tuckDepth, 2),
+      tearDepth,
       tuckRadius: round(tuckRadius, 2),
       slitLength: round(slitLength, 2),
       slitOffset,

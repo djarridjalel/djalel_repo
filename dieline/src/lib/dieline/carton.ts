@@ -111,7 +111,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   const tabBottom = p.lockTab && bottomRecv >= 0 && bottom[bottomRecv] === "none";
   if (tabBottom) bottom[bottomRecv] = "lockTab";
   const tabW = clamp(pw[0] * 0.44, 12, 50);
-  const tabStrip = clamp(r.tuckDepth * 0.8, 6, Hp * 0.3);
+  const tabStrip = clamp(Math.min(r.tuckDepth, 25) * 0.8, 6, Hp * 0.3);
   const tabTongue = clamp(Math.min(tabW * 0.23, tabStrip - 3), 3, 10);
   const c = r.Wi / 2 + t / 2;
   // Gable top: roofs slope up at 35° from the front and back walls to the
@@ -158,7 +158,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
       case "hanger":
         return hangerPiece(w, r.hangerHeight, p.hangTab.slot);
       case "lockTab":
-        return lockTabPiece({ w, t, width: tabW, height: Math.max(8, r.tuckDepth - 1), strip: tabStrip, tongue: tabTongue });
+        return lockTabPiece({ w, t, width: tabW, height: Math.max(8, Math.min(r.tuckDepth - 1, 24)), strip: tabStrip, tongue: tabTongue });
       case "gableRoof":
         return gableRoofPiece({ w, roof: gableRoofLen, handle: p.gable.handleHeight, holeW: p.gable.holeWidth, holeH: p.gable.holeHeight, glue: i === 2 });
       case "gableEnd":
@@ -288,7 +288,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
 
   // Tear-away front of a shelf-ready tray: depth on the front, finger-hole width and its dip.
   const tear = (() => {
-    const d = clamp(p.srp.tearDepth > 0 ? p.srp.tearDepth : Math.round(Hp / 2), 10, Math.max(10, Hp - 10));
+    const d = r.tearDepth;
     const fw = Math.min(p.srp.fingerWidth, pw[0] * 0.6);
     const sg = Math.min(fw * 0.375, Hp - d - 8);
     return { d, fw, sg, finger: fw >= 10 && sg >= 4 };
@@ -408,8 +408,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
             if (lid >= 0) Object.assign(F.faces[lid], { angle2: -178, p0: 0.55, p1: 0.85 });
           } else if (parts.inside[0]) lid = add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
           for (const q of parts.outside) {
-            const tk = add(q, lid, [pt(0, vT), pt(pw[i], vT)], 90, stage(1.6, n), 1);
-            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: -88, p0: 0.6, p1: 0.95 });
+            const tk = add(q, lid, [pt(0, vT), pt(pw[i], vT)], 91.5, stage(1.6, n), -1);
+            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: -89.5, p0: 0.6, p1: 0.95 });
           }
           continue;
         }

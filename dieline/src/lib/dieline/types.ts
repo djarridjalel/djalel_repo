@@ -232,6 +232,8 @@ export interface Resolved {
   bodyHeight: number;
   lidDepth: number;
   tuckDepth: number;
+  /** Shelf-ready trays: depth of the tear-away front from the top. */
+  tearDepth: number;
   tuckRadius: number;
   slitLength: number;
   slitOffset: number;
