@@ -203,17 +203,17 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
   );
 }
 
-/** Thumbnail of the other view in the preview's top-left corner; clicking it switches views. */
+/** The other view floating in the preview's top-left corner, without a frame; clicking it switches views. */
 function Inset({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={`Show ${label === "3D" ? "the 3D view" : "the flat dieline"}`}
-      className="absolute left-3 top-3 z-10 h-[110px] w-[150px] overflow-hidden rounded-md border border-rule bg-paper shadow-sm transition hover:border-ink sm:h-[200px] sm:w-[300px]"
+      title={label === "3D" ? "Open the 3D view" : "Back to the flat dieline"}
+      className="absolute left-3 top-3 z-10 h-[110px] w-[150px] cursor-pointer bg-transparent transition-opacity hover:opacity-80 sm:h-[200px] sm:w-[300px]"
     >
       {children}
-      <span className="pointer-events-none absolute bottom-1.5 left-1.5 rounded-full bg-ink px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-paper">{label}</span>
     </button>
   );
 }
