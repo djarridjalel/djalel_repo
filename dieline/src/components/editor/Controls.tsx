@@ -249,13 +249,6 @@ export function Controls({
               />
             )}
             <NumberField
-              label="Dust flap depth"
-              auto
-              value={p.dustDepth}
-              resolved={r.dustDepth}
-              onChange={(v) => set({ dustDepth: v })}
-            />
-            <NumberField
               label="Glue flap width"
               auto
               value={p.glueWidth}

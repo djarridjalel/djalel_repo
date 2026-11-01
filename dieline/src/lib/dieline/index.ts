@@ -25,7 +25,7 @@ export const DEFAULT_PARAMS: CartonParams = {
   tuckRadius: null,
   lock: "slit",
   slitLength: null,
-  dustDepth: 17.5,
+  dustDepth: null,
   glueWidth: 10,
   glueAngle: null,
   bottomExtension: null,

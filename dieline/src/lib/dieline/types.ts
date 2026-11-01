@@ -42,6 +42,7 @@ export interface CartonParams {
   tuckRadius: number | null;
   lock: LockType;
   slitLength: number | null;
+  /** Not used: dust flaps always reach the centre (half the length). Kept so saved projects still open. */
   dustDepth: number | null;
   glueWidth: number | null;
   glueAngle: number | null;

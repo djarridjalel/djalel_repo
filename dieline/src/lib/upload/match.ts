@@ -37,7 +37,7 @@ export function matchTube(segs: DieSeg[], body: Body, inside: (p: Pt) => boolean
   const glueW = body.xs[0] - body.left;
   const out: Match[] = [];
 
-  for (const style of familyOf(segs, body)) {
+  for (const style of familyOf(segs, body, inside)) {
     const order = ORDER(style);
     const w = body.widths;
     // Crease-to-crease widths: rte [Li, Wi+t, Li+t, Wi+t]; others [Wi, Li+t, Wi+t, Li+t].
@@ -144,7 +144,9 @@ function slotOf(style: StyleId, which: "top" | "bottom", panel: number): string 
 }
 
 export interface Orientation {
-  /** -1 mirrors that axis about the page centre. */
+  /** The drawing turned on its side (x and y swapped) first, for blanks laid out across the page. */
+  swap: boolean;
+  /** Then -1 mirrors that axis about the (turned) page centre. */
   sx: 1 | -1;
   sy: 1 | -1;
 }
@@ -163,15 +165,19 @@ export interface UploadAnalysis {
  */
 export function analyseTube(raw: DieSeg[], pageW: number, pageH: number): UploadAnalysis | null {
   let best: UploadAnalysis | null = null;
-  for (const [sx, sy] of [[1, 1], [-1, 1], [1, -1], [-1, -1]] as const) {
-    const f = (p: Pt) => pt(sx > 0 ? p.x : pageW - p.x, sy > 0 ? p.y : pageH - p.y);
+  for (const [swap, sx, sy] of [false, true].flatMap((sw) => [[sw, 1, 1], [sw, -1, 1], [sw, 1, -1], [sw, -1, -1]] as const)) {
+    const [w, h] = swap ? [pageH, pageW] : [pageW, pageH];
+    const f = (q: Pt) => {
+      const p = swap ? pt(q.y, q.x) : q;
+      return pt(sx > 0 ? p.x : w - p.x, sy > 0 ? p.y : h - p.y);
+    };
     const segs0 = raw.map((s) => ({ ...s, a: f(s.a), b: f(s.b) }));
     const { segs, board } = prepare(segs0);
     const body = findBody(segs, board);
     if (!body || body.glue !== "left" || body.widths.length !== 4) continue;
     const matches = matchTube(segs, body, board);
     if (!matches.length) continue;
-    if (!best || matches[0].score < best.matches[0].score) best = { orientation: { sx, sy }, body, segs, matches, checks: checkUploaded(matches[0], body, board) };
+    if (!best || matches[0].score < best.matches[0].score) best = { orientation: { swap, sx, sy }, body, segs, matches, checks: checkUploaded(matches[0], body, board) };
   }
   return best;
 }
@@ -181,7 +187,7 @@ export function analyseTube(raw: DieSeg[], pageW: number, pageH: number): Upload
  * crash-lock bottom has diagonal folds, a tuck-end bottom a fold across its
  * lid, a snap-lock none; a shelf-ready tray has tear lines across the body.
  */
-export function familyOf(segs: DieSeg[], body: Body): StyleId[] {
+export function familyOf(segs: DieSeg[], body: Body, board?: (p: Pt) => boolean): StyleId[] {
   const folds = segs.filter((s) => s.kind === "crease");
   const angle = (s: DieSeg) => (Math.abs(Math.atan2(s.b.y - s.a.y, s.b.x - s.a.x)) * 180) / Math.PI;
   const flat = (s: DieSeg) => angle(s) < 8 || angle(s) > 172;
@@ -192,7 +198,10 @@ export function familyOf(segs: DieSeg[], body: Body): StyleId[] {
   const atFold = (p: Pt) => [...body.xs, body.right].some((x) => Math.abs(p.x - x) < 1);
   const within = folds.filter((s) => Math.min(s.a.y, s.b.y) > body.top + 2 && Math.max(s.a.y, s.b.y) < body.bottom - 2 && (diag(s) || flat(s)) && len(s) > 8 && (atFold(s.a) || atFold(s.b)));
   const tray = within.length > 0;
-  const bottom = below.some(diag) ? "crash" : below.some((f) => flat(f) && len(f) > 8) ? "tuck" : "snap";
+  // A tuck-end bottom leaves one panel without a flap (opposite its lid); a snap-lock has a flap on every panel.
+  const edges = [body.xs[0], ...body.xs.slice(1), body.right];
+  const bare = board ? edges.slice(0, -1).some((x, j) => reach(board, x, edges[j + 1], body.bottom, 1) < 2) : false;
+  const bottom = below.some(diag) ? "crash" : bare || below.some((f) => flat(f) && len(f) > 8) ? "tuck" : "snap";
   if (bottom === "crash") return tray ? ["srp", "crash"] : ["crash", "srp"];
   if (bottom === "snap") return tray ? ["srpSnap", "snap", "gable"] : ["snap", "gable", "srpSnap"];
   return ["rte", "ste"];

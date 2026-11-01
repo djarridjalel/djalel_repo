@@ -7,15 +7,48 @@ import { pt, type Pt } from "../dieline/geom";
 import type { DieSeg } from "./pdfDieline";
 
 const CELL = 0.5;
+/** Smallest and largest of many numbers (spreading huge arrays into Math.min overflows the stack). */
+const lo = (v: number[]) => v.reduce((a, b) => (b < a ? b : a), Infinity);
+const hi = (v: number[]) => v.reduce((a, b) => (b > a ? b : a), -Infinity);
+
+/** Lines indexed by 2 mm grid cells, so "is any line near this point" stays quick on files with many lines. */
+export function lineIndex(segs: { a: Pt; b: Pt }[]) {
+  const G = 2;
+  const cells = new Map<string, number[]>();
+  segs.forEach((s, i) => {
+    for (let x = Math.floor(Math.min(s.a.x, s.b.x) / G); x <= Math.floor(Math.max(s.a.x, s.b.x) / G); x++)
+      for (let y = Math.floor(Math.min(s.a.y, s.b.y) / G); y <= Math.floor(Math.max(s.a.y, s.b.y) / G); y++) {
+        const k = x + "," + y;
+        const c = cells.get(k);
+        if (c) c.push(i);
+        else cells.set(k, [i]);
+      }
+  });
+  const dist = (p: Pt, s: { a: Pt; b: Pt }) => {
+    const dx = s.b.x - s.a.x;
+    const dy = s.b.y - s.a.y;
+    const k = Math.max(0, Math.min(1, ((p.x - s.a.x) * dx + (p.y - s.a.y) * dy) / (dx * dx + dy * dy || 1)));
+    return Math.hypot(s.a.x + k * dx - p.x, s.a.y + k * dy - p.y);
+  };
+  /** Indices of lines passing within r (at most 2 mm) of p. */
+  return (p: Pt, r: number) => {
+    const out: number[] = [];
+    const cx = Math.floor(p.x / G);
+    const cy = Math.floor(p.y / G);
+    for (let x = cx - 1; x <= cx + 1; x++)
+      for (let y = cy - 1; y <= cy + 1; y++) for (const i of cells.get(x + "," + y) ?? []) if (!out.includes(i) && dist(p, segs[i]) < r) out.push(i);
+    return out;
+  };
+}
 
 /** The blank as a filled region on a 0.5 mm grid: everything the outer cut line encloses. */
 export function region(segs: DieSeg[]) {
   const xs = segs.flatMap((s) => [s.a.x, s.b.x]);
   const ys = segs.flatMap((s) => [s.a.y, s.b.y]);
-  const ox = Math.min(...xs) - 2;
-  const oy = Math.min(...ys) - 2;
-  const W = Math.ceil((Math.max(...xs) - ox + 2) / CELL) + 1;
-  const H = Math.ceil((Math.max(...ys) - oy + 2) / CELL) + 1;
+  const ox = lo(xs) - 2;
+  const oy = lo(ys) - 2;
+  const W = Math.ceil((hi(xs) - ox + 2) / CELL) + 1;
+  const H = Math.ceil((hi(ys) - oy + 2) / CELL) + 1;
   const wall = new Uint8Array(W * H);
   for (const s of segs) {
     const n = Math.max(1, Math.ceil(Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y) / (CELL / 2)));
@@ -91,14 +124,8 @@ export function prepare(input: DieSeg[]) {
     }));
     const rest = raw.filter((s) => !edge.has(s));
     // The real outline has the folds running into it; a bleed line or frame touches nothing.
-    const near = (p: Pt, s: DieSeg) => {
-      const dx = s.b.x - s.a.x;
-      const dy = s.b.y - s.a.y;
-      const k = Math.max(0, Math.min(1, ((p.x - s.a.x) * dx + (p.y - s.a.y) * dy) / (dx * dx + dy * dy || 1)));
-      return Math.hypot(s.a.x + k * dx - p.x, s.a.y + k * dy - p.y) < 0.6;
-    };
-    const edges = [...edge];
-    const touched = rest.some((s) => s.kind === "crease" && edges.some((e) => near(s.a, e) || near(s.b, e)));
+    const nearEdge = lineIndex([...edge]);
+    const touched = rest.some((s) => s.kind === "crease" && (nearEdge(s.a, 0.6).length > 0 || nearEdge(s.b, 0.6).length > 0));
     if (!rest.length || touched || region(rest).area < r.area * 0.75) break;
     raw = rest;
   }
@@ -283,27 +310,35 @@ export function dropGuides(segs: DieSeg[]): DieSeg[] {
   const folds = segs.map((s, i) => ({ s, i })).filter((x) => x.s.kind === "crease");
   const cuts = segs.filter((s) => s.kind === "cut");
   const same = (p: Pt, q: Pt) => Math.hypot(p.x - q.x, p.y - q.y) < 0.3;
-  const onCut = (p: Pt) =>
-    cuts.some((c) => {
-      const dx = c.b.x - c.a.x;
-      const dy = c.b.y - c.a.y;
-      const k = Math.max(0, Math.min(1, ((p.x - c.a.x) * dx + (p.y - c.a.y) * dy) / (dx * dx + dy * dy || 1)));
-      return Math.hypot(c.a.x + k * dx - p.x, c.a.y + k * dy - p.y) < 0.6;
-    });
-  // Join folds that share an end into groups.
+  const nearCut = lineIndex(cuts);
+  const onCut = (p: Pt) => nearCut(p, 0.6).length > 0;
+  // Join folds that share an end into groups, looking only at ends close by.
   const group = folds.map((_, k) => k);
   const find = (k: number): number => (group[k] === k ? k : (group[k] = find(group[k])));
-  for (let a = 0; a < folds.length; a++)
-    for (let b = a + 1; b < folds.length; b++) {
-      const A = folds[a].s;
-      const B = folds[b].s;
-      if (same(A.a, B.a) || same(A.a, B.b) || same(A.b, B.a) || same(A.b, B.b)) group[find(a)] = find(b);
+  const ends = new Map<string, number[]>();
+  const key = (p: Pt) => Math.round(p.x / 0.3) + "," + Math.round(p.y / 0.3);
+  folds.forEach((f, k) => {
+    for (const p of [f.s.a, f.s.b]) {
+      const kk = key(p);
+      ends.set(kk, [...(ends.get(kk) ?? []), k]);
     }
+  });
+  folds.forEach((f, k) => {
+    for (const p of [f.s.a, f.s.b]) {
+      const [x, y] = key(p).split(",").map(Number);
+      for (let dx = -1; dx <= 1; dx++)
+        for (let dy = -1; dy <= 1; dy++)
+          for (const j of ends.get(x + dx + "," + (y + dy)) ?? []) {
+            const B = folds[j].s;
+            if (j !== k && (same(p, B.a) || same(p, B.b))) group[find(k)] = find(j);
+          }
+    }
+  });
   const drop = new Set<number>();
   const members = new Map<number, number[]>();
   folds.forEach((_, k) => members.set(find(k), [...(members.get(find(k)) ?? []), k]));
   for (const ks of members.values()) {
-    if (ks.length < 3) continue;
+    if (ks.length < 3 || ks.length > 400) continue;
     const ends = ks.flatMap((k) => [folds[k].s.a, folds[k].s.b]);
     // Closed: every end meets another end of the group. Free: no end lies on a cut.
     const closed = ends.every((p, i) => ends.some((q, j) => j !== i && same(p, q)));

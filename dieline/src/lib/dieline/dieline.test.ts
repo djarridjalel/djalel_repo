@@ -18,7 +18,7 @@ describe("carton geometry", () => {
     const d = generate(DEFAULT_PARAMS);
     const p = d.params;
     expect([p.style, p.dimMode, p.L, p.W, p.H, p.boardId, p.caliper, p.gsm, p.grain, p.lock, p.lockTab]).toEqual(["rte", "outside", 40, 40, 120, "gc1-300", 0.47, 300, "horizontal", "slit", false]);
-    expect([p.tuckDepth, p.tuckRadius, p.slitLength, p.dustDepth, p.glueWidth, p.glueAngle]).toEqual([null, null, null, 17.5, 10, null]);
+    expect([p.tuckDepth, p.tuckRadius, p.slitLength, p.dustDepth, p.glueWidth, p.glueAngle]).toEqual([null, null, null, null, 10, null]);
     expect([d.resolved.tuckDepth, d.resolved.glueAngle]).toEqual([13, 35]);
     expect(d.issues.filter((x) => x.severity !== "info")).toEqual([]);
   });
@@ -224,7 +224,6 @@ describe("carton geometry", () => {
       { tuckDepth: 200 },
       { tuckRadius: 99 },
       { lock: "slit", slitLength: 60 },
-      { dustDepth: 200 },
       { glueWidth: 80, L: 40 },
       { style: "crash", L: 120, W: 60, bottomExtension: 80 },
       { style: "snap", L: 120, W: 60, bottomExtension: 80 },
@@ -243,9 +242,12 @@ describe("carton geometry", () => {
     }
   });
 
-  it("flags overlapping flaps", () => {
-    const d = generate(make({ style: "ste", L: 60, W: 25, H: 110, dustDepth: 29.5 }));
-    expect(d.issues.find((x) => x.field === "dustDepth")).toBeDefined();
+  it("makes dust flaps meet at the centre of the length, whatever was saved", () => {
+    for (const style of ["rte", "ste"] as StyleId[]) {
+      const d = generate(make({ style, L: 60, W: 25, H: 110, dustDepth: 29.5 }));
+      expect(d.resolved.dustDepth, style).toBeCloseTo(d.resolved.Li / 2, 1);
+      expect(d.fold.checks.find((c) => c.id === "top.dust")?.ok, style).toBe(true);
+    }
   });
 });
 

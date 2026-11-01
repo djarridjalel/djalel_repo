@@ -32,10 +32,19 @@ export interface PdfDieline {
   layer: LayerInfo | null;
   /** Every layer taken as part of the dieline (cuts and folds can be on separate layers). */
   dielineLayers: string[];
+  /** The page's stroking operations (counted from 0) that draw the dieline. */
+  dielineStrokes: number[];
+  /** The dieline read from thin filled shapes instead, for files where it was outlined. */
+  fillSegs: DieSeg[];
+  /** The page's filling operations (counted from 0) that draw those shapes. */
+  dielineFills: number[];
   segs: DieSeg[];
 }
 
 const MM = 25.4 / 72;
+/** Smallest and largest of many numbers (spreading huge arrays into Math.min overflows the stack). */
+const lo = (v: number[]) => v.reduce((a, b) => (b < a ? b : a), Infinity);
+const hi = (v: number[]) => v.reduce((a, b) => (b > a ? b : a), -Infinity);
 type M = [number, number, number, number, number, number];
 const mul = (m: M, n: M): M => [
   m[0] * n[0] + m[2] * n[1],
@@ -49,6 +58,8 @@ const tx = (m: M, x: number, y: number) => ({ x: m[0] * x + m[2] * y + m[4], y: 
 
 interface Raw {
   layer: string;
+  /** Which stroke this is, counting every stroking operation on the page from 0. */
+  ordinal: number;
   pts: Pt[][];
   dashed: boolean;
   color: string;
@@ -78,23 +89,40 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
 
   const raws: Raw[] = [];
   let ctm: M = [1, 0, 0, 1, 0, 0];
-  const stack: { ctm: M; dashed: boolean; color: string }[] = [];
+  const stack: { ctm: M; dashed: boolean; color: string; fillColor: string }[] = [];
   let dashed = false;
   let color = "#000000";
+  let fillColor = "#000000";
   const layers: string[] = [];
   let path: Pt[][] = [];
   const layer = () => layers.filter(Boolean).at(-1) ?? "-";
 
+  let strokeCount = 0;
+  let fillCount = 0;
+  const thinFills: Raw[] = [];
   const flushPath = (stroke: boolean, fill: boolean) => {
     const s = stat(layer());
     if (stroke && path.length) {
-      raws.push({ layer: layer(), pts: path.map((sp) => sp.map(toMM)), dashed, color });
+      raws.push({ layer: layer(), ordinal: strokeCount, pts: path.map((sp) => sp.map(toMM)), dashed, color });
       // Count lines, not drawing calls: some files stroke a whole layer at once.
       const n = path.reduce((k, sp) => k + sp.length - 1, 0);
       s.strokes += n;
       if (dashed) s.dashed += n;
     }
-    if (fill) s.fills++;
+    if (fill) {
+      s.fills++;
+      // Thin filled shapes: dielines are sometimes drawn as outlined lines rather than strokes.
+      if (path.length) {
+        const sub = path.map((sp) => sp.map(toMM));
+        const per = sub.reduce((k, sp) => k + sp.slice(1).reduce((q, p, j) => q + Math.hypot(p.x - sp[j].x, p.y - sp[j].y), 0), 0);
+        const area = Math.abs(sub.reduce((k, sp) => k + sp.slice(1).reduce((q, p, j) => q + (sp[j].x * p.y - p.x * sp[j].y), 0), 0)) / 2;
+        const width = per ? (2 * area) / per : 0;
+        // Line-like: thin, at least 5 mm long and many times longer than wide (glyphs of small text are not).
+        if (width < 0.6 && per / 2 >= 5 && per / 2 > 25 * Math.max(width, 0.05)) thinFills.push({ layer: layer(), ordinal: fillCount, pts: sub, dashed: false, color: fillColor });
+      }
+      fillCount++;
+    }
+    if (stroke) strokeCount++;
     path = [];
   };
 
@@ -103,31 +131,41 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
     const args = ops.argsArray[i] as unknown[];
     switch (name[fn]) {
       case "save":
-        stack.push({ ctm, dashed, color });
+        stack.push({ ctm, dashed, color, fillColor });
         break;
       case "restore": {
         const st = stack.pop();
-        if (st) ({ ctm, dashed, color } = st);
+        if (st) ({ ctm, dashed, color, fillColor } = st);
         break;
       }
       case "transform":
         ctm = mul(ctm, args as M);
         break;
       case "paintFormXObjectBegin":
-        stack.push({ ctm, dashed, color });
+        stack.push({ ctm, dashed, color, fillColor });
         if (Array.isArray(args[0])) ctm = mul(ctm, args[0] as M);
         break;
       case "paintFormXObjectEnd": {
         const st = stack.pop();
-        if (st) ({ ctm, dashed, color } = st);
+        if (st) ({ ctm, dashed, color, fillColor } = st);
         break;
       }
       case "setDash":
         dashed = Array.isArray(args[0]) && (args[0] as number[]).some((v) => v > 0);
         break;
+      case "setFillRGBColor":
+      case "setFillColor":
+        fillColor = typeof args[0] === "string" ? args[0] : JSON.stringify(args);
+        break;
       case "setStrokeRGBColor":
       case "setStrokeColor":
-        color = typeof args[0] === "string" ? args[0] : JSON.stringify(args);
+        // pdf.js hands the colour over as a hex string or as red, green, blue (0-255); keep it as the hex the canvas will use.
+        color =
+          typeof args[0] === "string"
+            ? args[0]
+            : args.length >= 3 && args.slice(0, 3).every((v) => typeof v === "number")
+              ? "#" + (args.slice(0, 3) as number[]).map((v) => Math.round(v).toString(16).padStart(2, "0")).join("")
+              : JSON.stringify(args);
         break;
       case "beginMarkedContentProps": {
         const props = args[1] as { type?: string; id?: string } | null;
@@ -219,7 +257,7 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
     const lines = raws.filter((r) => r.layer === s.id).flatMap((r) => r.pts.flat());
     const xs = lines.map((p) => p.x);
     const ys = lines.map((p) => p.y);
-    const span = lines.length ? ((Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys))) / (width * height) : 0;
+    const span = lines.length ? ((hi(xs) - lo(xs)) * (hi(ys) - lo(ys))) / (width * height) : 0;
     const clean = s.strokes / (1 + 3 * s.fills + 10 * s.text + 50 * s.images);
     s.score = s.strokes >= 4 ? clean * (s.dashed > 0 ? 2 : 1) * Math.min(1, span * 3) : 0;
   }
@@ -234,7 +272,7 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
   let cutColor = "";
   if (!anyDash && mine.length) {
     const xs = mine.flatMap((r) => r.pts.flat().map((p) => p.x));
-    const left = Math.min(...xs);
+    const left = lo(xs);
     cutColor = mine.find((r) => r.pts.flat().some((p) => Math.abs(p.x - left) < 0.01))?.color ?? "";
   }
   const segs: DieSeg[] = [];
@@ -242,5 +280,20 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
     const kind = anyDash ? (r.dashed ? "crease" : "cut") : r.color === cutColor ? "cut" : "crease";
     for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) segs.push({ a: sub[j - 1], b: sub[j], kind });
   }
-  return { width, height, layers: layersOut, layer: best, dielineLayers: [...chosen], segs };
+  // Which strokes draw the dieline, to leave them out of the artwork when it has no layer of its own.
+  const dielineStrokes = mine.map((r) => r.ordinal);
+
+  // The same lines read from thin filled shapes, for files whose dieline was outlined: the colour
+  // reaching furthest out draws the cuts, the others the folds.
+  const fillPool = best && best.id !== "-" ? thinFills.filter((r) => chosen.has(r.layer)) : thinFills;
+  let minX = Infinity;
+  for (const r of fillPool) for (const sp of r.pts) for (const p of sp) if (p.x < minX) minX = p.x;
+  const outer = fillPool.find((r) => r.pts.some((sp) => sp.some((p) => Math.abs(p.x - minX) < 0.01)))?.color ?? "";
+  const fillSegs: DieSeg[] = [];
+  for (const r of fillPool) {
+    const kind = r.color === outer ? "cut" : "crease";
+    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) fillSegs.push({ a: sub[j - 1], b: sub[j], kind });
+  }
+  const dielineFills = fillPool.map((r) => r.ordinal);
+  return { width, height, layers: layersOut, layer: best, dielineLayers: [...chosen], dielineStrokes, segs, fillSegs, dielineFills };
 }

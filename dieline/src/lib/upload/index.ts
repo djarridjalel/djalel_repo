@@ -40,8 +40,11 @@ export async function analysePdf(file: File): Promise<UploadResult> {
   pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
   const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
   const read = await readPdfDieline(doc, pdfjs.OPS as unknown as Record<string, number>);
-  if (!read.segs.length) return { ok: false, fileName: file.name, reason: "No dieline found: the PDF has no stroked cut or fold lines." };
-  const found = analyseTube(read.segs, read.width, read.height);
+  if (!read.segs.length && !read.fillSegs.length) return { ok: false, fileName: file.name, reason: "No dieline found: the PDF has no cut or fold lines." };
+  // Stroked lines first; failing that, the dieline drawn as thin filled shapes.
+  let found = read.segs.length ? analyseTube(read.segs, read.width, read.height) : null;
+  const fromFills = !found && read.fillSegs.length > 0;
+  if (fromFills) found = analyseTube(read.fillSegs, read.width, read.height);
   if (!found) return { ok: false, fileName: file.name, reason: "This dieline is not one of the app's carton styles, so it cannot be folded in 3D." };
   const match = found.matches[0];
   const r = match.dieline.resolved;
@@ -56,7 +59,26 @@ export async function analysePdf(file: File): Promise<UploadResult> {
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(viewport.width);
   canvas.height = Math.round(viewport.height);
-  await page.render({ canvasContext: canvas.getContext("2d")!, viewport, optionalContentConfigPromise: Promise.resolve(oc) }).promise;
+  const real = canvas.getContext("2d")!;
+  // With no layer to hide, leave out the dieline's own drawing: the canvas strokes and fills in the order the page draws them.
+  const noLayer = read.dielineLayers.includes("-") || read.dielineLayers.length === 0;
+  const skipStroke = noLayer && !fromFills ? new Set(read.dielineStrokes) : null;
+  const skipFill = fromFills && noLayer ? new Set(read.dielineFills) : null;
+  let ns = 0;
+  let nf = 0;
+  const ctx =
+    skipStroke || skipFill
+      ? new Proxy(real, {
+          get(t, k) {
+            if (k === "stroke") return (...a: [Path2D?]) => (skipStroke?.has(ns++) ? undefined : t.stroke(...(a as [Path2D])));
+            if (k === "fill") return (...a: [CanvasFillRule?]) => (skipFill?.has(nf++) ? undefined : t.fill(...(a as [CanvasFillRule])));
+            const v = Reflect.get(t, k);
+            return typeof v === "function" ? v.bind(t) : v;
+          },
+          set: (t, k, v) => Reflect.set(t, k, v),
+        })
+      : real;
+  await page.render({ canvasContext: ctx, viewport, optionalContentConfigPromise: Promise.resolve(oc) }).promise;
 
   return {
     ok: true,
@@ -78,10 +100,14 @@ const fmt = (v: number) => (Math.round(v * 10) / 10).toString();
  * part of the artwork.
  */
 function orient(m: Model3D, o: Orientation, match: Match, W: number, H: number): Model3D {
+  // Undo the way the upload was turned for matching: unmirror on the turned page, then turn back.
+  const [w, h] = o.swap ? [H, W] : [W, H];
   const f = (p: Pt) => {
-    const x = p.x + match.dx;
-    const y = p.y + match.dy;
-    return pt(o.sx > 0 ? x : W - x, o.sy > 0 ? y : H - y);
+    const x0 = p.x + match.dx;
+    const y0 = p.y + match.dy;
+    const x = o.sx > 0 ? x0 : w - x0;
+    const y = o.sy > 0 ? y0 : h - y0;
+    return o.swap ? pt(y, x) : pt(x, y);
   };
   return {
     ...m,
@@ -91,6 +117,6 @@ function orient(m: Model3D, o: Orientation, match: Match, W: number, H: number):
       hinge: face.hinge ? [f(face.hinge[0]), f(face.hinge[1])] : null,
       lines: face.lines?.map((l) => ({ ...l, pts: l.pts.map(f) })),
     })),
-    away: m.away ? { x: m.away.x * o.sx, y: m.away.y * o.sy, z: m.away.z } : undefined,
+    away: m.away ? (o.swap ? { x: m.away.y * o.sy, y: m.away.x * o.sx, z: m.away.z } : { x: m.away.x * o.sx, y: m.away.y * o.sy, z: m.away.z }) : undefined,
   };
 }

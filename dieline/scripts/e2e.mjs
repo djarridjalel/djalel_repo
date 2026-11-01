@@ -41,8 +41,8 @@ ok('preview fits its frame', vb === '100%', vb);
 // Studio defaults on a fresh visit
 const val = async (label) => p.getByLabel(label, { exact: true }).first().inputValue();
 const ph = async (label) => p.getByLabel(label, { exact: true }).first().getAttribute('placeholder');
-const defaults = [await val('Length'), await val('Width'), await val('Height'), await val('Caliper'), await val('Grammage'), await val('Dust flap depth'), await val('Glue flap width')].join(' ');
-ok('default size, board and flaps', defaults === '40 40 120 0.47 300 17.5 10', defaults);
+const defaults = [await val('Length'), await val('Width'), await val('Height'), await val('Caliper'), await val('Grammage'), await val('Glue flap width')].join(' ');
+ok('default size, board and flaps', defaults === '40 40 120 0.47 300 10', defaults);
 ok('default size is outside', (await p.getByRole('button', { name: 'Outside', exact: true }).getAttribute('aria-pressed')) === 'true');
 ok('default tuck and slit are automatic', /13/.test((await ph('Tuck depth')) ?? '') && /4\.7/.test((await ph('Slit length')) ?? '') && /35/.test((await ph('Glue flap angle')) ?? ''), `${await ph('Tuck depth')} / ${await ph('Slit length')} / ${await ph('Glue flap angle')}`);
 

@@ -109,14 +109,8 @@ export function resolve(p: CartonParams): ResolveResult {
   }
   tuckRadius = Math.max(0, tuckRadius);
 
-  // Dust flaps fold toward each other along the length.
-  const dustMax = Li / 2 - 1;
-  const dustAuto = clamp(round(Li * 0.33, 0), 6, Math.max(6, dustMax));
-  let dustDepth = p.dustDepth ?? dustAuto;
-  if (dustDepth > dustMax) {
-    issues.push({ severity: "warning", field: "dustDepth", message: `Dust flaps deeper than ${down1(dustMax)} mm collide when folded.`, fix: { field: "dustDepth", value: down1(dustMax), label: `Use ${down1(dustMax)} mm` } });
-    dustDepth = Math.max(5, dustMax);
-  }
+  // Dust flaps fold toward each other along the length and always meet at its centre.
+  let dustDepth = round(Li / 2, 1);
   if (dustDepth < 5) dustDepth = 5;
 
   // Manufacturer's joint
@@ -171,7 +165,7 @@ export function resolve(p: CartonParams): ResolveResult {
   if (p.bleed < 0 || p.bleed > 10) issues.push({ severity: "warning", field: "bleed", message: "Bleed is normally 0–5 mm." });
 
   // Checks on tuck lids, dust flaps and tube options only apply where those parts exist.
-  const lidFields = ["tuckDepth", "tuckRadius", "slitLength", "dustDepth"];
+  const lidFields = ["tuckDepth", "tuckRadius", "slitLength"];
   const tubeFields = [...lidFields, "glueWidth", "bottomExtension", "hangTab", "zipStrip", "W"];
   const drop = !isTube(p.style) ? tubeFields : !hasTopLid(p.style) ? [...lidFields, "hangTab"] : [];
   const kept = issues.filter((i) => !(i.field && drop.includes(i.field)));
