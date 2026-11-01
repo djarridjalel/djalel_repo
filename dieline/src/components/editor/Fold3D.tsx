@@ -3,11 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
-import { apply, pose, type Model3D } from "@/lib/dieline/fold3d";
+import { apply, pose, removedFaces, type Model3D } from "@/lib/dieline/fold3d";
 
 const PRINT = "#f7f6f2";
 const INSIDE = "#c9b99a";
 const EDGE = "#3a3a3a";
+const LINE: Record<"cut" | "crease" | "perf", { color: string; dash: number; gap: number }> = {
+  cut: { color: "#3a3a3a", dash: 0, gap: 0 },
+  crease: { color: "#7a7a7a", dash: 3, gap: 2 },
+  perf: { color: "#c46a00", dash: 1.5, gap: 1.5 },
+};
 
 /**
  * The carton in 3D, folded from flat (0) to closed (1) with the slider beside it.
@@ -17,6 +22,9 @@ export function Fold3D({ model, mini = false }: { model: Model3D; mini?: boolean
   const host = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(1);
   const [noGl, setNoGl] = useState(false);
+  const steps = model.present ? 2 : 1;
+  // Back to the closed carton when the style loses its presentation step.
+  useEffect(() => setT((v) => Math.min(v, steps)), [steps]);
   const ctx = useRef<{
     renderer: THREE.WebGLRenderer;
     scene: THREE.Scene;
@@ -96,18 +104,29 @@ export function Fold3D({ model, mini = false }: { model: Model3D; mini?: boolean
     for (const o of c.faces) {
       c.group.remove(o);
       o.traverse((x) => {
-        if (x instanceof THREE.Mesh || x instanceof THREE.LineLoop) x.geometry.dispose();
+        if (x instanceof THREE.Mesh || x instanceof THREE.Line) x.geometry.dispose();
       });
     }
     c.faces = model.faces.map((f) => {
       const shape = new THREE.Shape(f.poly.map((q) => new THREE.Vector2(q.x, q.y)));
       const geo = new THREE.ShapeGeometry(shape);
       const mat = (color: string, side: THREE.Side) =>
-        new THREE.MeshLambertMaterial({ color, side, polygonOffset: true, polygonOffsetFactor: -f.layer, polygonOffsetUnits: -f.layer * 4 });
+        new THREE.MeshLambertMaterial({ color, side, transparent: true, polygonOffset: true, polygonOffsetFactor: -f.layer, polygonOffsetUnits: -f.layer * 4 });
       const o = new THREE.Group();
       o.add(new THREE.Mesh(geo, mat(PRINT, THREE.FrontSide)), new THREE.Mesh(geo, mat(INSIDE, THREE.BackSide)));
-      const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(f.poly.map((q) => new THREE.Vector3(q.x, q.y, 0))), new THREE.LineBasicMaterial({ color: EDGE }));
+      const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(f.poly.map((q) => new THREE.Vector3(q.x, q.y, 0))), new THREE.LineBasicMaterial({ color: EDGE, transparent: true }));
       o.add(edge);
+      // Cuts, creases and perforations inside the face, drawn just off both sides.
+      for (const ln of f.lines ?? []) {
+        const st = LINE[ln.kind];
+        for (const z of [0.25, -0.25]) {
+          const g = new THREE.BufferGeometry().setFromPoints(ln.pts.map((q) => new THREE.Vector3(q.x, q.y, z)));
+          const m = st.dash ? new THREE.LineDashedMaterial({ color: st.color, dashSize: st.dash, gapSize: st.gap, transparent: true }) : new THREE.LineBasicMaterial({ color: st.color, transparent: true });
+          const l = new THREE.Line(g, m);
+          if (st.dash) l.computeLineDistances();
+          o.add(l);
+        }
+      }
       o.matrixAutoUpdate = false;
       c.group.add(o);
       return o;
@@ -145,10 +164,19 @@ export function Fold3D({ model, mini = false }: { model: Model3D; mini?: boolean
   useEffect(() => {
     const c = ctx.current;
     if (!c) return;
-    const mats = pose(model, mini ? 1 : t);
+    const at = mini ? 1 : t;
+    const mats = pose(model, at);
+    // The torn-away part fades once it has come clear of the tray.
+    const fade = Math.max(0, Math.min(1, (at - 1.3) / 0.2));
+    const gone = removedFaces(model);
     c.faces.forEach((o, i) => {
       o.matrix.fromArray(mats[i]);
       o.matrixWorldNeedsUpdate = true;
+      const op = gone[i] ? 1 - fade : 1;
+      o.visible = op > 0.01;
+      o.traverse((x) => {
+        if (x instanceof THREE.Mesh || x instanceof THREE.Line) (x.material as THREE.Material).opacity = op;
+      });
     });
   }, [model, t, mini]);
 
@@ -159,18 +187,23 @@ export function Fold3D({ model, mini = false }: { model: Model3D; mini?: boolean
       <div ref={host} className="relative min-h-0 flex-1 cursor-grab overflow-hidden active:cursor-grabbing" aria-label="Carton in 3D" role="img">
         {noGl && <p className="p-4 text-[12px] text-mute">This browser cannot draw 3D (WebGL is off).</p>}
       </div>
-      <div className="flex shrink-0 items-center gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-24 sm:flex-col sm:justify-center sm:border-l sm:border-t-0 sm:px-2 sm:py-4">
-        <span className="font-mono text-[11px] uppercase tracking-wider text-mute sm:order-3">Flat</span>
+      <div className="flex shrink-0 items-center gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-28 sm:flex-col sm:justify-center sm:border-l sm:border-t-0 sm:px-2 sm:py-4">
         <input
           type="range"
           min={0}
-          max={1000}
+          max={steps * 1000}
           value={Math.round(t * 1000)}
           onChange={(e) => setT(Number(e.target.value) / 1000)}
-          aria-label="Fold from flat to closed"
-          className="fold-slider h-8 flex-1 accent-[#1a1a1a] sm:order-2 sm:h-auto sm:w-8 sm:flex-1"
+          aria-label={model.present ? `Fold from flat to closed, then to ${model.present.toLowerCase()}` : "Fold from flat to closed"}
+          className="fold-slider h-8 min-w-0 flex-1 accent-[#1a1a1a] sm:h-auto sm:w-8"
         />
-        <span className="font-mono text-[11px] uppercase tracking-wider text-mute sm:order-1">Closed</span>
+        <div className="flex shrink-0 gap-3 font-mono text-[10px] uppercase tracking-wider text-mute sm:order-first sm:flex-col-reverse sm:items-center sm:gap-1">
+          {(model.present ? ["Flat", "Closed", model.present] : ["Flat", "Closed"]).map((l, k) => (
+            <button key={l} type="button" onClick={() => setT(k)} className={`whitespace-nowrap ${Math.abs(t - k) < 0.02 ? "text-ink" : "hover:text-ink"}`}>
+              {l}
+            </button>
+          ))}
+        </div>
       </div>
     </div>
   );

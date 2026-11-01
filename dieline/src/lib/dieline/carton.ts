@@ -31,7 +31,7 @@ import {
 } from "./closures";
 import { area, rect, type ClosurePiece, type FoldResult } from "./fold";
 import { FaceList, piecePoly, split, type Model3D } from "./fold3d";
-import { arc3, clamp, insetConvex, line, pt, reversePath, xfApply, xfSeg, type Pt, type Seg, type Xf } from "./geom";
+import { arc3, clamp, insetConvex, line, pt, reversePath, sampleSeg, xfApply, xfSeg, type Pt, type Seg, type Xf } from "./geom";
 import { hasTopLid, isTray, type CartonParams, type Dimension, type Panel, type Region, type Resolved, type Stroke, type TextItem } from "./types";
 
 export interface Blank {
@@ -286,16 +286,21 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     strokes.push({ layer: "cut", seg: arc3(pt(cx, y1 + m), pt(cx - rr, (y1 + y2) / 2), pt(cx, y2 - m)) });
   } else glueBand(0, Hp);
 
-  if (isTray(p.style)) {
-    // Tear-away front: across the front, then down both sides from the back
-    // corners. The joint sits at a back corner, so the tear never crosses it.
+  // Tear-away front of a shelf-ready tray: depth on the front, finger-hole width and its dip.
+  const tear = (() => {
     const d = clamp(p.srp.tearDepth > 0 ? p.srp.tearDepth : Math.round(Hp / 2), 10, Math.max(10, Hp - 10));
     const fw = Math.min(p.srp.fingerWidth, pw[0] * 0.6);
     const sg = Math.min(fw * 0.375, Hp - d - 8);
+    return { d, fw, sg, finger: fw >= 10 && sg >= 4 };
+  })();
+  if (isTray(p.style)) {
+    // Tear-away front: across the front, then down both sides from the back
+    // corners. The joint sits at a back corner, so the tear never crosses it.
+    const { d, fw, sg } = tear;
     const x0 = X[0];
     const x1 = X[0] + pw[0];
     const cx = (x0 + x1) / 2;
-    if (fw >= 10 && sg >= 4) {
+    if (tear.finger) {
       perf(line(pt(x0, d), pt(cx - fw / 2, d)));
       perf(arc3(pt(cx - fw / 2, d), pt(cx, d + sg), pt(cx + fw / 2, d)));
       perf(line(pt(cx + fw / 2, d), pt(x1, d)));
@@ -321,14 +326,43 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
   function tubeModel(): Model3D {
     const F = new FaceList();
     const body: number[] = [];
+    /** Face that carries panel i's top closure: the tear-away part on a tray's front and sides. */
+    const topOf: number[] = [];
+    const tray = isTray(p.style);
+    const panelRect = (i: number) => [pt(X[i], 0), pt(X[i] + pw[i], 0), pt(X[i] + pw[i], Hp), pt(X[i], Hp)];
+    // On a tray, the part above the tear line is a separate face that comes away when the tray goes on the shelf.
+    const tearLine = (i: number): Pt[] => {
+      const { d, fw, sg, finger } = tear;
+      const x0 = X[i];
+      const x1 = X[i] + pw[i];
+      if (i === 0) {
+        const cx = (x0 + x1) / 2;
+        const dip = finger ? sampleSeg(arc3(pt(cx - fw / 2, d), pt(cx, d + sg), pt(cx + fw / 2, d)), 1) : [];
+        return [pt(x0, d), ...dip, pt(x1, d)];
+      }
+      return i === 1 ? [pt(x0, d), pt(x1, 0)] : i === 3 ? [pt(x0, 0), pt(x1, d)] : [];
+    };
+    const addPanel = (i: number, parent: number, hinge: [Pt, Pt] | null) => {
+      const line = tray ? tearLine(i) : [];
+      if (!line.length) return (body[i] = topOf[i] = F.add(panelRect(i), parent, hinge, hinge ? 90 : 0, 0.12, 0.4));
+      const x0 = X[i];
+      const x1 = X[i] + pw[i];
+      const lower = [...line, pt(x1, Hp), pt(x0, Hp)];
+      body[i] = F.add(lower, parent, hinge, hinge ? 90 : 0, 0.12, 0.4);
+      const upper = [pt(x0, 0), pt(x1, 0), ...[...line].reverse()].filter((q, k, a) => k === 0 || Math.hypot(q.x - a[k - 1].x, q.y - a[k - 1].y) > 1e-6);
+      topOf[i] = F.add(upper, body[i], [line[0], line[line.length - 1]], 0, 0, 0, 0);
+      if (topOf[i] >= 0) F.faces[topOf[i]].remove = true;
+      else topOf[i] = body[i];
+      return body[i];
+    };
     const rootPos = ORDER.indexOf(0);
-    body[0] = F.add([pt(X[0], 0), pt(X[0] + pw[0], 0), pt(X[0] + pw[0], Hp), pt(X[0], Hp)], -1, null);
+    addPanel(0, -1, null);
     for (const dir of [1, -1]) {
       for (let j = rootPos + dir; j >= 0 && j < 4; j += dir) {
         const i = ORDER[j];
         const parent = ORDER[j - dir];
         const x = dir > 0 ? X[i] : X[parent];
-        body[i] = F.add([pt(X[i], 0), pt(X[i] + pw[i], 0), pt(X[i] + pw[i], Hp), pt(X[i], Hp)], body[parent], [pt(x, 0), pt(x, Hp)], 90, 0.12, 0.4);
+        addPanel(i, body[parent], [pt(x, 0), pt(x, Hp)]);
       }
     }
     F.add([pt(0, 0), pt(-g, taper), pt(-g, Hp - taper), pt(0, Hp)], body[ORDER[0]], [pt(0, 0), pt(0, Hp)], 90, 0, 0.14);
@@ -347,7 +381,7 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         const m = map(i);
         const local = piecePoly(pieces[i].outline);
         const hinge: [Pt, Pt] = [m(pt(0, 0)), m(pt(pw[i], 0))];
-        const bodyFace = body[i];
+        const bodyFace = which === "top" ? (topOf[i] ?? body[i]) : body[i];
         const add = (poly: Pt[], parent: number, h: [Pt, Pt], angle: number, win: [number, number], layer: number) => F.add(poly.map(m), parent, [m(h[0]), m(h[1])], angle, win[0], win[1], layer);
         if (slot === "none") continue;
         if (slot === "hanger" || slot === "lockTab" || slot === "gableEnd") {
@@ -357,8 +391,24 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         if (slot === "lid") {
           const vT = t + r.lidDepth;
           const parts = split(local, rect(-1, -1, pw[i] + 1, vT));
-          const lid = parts.inside[0] ? add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2) : -1;
-          for (const q of parts.outside) add(q, lid, [pt(0, vT), pt(pw[i], vT)], 90, stage(1.6, n), 1);
+          let lid = -1;
+          // Shelf-ready tray lid: a crease across the middle, broken by a half-round thumb cut whose tab stays with the front half.
+          const thumbR = Math.min(clamp(pw[i] * 0.35, 0, 60) / 2, r.lidDepth / 2 - 3);
+          if (which === "top" && isTray(p.style) && thumbR > 3 && parts.inside[0]) {
+            const vm = t + r.lidDepth / 2;
+            const disc = Array.from({ length: 48 }, (_, k) => pt(pw[i] / 2 + thumbR * Math.cos((k * Math.PI) / 24), vm + thumbR * Math.sin((k * Math.PI) / 24)));
+            const back = split(rect(-1, -1, pw[i] + 1, vm), disc).outside;
+            const halves = split(parts.inside[0], back[0] ?? []);
+            const byArea = (ps: Pt[][]) => ps.sort((a, b) => area([b]) - area([a]))[0];
+            const inner = add(byArea(halves.inside), bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
+            lid = add(byArea(halves.outside), inner, [pt(0, vm), pt(pw[i], vm)], 0, stage(1, n), 2);
+            // On the shelf: once the front has come away, the lid's front half folds back over the middle crease, the thumb tab standing proud.
+            if (lid >= 0) Object.assign(F.faces[lid], { angle2: -178, p0: 0.5, p1: 0.85 });
+          } else if (parts.inside[0]) lid = add(parts.inside[0], bodyFace, [pt(0, 0), pt(pw[i], 0)], 89.4, stage(1, n), 2);
+          for (const q of parts.outside) {
+            const tk = add(q, lid, [pt(0, vT), pt(pw[i], vT)], 90, stage(1.6, n), 1);
+            if (tk >= 0 && lid >= 0 && F.faces[lid].angle2) Object.assign(F.faces[tk], { angle2: 88, p0: 0.6, p1: 0.95 });
+          }
           continue;
         }
         if (slot === "dust") {
@@ -408,7 +458,8 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
         }
       }
     }
-    return { faces: F.faces };
+    const tall = Math.max(Hp, pw[0], pw[1]);
+    return tray ? { faces: F.faces, present: "On shelf", away: { x: 0, y: -0.35 * tall, z: 1.4 * tall } } : { faces: F.faces };
   }
 }
 

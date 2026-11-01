@@ -3,7 +3,7 @@ import { textToBraille, wrapCells } from "./braille";
 import { buildBlank } from "./carton";
 import { snapHookPiece } from "./closures";
 import { foldTube } from "./fold";
-import { apply, pose } from "./fold3d";
+import { apply, pose, removedFaces } from "./fold3d";
 import { dist, samplePath, findSelfIntersection, translateXf, xfSeg } from "./geom";
 import { DEFAULT_PARAMS, generate } from "./index";
 import { resolve } from "./resolve";
@@ -354,6 +354,24 @@ describe("3D folding", () => {
       // Gable handles and display headers stand above the body; closed flaps are fanned a degree or so to show their order.
       if (style === "gable" || style === "display") continue;
       size.forEach((v, k) => expect(Math.abs(v - want[k]), `${style} ${size} vs ${want}`).toBeLessThan(5));
+    }
+  });
+
+  it("presents a shelf-ready tray: the tear-away front comes off and the lid folds back on its middle crease", () => {
+    for (const style of ["srp", "srpSnap"] as StyleId[]) {
+      const d = generate({ ...DEFAULT_PARAMS, style, L: 150, W: 100, H: 80 });
+      const m = d.model3d;
+      expect(m.present, style).toBe("On shelf");
+      const gone = removedFaces(m);
+      // Front above the tear, both side triangles and the dust flaps on them.
+      expect(gone.filter(Boolean).length, style).toBe(5);
+      const P = pose(m, 2);
+      const kept = m.faces.flatMap((f, i) => (gone[i] ? [] : f.poly.map((q) => apply(P[i], q))));
+      const span = [0, 1, 2].map((k) => Math.max(...kept.map((q) => q[k])) - Math.min(...kept.map((q) => q[k])));
+      expect(span[0], style).toBeLessThan(150 + 3);
+      expect(span[2], style).toBeLessThan(100 + 3);
+      // Nothing else moves without a presentation step.
+      expect(generate({ ...DEFAULT_PARAMS, style: "crash", L: 80, W: 40, H: 100 }).model3d.present).toBeUndefined();
     }
   });
 });

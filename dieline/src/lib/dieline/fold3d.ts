@@ -4,7 +4,7 @@
 // blank coordinates (mm, y down) with the printed side facing +z; a positive
 // angle folds a face away from the printed side, which keeps the print outside.
 
-import { samplePath, type Pt, type Seg } from "./geom";
+import { pointInPolygon, samplePath, sampleSeg, type Pt, type Seg } from "./geom";
 import { area, diff, inter } from "./fold";
 
 export interface Face3D {
@@ -21,12 +21,24 @@ export interface Face3D {
   t1: number;
   /** Stacking order where faces end up on top of each other; higher is further out. */
   layer: number;
+  /** Presentation (slider 1 → 2): a further turn in degrees, within its window p0 … p1 of that step. */
+  angle2?: number;
+  p0?: number;
+  p1?: number;
+  /** Torn away in the presentation step, with everything hanging from it. */
+  remove?: boolean;
+  /** Cuts, creases and perforations inside the face, drawn on it. */
+  lines?: { kind: "cut" | "crease" | "perf"; pts: Pt[] }[];
 }
 
 export interface Model3D {
   faces: Face3D[];
   /** The face the others hang from: an upright wall (tubes) or the base (trays, mailers). */
   root?: "wall" | "base";
+  /** Name of the presentation step (slider 1 → 2), when the carton has one. */
+  present?: string;
+  /** Where the torn-away part goes in the presentation step, in blank coordinates (mm). */
+  away?: { x: number; y: number; z: number };
 }
 
 /* ---------- building ---------- */
@@ -79,13 +91,27 @@ function rotAbout(a: Pt, u: Pt, ang: number): Mat4 {
 
 const ease = (k: number) => (k <= 0 ? 0 : k >= 1 ? 1 : k * k * (3 - 2 * k));
 
-/** World matrices of every face at time t (0 flat … 1 closed). */
+/** How far the torn-away part has gone, 0 … 1, at time t (presentation runs from 1 to 2). */
+export function removal(t: number): number {
+  return ease((t - 1) / 0.45);
+}
+
+/** Faces torn away in the presentation step, with their children. */
+export function removedFaces(m: Model3D): boolean[] {
+  const out: boolean[] = [];
+  const is = (i: number): boolean => (out[i] ??= !!m.faces[i].remove || (m.faces[i].parent >= 0 && is(m.faces[i].parent)));
+  m.faces.forEach((_, i) => is(i));
+  return out;
+}
+
+/** World matrices of every face at time t (0 flat … 1 closed … 2 presented, when the carton has a presentation step). */
 export function pose(m: Model3D, t: number): Mat4[] {
   const out: Mat4[] = new Array(m.faces.length);
   const at = (i: number): Mat4 => {
     if (out[i]) return out[i];
     const f = m.faces[i];
-    if (f.parent < 0 || !f.hinge) return (out[i] = f.parent < 0 ? IDENTITY : at(f.parent));
+    if (f.parent < 0) return (out[i] = IDENTITY);
+    if (!f.hinge) return (out[i] = at(f.parent));
     const [a, b] = f.hinge;
     const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
     const u = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
@@ -94,8 +120,14 @@ export function pose(m: Model3D, t: number): Mat4[] {
     const cy = f.poly.reduce((s, q) => s + q.y, 0) / f.poly.length - a.y;
     const side = Math.sign(u.x * cy - u.y * cx) || 1;
     const k = f.t1 > f.t0 ? ease((t - f.t0) / (f.t1 - f.t0)) : t >= f.t1 ? 1 : 0;
-    const ang = (-side * f.angle * k * Math.PI) / 180;
-    return (out[i] = mul(at(f.parent), rotAbout(a, u, ang)));
+    const k2 = f.angle2 && t > 1 ? ease((t - 1 - (f.p0 ?? 0)) / ((f.p1 ?? 1) - (f.p0 ?? 0) || 1)) : 0;
+    const ang = (-side * (f.angle * k + (f.angle2 ?? 0) * k2) * Math.PI) / 180;
+    let mat = mul(at(f.parent), rotAbout(a, u, ang));
+    if (f.remove && m.away && t > 1) {
+      const kr = removal(t);
+      mat = mul([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, m.away.x * kr, m.away.y * kr, m.away.z * kr, 1], mat);
+    }
+    return (out[i] = mat);
   };
   for (let i = 0; i < m.faces.length; i++) at(i);
   return out;
@@ -104,4 +136,31 @@ export function pose(m: Model3D, t: number): Mat4[] {
 /** Applies a matrix to a blank point (z = 0). */
 export function apply(mat: Mat4, q: Pt): [number, number, number] {
   return [mat[0] * q.x + mat[4] * q.y + mat[12], mat[1] * q.x + mat[5] * q.y + mat[13], mat[2] * q.x + mat[6] * q.y + mat[14]];
+}
+
+/** Distance from a point to a polygon's outline. */
+function edgeDist(q: Pt, poly: Pt[]): number {
+  let best = Infinity;
+  for (let i = 0; i < poly.length; i++) {
+    const a = poly[i];
+    const b = poly[(i + 1) % poly.length];
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const k = Math.max(0, Math.min(1, ((q.x - a.x) * dx + (q.y - a.y) * dy) / (dx * dx + dy * dy || 1)));
+    best = Math.min(best, Math.hypot(a.x + k * dx - q.x, a.y + k * dy - q.y));
+  }
+  return best;
+}
+
+/** Puts each cut, crease and perforation inside a face onto that face; lines along face edges are the hinges and outlines already drawn. */
+export function attachLines(m: Model3D, strokes: { layer: string; seg: Seg }[]): Model3D {
+  for (const st of strokes) {
+    if (st.layer !== "cut" && st.layer !== "crease" && st.layer !== "perf") continue;
+    const pts = sampleSeg(st.seg, 1);
+    const mid = pts[Math.floor(pts.length / 2)];
+    const at = (st.seg.kind === "line" ? { x: (st.seg.a.x + st.seg.b.x) / 2, y: (st.seg.a.y + st.seg.b.y) / 2 } : mid) ?? mid;
+    const face = m.faces.find((f) => pointInPolygon(at, f.poly) && edgeDist(at, f.poly) > 0.3);
+    if (face) (face.lines ??= []).push({ kind: st.layer, pts });
+  }
+  return m;
 }

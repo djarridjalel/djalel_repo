@@ -3,6 +3,7 @@ import { DEFAULT_BOARD } from "./boards";
 import { buildBlank } from "./carton";
 import { STYLE_NAMES } from "./export/common";
 import { foldTube } from "./fold";
+import { attachLines } from "./fold3d";
 import { buildDisplay, buildMailer } from "./styles";
 import { boxOf, findSelfIntersection, line, pointInPolygon, pt, round, samplePath, sampleSeg, segLength, signedArea, type Pt, type Seg } from "./geom";
 import { buildPharma } from "./pharma";
@@ -173,6 +174,6 @@ export function generate(params: CartonParams): Dieline {
     stats,
     issues: allIssues,
     fold,
-    model3d: blank.model3d ?? { faces: [] },
+    model3d: attachLines(blank.model3d ?? { faces: [] }, strokes),
   };
 }
