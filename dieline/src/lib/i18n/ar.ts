@@ -82,6 +82,9 @@ export const AR: Record<string, string> = {
   "Saving the carton from this browser to your account…": "جارٍ حفظ العلبة الموجودة في هذا المتصفح في حسابك…",
   "Could not save the carton from this browser to your account. It is still in this browser.": "تعذّر حفظ العلبة من هذا المتصفح في حسابك. ما زالت محفوظة في هذا المتصفح.",
   "Free for now with an account. No software to install.": "مجاني الآن مع حساب. لا برامج للتثبيت.",
+  "Privacy policy": "سياسة الخصوصية",
+  "By continuing you accept our": "بالمتابعة فإنك توافق على",
+  "privacy policy": "سياسة الخصوصية",
   // Landing
   "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":

@@ -102,6 +102,10 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
         <p className="text-[12px] text-mute">{t("No password needed. New here? The same link creates your free account.")}</p>
       </form>
 
+      <p className="text-[12px] text-mute">
+        {t("By continuing you accept our")} <Link href="/privacy" className="underline">{t("privacy policy")}</Link>.
+      </p>
+
       <p className="pt-1 text-center text-[13px] text-mute">
         {mode === "signup" ? (
           <>{t("Already have an account?")} <Link className="text-ink underline" href={`/login${next !== "/projects" ? `?next=${encodeURIComponent(next)}` : ""}`}>{t("Sign in")}</Link></>
