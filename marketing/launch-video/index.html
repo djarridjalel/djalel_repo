@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Dielines launch film</title>
+<link rel="stylesheet" href="node_modules/@fontsource-variable/roboto-flex/full.css" />
+<link rel="stylesheet" href="node_modules/@fontsource-variable/fraunces/full.css" />
+<link rel="stylesheet" href="node_modules/@fontsource-variable/inter-tight/index.css" />
+<link rel="stylesheet" href="node_modules/@fontsource/ibm-plex-mono/400.css" />
+<link rel="stylesheet" href="node_modules/@fontsource/ibm-plex-mono/500.css" />
+<link rel="stylesheet" href="node_modules/@fontsource/poppins/300.css" />
+<link rel="stylesheet" href="node_modules/@fontsource/poppins/600.css" />
+<link rel="stylesheet" href="../../dieline/node_modules/@fontsource/ibm-plex-sans-arabic/600.css" />
+<style>
+  :root {
+    --ink: #0a0a0b;
+    --bone: #e6e5e2;
+    --paper: #f7f5ef;
+    --accent: #ffce00;
+    --cut: #ff2a3d;
+    --crease: #19c26b;
+    --blue: #0b2a52;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--ink); color: var(--paper); font-family: "Inter Tight Variable", sans-serif; }
+  .layer { position: absolute; inset: 0; }
+  .center { display: flex; align-items: center; justify-content: center; }
+  .mono { font-family: "IBM Plex Mono", monospace; letter-spacing: 0.08em; text-transform: uppercase; }
+  .flex { font-family: "Roboto Flex Variable", sans-serif; }
+  .serif { font-family: "Fraunces Variable", serif; }
+
+  /* A: the cut line draws itself */
+  #grid { position: absolute; inset: -200px; background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 60px 60px; }
+  #aSvg { position: absolute; left: 50%; top: 50%; width: 1100px; height: 880px; margin: -440px 0 0 -550px; }
+  #aSvg svg { width: 100%; height: 100%; overflow: visible; }
+  #aPen { position: absolute; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; background: #fff; box-shadow: 0 0 18px 6px rgba(255,42,61,0.9), 0 0 60px 20px rgba(255,42,61,0.35); }
+  .aTag { position: absolute; font-size: 22px; color: rgba(247,245,239,0.75); }
+  .aTag b { color: var(--cut); font-weight: 500; }
+  .aTag i { font-style: normal; color: var(--crease); }
+
+  /* B: variable type */
+  #bLine { position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; line-height: 0.95; white-space: nowrap; }
+  #bLine .row { display: block; }
+  #bLine .r1 { font-size: 128px; }
+  #bLine .r2 { font-size: 230px; margin-top: 10px; }
+  #bLine span { display: inline-block; margin: 0 0.1em; font-variation-settings: "wght" 100, "wdth" 25, "opsz" 144; }
+  #bBar { position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; background: var(--accent); transform: scaleX(0); }
+  #bFlat { color: var(--accent); }
+
+  /* C: brand reveal */
+  #cBg { background: var(--bone); color: var(--ink); clip-path: inset(50% 0 50% 0); }
+  #cFold { position: absolute; left: 50%; top: 250px; width: 1240px; height: 470px; margin-left: -620px; perspective: 2200px; }
+  #cFold .half { position: absolute; top: 0; width: 50%; height: 100%; background: #fbfaf6; box-shadow: 0 30px 80px rgba(10,10,11,0.10); }
+  #cFold .l { left: 0; transform-origin: 100% 50%; border-radius: 10px 0 0 10px; }
+  #cFold .r { right: 0; transform-origin: 0 50%; border-radius: 0 10px 10px 0; }
+  #cFold .crease { position: absolute; left: 50%; top: 0; bottom: 0; width: 0; border-left: 3px dashed var(--crease); opacity: 0.55; }
+  #cWord { position: absolute; left: 0; right: 0; top: 300px; text-align: center; font-size: 250px; line-height: 1; perspective: 1200px; }
+  #cWord .ch { display: inline-block; transform-origin: 50% 80%; font-variation-settings: "SOFT" 100, "WONK" 1, "opsz" 144; font-weight: 600; }
+  #cWord .sheen { background: linear-gradient(100deg, var(--ink) 40%, #8a6d00 47%, #ffe066 50%, #8a6d00 53%, var(--ink) 60%); background-size: 300% 100%; background-position: 100% 0; -webkit-background-clip: text; background-clip: text; color: transparent; }
+  #cBy { position: absolute; left: 0; right: 0; top: 590px; text-align: center; font-family: Poppins, sans-serif; font-size: 34px; letter-spacing: 0.32em; }
+  #cBy b { font-weight: 600; } #cBy span { font-weight: 300; }
+  #cTag { position: absolute; left: 0; right: 0; top: 700px; text-align: center; font-size: 46px; font-weight: 400; color: #3a3a40; }
+  #cTag span { display: inline-block; margin: 0 0.14em; }
+
+  /* D: size to dieline */
+  #dBg { background: var(--bone); color: var(--ink); }
+  #dHead { position: absolute; left: 140px; top: 150px; font-size: 76px; font-weight: 650; letter-spacing: -0.02em; line-height: 1.05; }
+  #dHead em { font-style: normal; color: #8a6d00; }
+  #dCard { position: absolute; left: 140px; top: 430px; width: 620px; background: #fff; border-radius: 22px; padding: 34px 38px; box-shadow: 0 30px 80px rgba(10,10,11,0.12); }
+  #dCard .lbl { font-size: 16px; color: #66666e; }
+  .fields { display: flex; gap: 18px; margin-top: 16px; }
+  .field { flex: 1; border: 2px solid rgba(10,10,11,0.12); border-radius: 12px; height: 92px; display: flex; align-items: center; padding: 0 18px; gap: 8px; }
+  .field .k { font-size: 15px; color: #888; width: 18px; }
+  .odo { position: relative; height: 56px; overflow: hidden; font-family: "IBM Plex Mono", monospace; font-size: 46px; font-weight: 500; display: flex; }
+  .odo .col { display: flex; flex-direction: column; }
+  .odo .col span { height: 56px; line-height: 56px; }
+  .field .u { margin-left: auto; font-size: 16px; color: #999; font-family: "IBM Plex Mono", monospace; }
+  #dStyleRow { margin-top: 26px; display: flex; align-items: center; gap: 16px; }
+  #dStyleWin { position: relative; height: 40px; overflow: hidden; flex: 1; }
+  #dStyleStack { position: absolute; left: 0; top: 0; }
+  #dStyleStack div { height: 40px; line-height: 40px; font-size: 27px; font-weight: 600; white-space: nowrap; }
+  #dCount { font-size: 15px; color: #8a6d00; background: rgba(255,206,0,0.22); padding: 6px 12px; border-radius: 99px; }
+  #dDie { position: absolute; left: 860px; top: 90px; width: 960px; height: 900px; }
+  #dDie .die { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+  #dDie svg { max-width: 100%; max-height: 100%; }
+  #dNote { position: absolute; left: 140px; top: 860px; font-size: 18px; color: #66666e; }
+
+  /* E: zoom through */
+  #flash { background: #fff; opacity: 0; }
+
+  /* F: 3D */
+  #fBg { background: radial-gradient(ellipse 70% 80% at 62% 55%, #f3f1ec 0%, #d8d4cb 55%, #b9b3a7 100%); }
+  #fBox { position: absolute; inset: 0; }
+  #fText { position: absolute; left: 130px; top: 360px; color: var(--ink); }
+  #fText h2 { font-family: "Fraunces Variable", serif; font-size: 110px; line-height: 1; font-weight: 500; font-style: italic; font-variation-settings: "opsz" 144, "SOFT" 50; }
+  #fText h2 .mk { position: relative; display: inline-block; }
+  #fText h2 .mk::before { content: ""; position: absolute; left: -0.06em; right: -0.06em; bottom: 0.08em; height: 0.36em; background: var(--accent); transform-origin: 0 50%; transform: scaleX(var(--mk, 0)); z-index: -1; }
+  #fText p { margin-top: 26px; font-size: 20px; color: #4a4a52; }
+
+  /* G: braille, coding, pharmacode */
+  #gBg { background: var(--blue); }
+  #gPanel { position: absolute; left: 980px; top: 120px; width: 760px; height: 840px; background: var(--paper); border-radius: 6px; box-shadow: 0 40px 120px rgba(0,0,0,0.35); overflow: hidden; }
+  #gArt { position: absolute; inset: 0; background: linear-gradient(160deg, #fbfaf6, #efece4); }
+  #gDots { position: absolute; left: 90px; top: 110px; }
+  #gDots i { position: absolute; width: 30px; height: 30px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff 0%, #dcd7cc 45%, #b4ad9f 100%); box-shadow: 0 3px 5px rgba(0,0,0,0.25), inset 0 -2px 3px rgba(0,0,0,0.12); }
+  #gBars { position: absolute; left: 90px; top: 470px; height: 150px; display: flex; gap: 12px; align-items: flex-end; }
+  #gBars i { display: block; background: #0b2a52; height: 150px; transform-origin: 50% 100%; }
+  #gCode { position: absolute; left: 90px; top: 660px; width: 580px; height: 130px; border: 4px dashed #8e44ad; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #8e44ad; font-size: 26px; background: rgba(142,68,173,0.06); }
+  .gLbl { position: absolute; left: 90px; font-size: 16px; color: #8a8a92; }
+  #gWords { position: absolute; left: 140px; top: 300px; font-size: 104px; font-weight: 800; line-height: 1.05; letter-spacing: -0.03em; }
+  #gWords div { overflow: hidden; }
+  #gWords span { display: inline-block; }
+  #gSub { position: absolute; left: 140px; top: 690px; font-size: 20px; color: rgba(247,245,239,0.7); }
+
+  /* H: checks and files */
+  #hBg { background: var(--ink); }
+  #hChecks { position: absolute; left: 140px; top: 220px; width: 760px; }
+  .chk { display: flex; align-items: center; gap: 22px; height: 86px; border-bottom: 1px solid rgba(247,245,239,0.12); font-size: 32px; }
+  .chk .dot { width: 34px; height: 34px; border-radius: 50%; background: var(--cut); display: flex; align-items: center; justify-content: center; flex: none; }
+  .chk .dot svg { width: 20px; height: 20px; }
+  .chk .val { margin-left: auto; font-family: "IBM Plex Mono", monospace; font-size: 22px; color: rgba(247,245,239,0.55); }
+  #hScore { position: absolute; left: 140px; top: 120px; font-size: 22px; color: var(--accent); }
+  #hStack { position: absolute; left: 980px; top: 110px; width: 820px; height: 820px; perspective: 2000px; }
+  #hStackIn { position: absolute; inset: 0; transform-style: preserve-3d; transform: rotateX(58deg) rotateZ(-38deg); }
+  .plane { position: absolute; left: 110px; top: 50px; width: 600px; height: 720px; transform-style: preserve-3d; background: rgba(247,245,239,0.035); border: 1px solid rgba(247,245,239,0.14); border-radius: 10px; }
+  .plane svg { width: 100%; height: 100%; overflow: visible; }
+  .plane .nm { position: absolute; right: -150px; font-size: 24px !important; top: 40%; transform: rotateZ(38deg) rotateX(-58deg); font-size: 20px; white-space: nowrap; }
+  #hChips { position: absolute; left: 1080px; top: 900px; display: flex; gap: 22px; }
+  #hChips div { font-family: "IBM Plex Mono", monospace; font-size: 30px; font-weight: 500; padding: 14px 34px; border-radius: 14px; background: var(--paper); color: var(--ink); }
+  #hChips div:first-child { background: var(--accent); }
+
+  /* I: upload */
+  #iBg { background: var(--bone); color: var(--ink); }
+  #iHead { position: absolute; left: 0; right: 0; top: 120px; text-align: center; font-size: 84px; font-weight: 650; letter-spacing: -0.02em; }
+  #iZone { position: absolute; left: 610px; top: 330px; width: 700px; height: 520px; border: 4px dashed rgba(10,10,11,0.25); border-radius: 30px; }
+  #iFile { position: absolute; left: 860px; top: 420px; width: 200px; height: 260px; }
+  #iFile .pg { position: absolute; inset: 0; background: #fff; border-radius: 12px; box-shadow: 0 20px 50px rgba(0,0,0,0.18); clip-path: polygon(0 0, 72% 0, 100% 22%, 100% 100%, 0 100%); }
+  #iFile .ear { position: absolute; right: 0; top: 0; width: 28%; height: 22%; background: #e3dfd6; clip-path: polygon(0 0, 100% 100%, 0 100%); border-radius: 0 0 0 8px; }
+  #iFile .tag { position: absolute; left: 22px; bottom: 30px; background: var(--cut); color: #fff; font: 600 30px "Inter Tight Variable", sans-serif; padding: 6px 16px; border-radius: 8px; }
+  #iSplit { position: absolute; inset: 0; }
+  #iFlat { position: absolute; inset: 0; background: #2a2a2e; display: flex; align-items: center; justify-content: center; }
+  #iFlat img { max-width: 780px; max-height: 820px; transform: translateX(-380px); }
+  #iShot { position: absolute; inset: 0; background: radial-gradient(ellipse at 70% 50%, #f3f1ec, #cfcabf); clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%); }
+  #iShot img { position: absolute; right: 60px; top: 40px; height: 1000px; }
+  #iCap { position: absolute; left: 110px; bottom: 90px; width: 640px; text-align: left; line-height: 1.15; font-size: 46px; font-weight: 600; color: #fff; text-shadow: 0 4px 30px rgba(0,0,0,0.4); }
+  #iLang { position: absolute; left: 50%; top: 50%; width: 560px; height: 200px; margin: -100px 0 0 -280px; perspective: 1400px; }
+  #iCard { position: absolute; inset: 0; transform-style: preserve-3d; }
+  #iCard div { position: absolute; inset: 0; backface-visibility: hidden; border-radius: 28px; display: flex; align-items: center; justify-content: center; font-size: 84px; font-weight: 650; box-shadow: 0 30px 80px rgba(0,0,0,0.3); }
+  #iEn { background: var(--paper); color: var(--ink); }
+  #iAr { background: var(--accent); color: var(--ink); transform: rotateY(180deg); font-family: "IBM Plex Sans Arabic", "Noto Naskh Arabic", "DejaVu Sans", sans-serif; }
+  #iLangCap { position: absolute; left: 0; right: 0; top: 780px; text-align: center; font-size: 28px; color: #fff; }
+
+  /* J: free */
+  #jCursor { position: absolute; left: 950px; top: 490px; width: 6px; height: 100px; background: var(--paper); }
+  #jFree { position: absolute; left: 0; right: 0; top: 50%; text-align: center; font-size: 400px; line-height: 1; transform: translateY(-58%); font-variation-settings: "wght" 1000, "wdth" 151, "opsz" 144, "GRAD" 150; color: var(--paper); }
+  #jFor { position: absolute; left: 0; right: 0; top: 760px; text-align: center; font-size: 34px; color: var(--accent); }
+  #jLine { position: absolute; left: 0; right: 0; top: 830px; text-align: center; font-size: 30px; color: rgba(247,245,239,0.75); }
+
+  /* K: end card */
+  #kBg { background: var(--ink); }
+  #kGlow { position: absolute; left: 50%; top: 46%; width: 1400px; height: 900px; margin: -450px 0 0 -700px; background: radial-gradient(ellipse at center, rgba(255,206,0,0.22) 0%, rgba(255,206,0,0) 60%); }
+  #kWord { position: absolute; left: 0; right: 0; top: 270px; text-align: center; font-size: 200px; line-height: 1; font-weight: 600; font-variation-settings: "SOFT" 100, "WONK" 0, "opsz" 144; color: var(--paper); }
+  #kBy { position: absolute; left: 0; right: 0; top: 500px; text-align: center; font-family: Poppins, sans-serif; font-size: 30px; letter-spacing: 0.32em; color: rgba(247,245,239,0.85); }
+  #kBy b { font-weight: 600; } #kBy span { font-weight: 300; }
+  #kUrl { position: absolute; left: 50%; top: 620px; transform: translateX(-50%); padding: 22px 44px; border-radius: 18px; font-size: 52px; font-weight: 650; color: var(--ink); overflow: hidden; }
+  #kUrl .fill { position: absolute; inset: 0; background: var(--accent); transform-origin: 0 50%; }
+  #kUrl span { position: relative; }
+  #kRow { position: absolute; left: 0; right: 0; top: 790px; text-align: center; font-size: 22px; color: rgba(247,245,239,0.6); }
+  #kRow b { color: var(--accent); font-weight: 500; }
+  #fade { background: #000; opacity: 0; }
+  #grain { pointer-events: none; opacity: 0.07; mix-blend-mode: overlay; background-repeat: repeat; }
+  #vig { pointer-events: none; background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.28) 100%); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <!-- A -->
+  <div class="layer" id="sA">
+    <div id="grid"></div>
+    <div id="aSvg"></div><div id="aPen"></div>
+    <div class="aTag mono" id="aTag1" style="left:250px;top:240px"><b>━━</b> cut 0.25 mm</div>
+    <div class="aTag mono" id="aTag2" style="left:250px;top:280px"><i>╍╍</i> crease</div>
+    <div class="aTag mono" id="aTag3" style="right:250px;top:760px;text-align:right">ECMA A20.20.03.01<br/>70 × 28 × 120 mm</div>
+  </div>
+  <!-- B -->
+  <div class="layer" id="sB"><div id="bLine" class="flex"><div class="row r1"><span>Every</span><span>pharma</span><span>carton</span></div><div class="row r2"><span>starts</span><span id="bFlat">flat.</span></div></div><div id="bBar"></div></div>
+  <!-- C -->
+  <div class="layer" id="cBg">
+    <div id="cFold"><div class="half l"></div><div class="half r"></div><div class="crease"></div></div>
+    <div id="cWord" class="serif"></div>
+    <div id="cBy"><b>DJARRI</b> <span>DESIGN STUDIO</span></div>
+    <div id="cTag"></div>
+  </div>
+  <!-- D -->
+  <div class="layer" id="dBg">
+    <div id="dHead">Type the size.<br/><em>Get the dieline.</em></div>
+    <div id="dCard">
+      <div class="lbl mono">Size · outside · mm</div>
+      <div class="fields">
+        <div class="field"><span class="k mono">L</span><div class="odo" id="odoL"></div><span class="u">mm</span></div>
+        <div class="field"><span class="k mono">W</span><div class="odo" id="odoW"></div><span class="u">mm</span></div>
+        <div class="field"><span class="k mono">H</span><div class="odo" id="odoH"></div><span class="u">mm</span></div>
+      </div>
+      <div id="dStyleRow"><div id="dStyleWin"><div id="dStyleStack"></div></div><div id="dCount" class="mono">9 styles</div></div>
+    </div>
+    <div id="dDie"></div>
+    <div id="dNote" class="mono">True scale · compensated for board thickness</div>
+  </div>
+  <!-- E -->
+  <div class="layer" id="flash"></div>
+  <!-- F -->
+  <div class="layer" id="fBg">
+    <div id="fBox"></div>
+    <div id="fText"><h2>See it<br/><span class="mk">folded.</span></h2><p class="mono">The app's own fold · flat to closed</p></div>
+  </div>
+  <!-- G -->
+  <div class="layer" id="gBg">
+    <div id="gWords"><div><span>Braille.</span></div><div><span>Coding.</span></div><div><span style="color:var(--accent)">Pharmacode.</span></div></div>
+    <div id="gSub" class="mono">Placed on the panel you pick · clear of every fold</div>
+    <div id="gPanel"><div id="gArt"></div><div class="gLbl mono" style="top:72px">Braille · Marburg Medium</div><div id="gDots"></div><div class="gLbl mono" style="top:440px">Pharmacode</div><div id="gBars"></div><div id="gCode" class="mono">Batch · Exp · DataMatrix</div></div>
+  </div>
+  <!-- H -->
+  <div class="layer" id="hBg">
+    <div id="hScore" class="mono">Closing checks</div>
+    <div id="hChecks"></div>
+    <div id="hStack"><div id="hStackIn"></div></div>
+    <div id="hChips"><div>PDF</div><div>SVG</div><div>DXF</div></div>
+  </div>
+  <!-- I -->
+  <div class="layer" id="iBg">
+    <div id="iHead">Upload your design.</div>
+    <div id="iZone"></div>
+    <div id="iFile"><div class="pg"></div><div class="ear"></div><div class="tag">PDF</div></div>
+    <div id="iSplit"><div id="iFlat"><img id="iFlatImg" alt="" /></div><div id="iShot"><img id="iShotImg" alt="" /></div><div id="iCap">See it folded in 3D.<br/><span style="color:var(--accent)">Export the angle.</span></div></div>
+    <div id="iLang"><div id="iCard"><div id="iEn">English</div><div id="iAr">العربية</div></div></div>
+    <div id="iLangCap" class="mono">In English and Arabic</div>
+  </div>
+  <!-- J -->
+  <div class="layer" id="jBg" style="background:var(--ink)">
+    <div id="jCursor"></div>
+    <div id="jFree" class="flex">FREE</div>
+    <div id="jFor" class="mono">for now</div>
+    <div id="jLine">Launching free · no account · nothing to install</div>
+  </div>
+  <!-- K -->
+  <div class="layer" id="kBg">
+    <div id="kGlow"></div>
+    <div id="kWord" class="serif">Dielines</div>
+    <div id="kBy"><b>DJARRI</b> <span>DESIGN STUDIO</span></div>
+    <div id="kUrl"><div class="fill"></div><span>dielines.djarri.com</span></div>
+    <div id="kRow" class="mono">Pharma dielines · <b>3D preview</b> · English &amp; العربية · <b>Free</b></div>
+  </div>
+  <div class="layer" id="vig"></div>
+  <div class="layer" id="grain"></div>
+  <div class="layer" id="fade"></div>
+</div>
+<script src="dist/main.js"></script>
+</body>
+</html>
