@@ -11,17 +11,12 @@ from PIL import Image
 FPS = 60
 # Scene cuts (s) and strength: the transitions land exactly on these beats.
 CUTS = [
-    (2.72, 0.9),   # dieline -> words
-    (4.32, 1.0),   # words -> size (dark)
-    (5.36, 0.5),   # size -> fold (light, the fold must stay readable)
-    (9.43, 0.9),   # fold -> name
-    (10.98, 1.0),  # name -> AI (dark)
-    (13.00, 1.0),  # AI -> close-ups
-    (14.02, 0.35), # close-up -> close-up
-    (15.02, 0.35),
-    (17.07, 0.8),  # whole -> best angle
-    (20.62, 0.7),  # shutter -> reference card
-    (24.17, 0.9),  # -> Magnific
+    (7.94, 0.4),   # click: upload
+    (11.98, 0.9),  # app -> close-ups
+    (13.00, 0.4),  # close-up -> close-up
+    (14.02, 0.9),  # close-ups -> best angle in the app
+    (18.58, 0.8),  # -> reference + depth
+    (22.64, 0.9),  # -> Magnific
     (28.00, 1.4),  # the hit: Generate -> burst
     (31.11, 0.7),  # -> end card
 ]
@@ -37,8 +32,9 @@ def amount(t):
     for c, s in CUTS:
         d = t - c
         # Rises fast into the cut and settles after it.
-        if -0.12 <= d <= 0.3:
-            k = np.exp(-((d / 0.05) ** 2)) if d < 0 else np.exp(-d / 0.08)
+        # About 36 frames: a 0.25 s rise into the cut, a 0.35 s settle after it.
+        if -0.25 <= d <= 0.35:
+            k = np.exp(-((d / 0.11) ** 2)) if d < 0 else np.exp(-((d / 0.16) ** 2))
             a = max(a, s * k)
     return a
 

@@ -48,7 +48,7 @@ export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: nu
   renderer.setSize(opts.w, opts.h, false);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.08;
+  renderer.toneMappingExposure = 0.92;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.setClearColor(0x000000, 0);
@@ -58,8 +58,8 @@ export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: nu
   const scene = new THREE.Scene();
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.03).texture;
-  scene.environmentIntensity = 0.9;
-  const key = new THREE.DirectionalLight(0xffffff, 2.4);
+  scene.environmentIntensity = 0.7;
+  const key = new THREE.DirectionalLight(0xffffff, 1.7);
   key.castShadow = true;
   key.shadow.mapSize.set(2048, 2048);
   key.shadow.radius = 8;
@@ -88,7 +88,7 @@ export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: nu
     }
     geo.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
     const o = new THREE.Group();
-    const front = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.38, clearcoat: 0.35, clearcoatRoughness: 0.4, side: THREE.FrontSide, polygonOffset: true, polygonOffsetFactor: -f.layer, polygonOffsetUnits: -f.layer * 4 }));
+    const front = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.38, clearcoat: 0.12, clearcoatRoughness: 0.5, side: THREE.FrontSide, polygonOffset: true, polygonOffsetFactor: -f.layer, polygonOffsetUnits: -f.layer * 4 }));
     const back = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color: "#efece4", roughness: 0.9, side: THREE.BackSide }));
     front.castShadow = back.castShadow = true;
     o.add(front, back);
