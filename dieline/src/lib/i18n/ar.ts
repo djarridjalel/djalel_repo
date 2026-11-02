@@ -85,6 +85,9 @@ export const AR: Record<string, string> = {
   "Privacy policy": "سياسة الخصوصية",
   "By continuing you accept our": "بالمتابعة فإنك توافق على",
   "privacy policy": "سياسة الخصوصية",
+  "Terms of service": "شروط الخدمة",
+  "terms of service": "شروط الخدمة",
+  and: "و",
   // Landing
   "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":

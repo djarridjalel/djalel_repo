@@ -113,6 +113,7 @@ export function Landing({ hero, signedIn, authEnabled }: { hero: string; signedI
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2 px-4 py-6 text-[12px] text-mute sm:px-6">
           <span>© {new Date().getFullYear()} Djarri Design Studio</span>
           <span className="flex items-center gap-4">
+            <Link href="/terms" className="hover:text-ink">{t("Terms of service")}</Link>
             <Link href="/privacy" className="hover:text-ink">{t("Privacy policy")}</Link>
             <span className="font-mono uppercase tracking-wider">{t("Dielines")}</span>
           </span>

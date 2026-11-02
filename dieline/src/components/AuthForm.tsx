@@ -103,7 +103,7 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
       </form>
 
       <p className="text-[12px] text-mute">
-        {t("By continuing you accept our")} <Link href="/privacy" className="underline">{t("privacy policy")}</Link>.
+        {t("By continuing you accept our")} <Link href="/terms" className="underline">{t("terms of service")}</Link> {t("and")} <Link href="/privacy" className="underline">{t("privacy policy")}</Link>.
       </p>
 
       <p className="pt-1 text-center text-[13px] text-mute">
