@@ -9,7 +9,7 @@ const ICON = {
   info: { c: "text-mute", bg: "bg-bone", label: "Note" },
 };
 
-export function Checks({ d, set }: { d: Dieline; set: (patch: Partial<CartonParams>) => void }) {
+export function Checks({ d, set, onLocate }: { d: Dieline; set: (patch: Partial<CartonParams>) => void; onLocate?: (field: string) => void }) {
   if (!d.issues.length) {
     return (
       <div className="flex items-start gap-3 rounded-md border border-rule bg-paper p-3">
@@ -26,6 +26,11 @@ export function Checks({ d, set }: { d: Dieline; set: (patch: Partial<CartonPara
           <li key={i} data-severity={it.severity} className={`rounded-md border border-rule p-3 ${s.bg}`}>
             <p className={`mb-1 font-mono text-[10px] uppercase tracking-wider ${s.c}`}>{s.label}</p>
             <p className="text-[13px] leading-relaxed">{it.message}</p>
+            {it.field && onLocate && it.field !== "fold" && (
+              <button type="button" onClick={() => onLocate(String(it.field))} className="mt-2 mr-3 text-[12px] underline underline-offset-2 hover:text-ink">
+                Show on the dieline
+              </button>
+            )}
             {it.fix && (
               <button
                 type="button"

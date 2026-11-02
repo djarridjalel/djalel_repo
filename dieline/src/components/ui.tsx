@@ -2,20 +2,35 @@
 
 import { useEffect, useId, useState, type ReactNode } from "react";
 
-export function Section({ title, children, defaultOpen = true, aside }: { title: string; children: ReactNode; defaultOpen?: boolean; aside?: ReactNode }) {
+/** Asks the editor's sections to open and the matching field to come into view, from anywhere (a click on the dieline, a check). */
+export const FOCUS_EVENT = "dieline:focus";
+export function focusField(field: string, sections: string[]) {
+  window.dispatchEvent(new CustomEvent(FOCUS_EVENT, { detail: { field, sections } }));
+}
+
+export function Section({ title, children, defaultOpen = true, aside, summary }: { title: string; children: ReactNode; defaultOpen?: boolean; aside?: ReactNode; summary?: string }) {
   const [open, setOpen] = useState(defaultOpen);
+  useEffect(() => {
+    const on = (e: Event) => {
+      const { sections } = (e as CustomEvent<{ sections: string[] }>).detail;
+      if (sections.includes(title)) setOpen(true);
+    };
+    window.addEventListener(FOCUS_EVENT, on);
+    return () => window.removeEventListener(FOCUS_EVENT, on);
+  }, [title]);
   return (
-    <section className="border-b border-rule">
+    <section className="border-b border-rule" data-section={title}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
         aria-expanded={open}
       >
-        <span className="font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-ink">{title}</span>
-        <span className="flex items-center gap-2">
+        <span className="shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-ink">{title}</span>
+        <span className="flex min-w-0 items-center gap-2">
+          {!open && summary && <span className="truncate text-[12px] text-mute">{summary}</span>}
           {aside}
-          <span className={`text-mute transition-transform ${open ? "rotate-180" : ""}`} aria-hidden>
+          <span className={`shrink-0 text-mute transition-transform ${open ? "rotate-180" : ""}`} aria-hidden>
             <svg width="12" height="12" viewBox="0 0 12 12">
               <path d="M2 4.5 6 8l4-3.5" fill="none" stroke="currentColor" strokeWidth="1.5" />
             </svg>
@@ -50,7 +65,9 @@ export function NumberField({
   min,
   max,
   hint,
+  field,
 }: {
+  field?: string;
   label: string;
   value: number | null;
   onChange: (v: number | null) => void;
@@ -72,7 +89,7 @@ export function NumberField({
   }, [value]);
   const placeholder = auto && resolved != null ? `${Math.round(resolved * 100) / 100} auto` : "";
   return (
-    <div>
+    <div data-field={field}>
       <Label htmlFor={id} hint={hint}>
         {label}
       </Label>
@@ -192,7 +209,9 @@ export function Button({
   disabled,
   className = "",
   title,
+  "aria-label": ariaLabel,
 }: {
+  "aria-label"?: string;
   children: ReactNode;
   onClick?: () => void;
   variant?: "primary" | "secondary" | "ghost" | "accent";
@@ -209,6 +228,7 @@ export function Button({
   }[variant];
   return (
     <button
+      aria-label={ariaLabel}
       type={type}
       onClick={onClick}
       disabled={disabled}

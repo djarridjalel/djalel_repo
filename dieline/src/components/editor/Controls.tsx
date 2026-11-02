@@ -23,6 +23,8 @@ import {
   Toggle,
   Button,
 } from "../ui";
+import { useEffect, useState } from "react";
+import { FOCUS_EVENT } from "../ui";
 import { StyleIcon } from "./StyleIcon";
 
 type Set = (patch: Partial<CartonParams>) => void;
@@ -102,32 +104,15 @@ export function Controls({
     "",
   ];
   const board = boardById(p.boardId);
+  useFocusScroll();
 
   return (
     <div>
       <Section title="Carton style">
-        <div className="grid grid-cols-2 gap-2">
-          {STYLES.map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => set(styleChange(p, s))}
-              className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-center transition ${p.style === s ? "border-ink bg-paper" : "border-rule bg-paper/50 text-mute hover:border-ink hover:text-ink"}`}
-              aria-pressed={p.style === s}
-            >
-              <StyleIcon style={s} />
-              <span className="text-[12px] leading-tight">
-                {STYLE_NAMES[s].name}
-              </span>
-            </button>
-          ))}
-        </div>
-        <p className="font-mono text-[10px] uppercase tracking-wider text-mute">
-          {STYLE_NAMES[p.style].ecma}
-        </p>
+        <StylePicker value={p.style} onPick={(s) => set(styleChange(p, s))} />
       </Section>
 
-      <Section title="Size">
+      <Section title="Size" summary={`${p.dimMode === "inside" ? "Inside" : "Outside"} ${p.L} × ${p.W} × ${p.H} mm`}>
         <Segmented
           value={p.dimMode}
           onChange={(v) => set({ dimMode: v })}
@@ -138,18 +123,21 @@ export function Controls({
         />
         <div className="grid grid-cols-3 gap-2">
           <NumberField
+            field="L"
             label="Length"
             value={p.L}
             onChange={(v) => set({ L: v ?? p.L })}
             hint={hL}
           />
           <NumberField
+            field="W"
             label="Width"
             value={p.W}
             onChange={(v) => set({ W: v ?? p.W })}
             hint={hW}
           />
           <NumberField
+            field="H"
             label="Height"
             value={p.H}
             onChange={(v) => set({ H: v ?? p.H })}
@@ -161,7 +149,7 @@ export function Controls({
         </Button>
       </Section>
 
-      <Section title="Board">
+      <Section title="Board" summary={`${board?.name ?? "Custom"} · ${p.caliper} mm`}>
         <Select
           label="Material"
           value={board ? p.boardId : "custom"}
@@ -177,6 +165,7 @@ export function Controls({
         />
         <div className="grid grid-cols-2 gap-2">
           <NumberField
+            field="caliper"
             label="Caliper"
             value={p.caliper}
             step={0.01}
@@ -189,6 +178,7 @@ export function Controls({
             hint="Board thickness from the supplier's data sheet"
           />
           <NumberField
+            field="gsm"
             label="Grammage"
             unit="g/m²"
             value={p.gsm}
@@ -208,7 +198,7 @@ export function Controls({
       </Section>
 
       {lid && (
-        <Section title="Closures">
+        <Section title="Closures" summary={`${p.lock === "slit" ? "Slit lock" : p.lock === "friction" ? "Friction" : "Plain"} · tuck ${fmt(r.tuckDepth)} mm`}>
           <Segmented
             label="Tuck lock"
             value={p.lock}
@@ -226,14 +216,16 @@ export function Controls({
           />
           <div className="grid grid-cols-2 gap-2">
             <NumberField
-              label="Tuck depth"
+              field="tuckDepth"
+            label="Tuck depth"
               auto
               value={p.tuckDepth}
               resolved={r.tuckDepth}
               onChange={(v) => set({ tuckDepth: v })}
             />
             <NumberField
-              label="Tuck corner radius"
+              field="tuckRadius"
+            label="Tuck corner radius"
               auto
               value={p.tuckRadius}
               resolved={r.tuckRadius}
@@ -241,7 +233,8 @@ export function Controls({
             />
             {p.lock === "slit" && (
               <NumberField
-                label="Slit length"
+                field="slitLength"
+            label="Slit length"
                 auto
                 value={p.slitLength}
                 resolved={r.slitLength}
@@ -249,6 +242,7 @@ export function Controls({
               />
             )}
             <NumberField
+              field="glueWidth"
               label="Glue flap width"
               auto
               value={p.glueWidth}
@@ -256,7 +250,8 @@ export function Controls({
               onChange={(v) => set({ glueWidth: v })}
             />
             <NumberField
-              label="Glue flap angle"
+              field="glueAngle"
+            label="Glue flap angle"
               unit="°"
               step={1}
               auto
@@ -266,7 +261,8 @@ export function Controls({
             />
             {!tuckEnd && (
               <NumberField
-                label="Base lock reach"
+                field="bottomExtension"
+              label="Base lock reach"
                 auto
                 value={p.bottomExtension}
                 resolved={r.bottomExtension}
@@ -279,10 +275,11 @@ export function Controls({
       )}
 
       {p.style === "gable" && (
-        <Section title="Handle">
+        <Section title="Handle" summary={`Handle ${p.gable.handleHeight} mm`}>
           <div className="grid grid-cols-3 gap-2">
             <NumberField
-              label="Handle height"
+              field="gable.handleHeight"
+            label="Handle height"
               value={p.gable.handleHeight}
               onChange={(v) =>
                 set({ gable: { ...p.gable, handleHeight: v ?? 40 } })
@@ -305,6 +302,7 @@ export function Controls({
           </div>
           <div className="grid grid-cols-2 gap-2">
             <NumberField
+              field="glueWidth"
               label="Glue flap width"
               auto
               value={p.glueWidth}
@@ -312,6 +310,7 @@ export function Controls({
               onChange={(v) => set({ glueWidth: v })}
             />
             <NumberField
+              field="bottomExtension"
               label="Base lock reach"
               auto
               value={p.bottomExtension}
@@ -328,10 +327,11 @@ export function Controls({
       )}
 
       {isTray(p.style) && (
-        <Section title="Tear-away front">
+        <Section title="Tear-away front" summary={`Tear depth ${fmt(r.tearDepth)} mm`}>
           <div className="grid grid-cols-2 gap-2">
             <NumberField
-              label="Tear depth"
+              field="srp.tearDepth"
+            label="Tear depth"
               value={p.srp.tearDepth}
               onChange={(v) => set({ srp: { ...p.srp, tearDepth: v ?? 0 } })}
               hint="From the top; 0 for half the height"
@@ -351,16 +351,18 @@ export function Controls({
       )}
 
       {p.style === "display" && (
-        <Section title="Display">
+        <Section title="Display" summary={`Header ${p.display.header} mm`}>
           <div className="grid grid-cols-2 gap-2">
             <NumberField
-              label="Side rise"
+              field="display.rise"
+            label="Side rise"
               value={p.display.rise}
               onChange={(v) => set({ display: { ...p.display, rise: v ?? 0 } })}
               hint="Extra side height at the back"
             />
             <NumberField
-              label="Header"
+              field="display.header"
+            label="Header"
               value={p.display.header}
               onChange={(v) =>
                 set({ display: { ...p.display, header: v ?? 0 } })
@@ -373,7 +375,7 @@ export function Controls({
 
 
       {lid && (
-        <Section title="Tamper evidence" defaultOpen={false}>
+        <Section title="Tamper evidence" defaultOpen={false} summary={p.tamper === "none" ? "None" : p.tamper === "glueTuck" ? "Glued tuck" : "Tear strip"}>
           <Segmented
             value={p.tamper}
             onChange={(v) => set({ tamper: v })}
@@ -396,6 +398,7 @@ export function Controls({
       {lid && (
         <Section
           title="Hang tab"
+        summary={p.hangTab.enabled ? (p.hangTab.slot === "euro" ? "Euro slot" : "Round hole") : "Off"}
           defaultOpen={p.hangTab.enabled}
           aside={p.hangTab.enabled ? <Dot /> : null}
         >
@@ -430,6 +433,7 @@ export function Controls({
 
       <Section
         title="Window"
+        summary={p.window.enabled ? `${p.window.width} × ${p.window.height} mm` : "Off"}
         defaultOpen={p.window.enabled}
         aside={p.window.enabled ? <Dot /> : null}
       >
@@ -498,6 +502,7 @@ export function Controls({
       {tube && (
         <Section
           title="Zip opening"
+        summary={p.zipStrip.enabled ? `${p.zipStrip.width} mm strip` : "Off"}
           defaultOpen={p.zipStrip.enabled}
           aside={p.zipStrip.enabled ? <Dot /> : null}
         >
@@ -535,6 +540,7 @@ export function Controls({
 
       <Section
         title="Dispenser opening"
+        summary={p.dispenser.enabled ? `${p.dispenser.width} × ${p.dispenser.height} mm` : "Off"}
         defaultOpen={p.dispenser.enabled}
         aside={p.dispenser.enabled ? <Dot /> : null}
       >
@@ -580,6 +586,7 @@ export function Controls({
 
       <Section
         title="Braille"
+        summary={p.braille.enabled ? p.braille.text || "No text yet" : "Off"}
         defaultOpen={p.braille.enabled}
         aside={p.braille.enabled ? <Dot /> : null}
       >
@@ -643,6 +650,7 @@ export function Controls({
 
       <Section
         title="Coding window"
+        summary={p.codingWindow.enabled ? CODING_PRESETS[p.codingWindow.preset].label : "Off"}
         defaultOpen={p.codingWindow.enabled}
         aside={p.codingWindow.enabled ? <Dot /> : null}
       >
@@ -729,6 +737,7 @@ export function Controls({
 
       <Section
         title="Pharmacode"
+        summary={p.pharmacode.enabled ? `${p.pharmacode.width} mm` : "Off"}
         defaultOpen={p.pharmacode.enabled}
         aside={p.pharmacode.enabled ? <Dot /> : null}
       >
@@ -791,14 +800,16 @@ export function Controls({
         )}
       </Section>
 
-      <Section title="Print setup" defaultOpen={false}>
+      <Section title="Print setup" defaultOpen={false} summary={`Bleed ${p.bleed} · safe ${p.safeMargin} mm`}>
         <div className="grid grid-cols-2 gap-2">
           <NumberField
+            field="bleed"
             label="Bleed"
             value={p.bleed}
             onChange={(v) => set({ bleed: v ?? 0 })}
           />
           <NumberField
+            field="safeMargin"
             label="Safe margin"
             value={p.safeMargin}
             onChange={(v) => set({ safeMargin: v ?? 0 })}
@@ -813,6 +824,76 @@ export function Controls({
       </Section>
     </div>
   );
+}
+
+const fmt = (v: number | undefined) => (v == null ? "auto" : String(Math.round(v * 10) / 10));
+
+/** The chosen style as one row; the full set of styles opens from it. */
+function StylePicker({ value, onPick }: { value: StyleId; onPick: (s: StyleId) => void }) {
+  const [open, setOpen] = useState(false);
+  if (!open)
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Change carton style"
+        className="flex w-full items-center gap-3 rounded-md border border-rule bg-paper px-3 py-2 text-left transition hover:border-ink"
+      >
+        <span className="w-[72px] shrink-0 [&>svg]:h-auto [&>svg]:w-full">
+          <StyleIcon style={value} />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-[13px] leading-tight">{STYLE_NAMES[value].name}</span>
+          <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-mute">{STYLE_NAMES[value].ecma}</span>
+        </span>
+        <span className="shrink-0 text-[12px] text-mute underline underline-offset-2">Change</span>
+      </button>
+    );
+  return (
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        {STYLES.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => {
+              onPick(s);
+              setOpen(false);
+            }}
+            className={`flex flex-col items-center gap-1 rounded-md border px-2 py-2 text-center transition ${value === s ? "border-ink bg-paper" : "border-rule bg-paper/50 text-mute hover:border-ink hover:text-ink"}`}
+            aria-pressed={value === s}
+          >
+            <StyleIcon style={s} />
+            <span className="text-[12px] leading-tight">{STYLE_NAMES[s].name}</span>
+          </button>
+        ))}
+      </div>
+      <button type="button" onClick={() => setOpen(false)} className="text-[12px] text-mute underline underline-offset-2 hover:text-ink">
+        Keep {STYLE_NAMES[value].name}
+      </button>
+    </>
+  );
+}
+
+/** Brings a field into view and highlights it when the dieline or a check asks for it. */
+function useFocusScroll() {
+  useEffect(() => {
+    const on = (e: Event) => {
+      const { field } = (e as CustomEvent<{ field: string }>).detail;
+      // Let the section open first.
+      setTimeout(() => {
+        const box = document.querySelector<HTMLElement>(`[data-field="${field}"]`);
+        if (!box) return;
+        box.scrollIntoView({ block: "center", behavior: "smooth" });
+        box.querySelector("input")?.focus({ preventScroll: true });
+        box.classList.remove("field-flash");
+        void box.offsetWidth;
+        box.classList.add("field-flash");
+      }, 60);
+    };
+    window.addEventListener(FOCUS_EVENT, on);
+    return () => window.removeEventListener(FOCUS_EVENT, on);
+  }, []);
 }
 
 function Dot() {

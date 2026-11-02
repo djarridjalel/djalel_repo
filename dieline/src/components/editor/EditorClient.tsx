@@ -25,5 +25,5 @@ export function DemoEditor() {
     setDraft({ name: "Untitled carton", params: DEFAULT_PARAMS });
     setSession((n) => n + 1);
   };
-  return <Editor key={session} initialName={draft.name} initialParams={draft.params} store={store} backHref="/" onNew={startNew} />;
+  return <Editor key={session} initialName={draft.name} initialParams={draft.params} store={store} backHref="/" onNew={startNew} local />;
 }

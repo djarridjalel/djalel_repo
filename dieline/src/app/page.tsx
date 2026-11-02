@@ -6,12 +6,12 @@ import { authEnabled } from "@/lib/supabase/env";
 import { supabaseServer } from "@/lib/supabase/server";
 
 const FEATURES: [string, string][] = [
-  ["Four pharma styles", "Reverse and straight tuck end, crash-lock and snap-lock bottoms, each labelled with its ECMA code."],
+  ["Nine carton styles", "Tuck ends, crash-lock and snap-lock bottoms, shelf-ready trays, gable box, mailer and counter display, each labelled with its ECMA code."],
   ["Board-aware geometry", "Every panel, lid and flap is compensated for the board caliper, from inside or outside dimensions."],
-  ["Braille, Marburg Medium", "Type the product name and the dots are placed on the panel you choose, kept clear of folds and edges."],
-  ["Coding and pharmacode zones", "Varnish-free windows for batch, expiry and the GS1 DataMatrix, plus the pharmacode zone, on the panel you pick."],
-  ["Checks with one-tap fixes", "Tucks that are too deep, flaps that collide, glue flaps too narrow for the folder-gluer: flagged and fixed."],
-  ["Files the printer accepts", "PDF with named spot-colour layers, SVG and DXF for the die-maker. Projects keep every version."],
+  ["Braille, coding and pharmacode", "Marburg Medium Braille, varnish-free coding windows and the pharmacode zone, placed on the panel you pick, clear of folds."],
+  ["Checks with one-tap fixes", "Tucks too deep, flaps that collide, glue flaps too narrow for the folder-gluer: flagged on the dieline and fixed in one tap."],
+  ["Your design, folded in 3D", "Upload a print-ready PDF: the dieline is found, checked and folded with your artwork. Export the angle, a product image and a depth map."],
+  ["Files the printer accepts", "PDF with named spot-colour layers, SVG and DXF for the die-maker. Versions are kept in your browser."],
 ];
 
 export default async function Home() {
@@ -66,19 +66,32 @@ export default async function Home() {
               Pharma carton <b className="font-semibold">dielines</b>, ready for the <b className="font-semibold">die-maker.</b>
             </h1>
             <p className="mt-6 max-w-xl text-[16px] leading-relaxed text-mute">
-              Enter the carton size and the board. Get a true-scale dieline with Braille, coding window and pharmacode zones, checked and ready as PDF, SVG or DXF.
+              Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href={primary.href} className="inline-flex h-12 items-center rounded-md bg-ink px-6 text-[15px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink">
-                {primary.label}
-              </Link>
-              {!signedIn && authEnabled && (
-                <Link href="/login" className="inline-flex h-12 items-center rounded-md border border-ink/25 px-6 text-[15px] text-ink transition-colors hover:border-ink">
-                  Sign in
+            {signedIn || authEnabled ? (
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link href={primary.href} className="inline-flex h-12 items-center rounded-md bg-ink px-6 text-[15px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink">
+                  {primary.label}
                 </Link>
-              )}
-            </div>
-            <p className="mt-4 text-[13px] text-mute">{authEnabled ? "Free with an account. No software to install." : "Free. No account or software needed."}</p>
+                {!signedIn && authEnabled && (
+                  <Link href="/login" className="inline-flex h-12 items-center rounded-md border border-ink/25 px-6 text-[15px] text-ink transition-colors hover:border-ink">
+                    Sign in
+                  </Link>
+                )}
+              </div>
+            ) : (
+              <div className="mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+                <Link href="/editor" className="group rounded-md bg-ink p-4 text-paper transition-colors hover:bg-accent hover:text-ink">
+                  <span className="block text-[15px] font-medium">Make a dieline →</span>
+                  <span className="mt-1 block text-[13px] opacity-70">Pick a style, enter the size, download.</span>
+                </Link>
+                <Link href="/editor?mode=upload" className="group rounded-md border border-ink/25 p-4 text-ink transition-colors hover:border-ink">
+                  <span className="block text-[15px] font-medium">Upload a design →</span>
+                  <span className="mt-1 block text-[13px] text-mute">Fold your PDF in 3D and export angles.</span>
+                </Link>
+              </div>
+            )}
+            <p className="mt-4 text-[13px] text-mute">{authEnabled ? "Free with an account. No software to install." : "Free. No account or software needed. Files stay on your device."}</p>
           </div>
           <div className="dieline-preview aspect-[4/3] w-full p-2 sm:p-6" dangerouslySetInnerHTML={{ __html: hero }} />
         </div>
@@ -86,7 +99,7 @@ export default async function Home() {
 
       <section className="mx-auto max-w-6xl border-t border-rule px-4 py-16 sm:px-6 sm:py-24">
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-mute">What it does</p>
-        <h2 className="mt-2 max-w-2xl text-[28px] font-medium leading-tight sm:text-[34px]">Built for the cartons medicines ship in, not for mailer boxes.</h2>
+        <h2 className="mt-2 max-w-2xl text-[28px] font-medium leading-tight sm:text-[34px]">Built for the cartons medicines ship in.</h2>
         <ul className="mt-10 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map(([t, b], i) => (
             <li key={t} className="border-t border-rule pt-4">
@@ -98,8 +111,13 @@ export default async function Home() {
         </ul>
         <div className="mt-14 flex flex-wrap items-center gap-4">
           <Link href={primary.href} className="inline-flex h-12 items-center rounded-md bg-ink px-6 text-[15px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink">
-            {primary.label}
+            {authEnabled || signedIn ? primary.label : "Make a dieline"}
           </Link>
+          {!authEnabled && (
+            <Link href="/editor?mode=upload" className="inline-flex h-12 items-center rounded-md border border-ink/25 px-6 text-[15px] text-ink transition-colors hover:border-ink">
+              Upload a design
+            </Link>
+          )}
           <p className="text-[13px] text-mute">Dielines follow standard construction rules. Always check a physical sample on the production board.</p>
         </div>
       </section>

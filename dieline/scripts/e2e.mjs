@@ -20,8 +20,9 @@ p.on('console', m => { if (m.type() === 'error') errors.push('console: ' + m.tex
 await p.goto(BASE + '/', { waitUntil: 'networkidle' });
 const landingText = await p.textContent('body');
 ok('landing has no sign-in / sign-up', !/Sign in|Sign up|Create a free account/.test(landingText));
-ok('landing CTA opens the editor', await p.getByRole('link', { name: 'Open the editor' }).count() > 0);
-await p.getByRole('link', { name: 'Open the editor' }).first().click();
+ok('landing CTA opens the editor', await p.getByRole('link', { name: /Make a dieline/ }).count() > 0);
+ok('landing offers the upload', await p.getByRole('link', { name: /Upload a design/ }).count() > 0);
+await p.getByRole('link', { name: /Make a dieline/ }).first().click();
 await p.waitForURL('**/editor');
 ok('CTA lands on /editor', p.url().endsWith('/editor'));
 
@@ -49,8 +50,13 @@ ok('default tuck and slit are automatic', /13/.test((await ph('Tuck depth')) ?? 
 // The flat size is read from the drawing itself: the preview's outline path.
 const outlineD = async () => (await p.locator('.dieline-preview #Cut path').first().getAttribute('d')) ?? '';
 const flat0 = await outlineD();
-for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray, tear', 'Shelf-ready tray, snap', 'Gable box', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
+// The chosen style shows as one row; the full set opens from it.
+const pick = async (s) => {
+  await p.getByRole('button', { name: 'Change carton style' }).click();
   await p.getByRole('button', { name: new RegExp(s) }).first().click();
+};
+for (const s of ['Straight tuck end', 'Crash-lock', 'Snap-lock', 'Shelf-ready tray, tear', 'Shelf-ready tray, snap', 'Gable box', 'Mailer box', 'Counter display', 'Reverse tuck end']) {
+  await pick(s);
   await p.waitForTimeout(250);
   const flat = (await outlineD()).length > 0;
   const blocking = await p.getByText('Blocking').count();
@@ -73,11 +79,11 @@ await p.locator('input[type="range"]').fill('1000');
 await p.getByRole('button', { name: 'Show the flat dieline' }).click();
 await p.waitForTimeout(300);
 ok('flat thumbnail returns to the dieline', (await p.getByRole('button', { name: 'Show the 3D view' }).count()) === 1);
-await p.getByRole('button', { name: /Gable box/ }).first().click();
+await pick('Gable box');
 await p.getByLabel('Handle height').fill('15');
 await p.waitForTimeout(250);
 ok('closing check flags a short gable handle', (await p.locator('[data-severity="error"]', { hasText: 'hand hole' }).count()) > 0);
-await p.getByRole('button', { name: /Reverse tuck end/ }).first().click();
+await pick('Reverse tuck end');
 for (const [label, v] of [['Length', '60'], ['Width', '25'], ['Height', '110']]) await p.getByLabel(label).first().fill(v);
 await p.waitForTimeout(300);
 
@@ -151,10 +157,24 @@ await p.getByRole('button', { name: 'Use these dimensions' }).click();
 await p.waitForTimeout(300);
 ok('size from contents applied', (await p.getByLabel('Length').first().inputValue()) === '51.5', await p.getByLabel('Length').first().inputValue());
 
-// Layer toggle
-await p.getByRole('button', { name: 'Bleed' }).first().click();
+// Layer toggle, from the Layers menu
+await p.getByRole('button', { name: /^Layers \d/ }).click();
+await p.getByRole('menuitemcheckbox', { name: 'Bleed' }).click();
 ok('layer toggle hides bleed', await p.locator('.dieline-preview #Bleed').count() === 0);
-await p.getByRole('button', { name: 'Bleed' }).first().click();
+await p.getByRole('menuitemcheckbox', { name: 'Bleed' }).click();
+await p.getByRole('button', { name: /^Layers \d/ }).click();
+
+// Clicking a panel brings its field into view
+{
+  const box = await p.locator('.dieline-preview').boundingBox();
+  await p.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await p.waitForTimeout(150);
+  ok('hovering a panel names it', (await p.getByText('click to edit').count()) > 0);
+  await p.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await p.waitForTimeout(400);
+  const focused = await p.evaluate(() => document.activeElement?.closest('[data-field]')?.getAttribute('data-field'));
+  ok('clicking a panel focuses its field', ['L', 'W', 'H'].includes(focused ?? ''), focused);
+}
 
 // Zoom controls
 await p.getByRole('button', { name: 'Zoom in' }).click();
@@ -201,8 +221,10 @@ await p.locator('input[type="file"]').setInputFiles(pdfFile);
 await p.waitForSelector('[role="status"]', { timeout: 60000 });
 const status = (await p.locator('[role="status"]').textContent()) ?? '';
 ok('uploaded PDF is matched to its carton', /Matched: Reverse tuck end/.test(status), status.slice(0, 120));
+ok('upload switches to the upload side', (await p.getByRole('button', { name: 'Upload a design' }).getAttribute('aria-pressed')) === 'true');
 await p.getByRole('button', { name: 'Close the uploaded design' }).click();
-await p.getByRole('button', { name: 'Show the flat dieline' }).click();
+ok('clearing shows the drop zone', (await p.getByText('Drop a packaging PDF here').count()) === 1);
+await p.getByRole('button', { name: 'Make a dieline' }).click();
 await p.getByRole('button', { name: 'Die-maker only' }).click();
 const [dl2] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'SVG', exact: true }).click()]);
 await dl2.saveAs(`${OUT}/diemaker.svg`);
@@ -214,6 +236,11 @@ p.once('dialog', d => d.accept());
 await p.getByRole('button', { name: 'New', exact: true }).click();
 await p.waitForTimeout(500);
 ok('New resets the carton', (await p.getByLabel('Project name').inputValue()) === 'Untitled carton' && await p.locator('.dieline-preview #Braille').count() === 0);
+
+// Opening on the upload side from the landing page's link
+await p.goto(BASE + '/editor?mode=upload', { waitUntil: 'networkidle' });
+await p.waitForTimeout(300);
+ok('upload link opens on the upload side', (await p.getByText('Drop a packaging PDF here').count()) === 1);
 
 // Mobile
 const m = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });

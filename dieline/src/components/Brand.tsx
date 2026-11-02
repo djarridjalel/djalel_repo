@@ -10,7 +10,7 @@ export function Brand({ href = "/", tone = "ink" }: { href?: string; tone?: "ink
         <span className="font-bold">DJARRI</span>
         <span className="ml-[0.5em] hidden font-light sm:inline">DESIGN STUDIO</span>
       </span>
-      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-mute">/ Dielines</span>
+      <span className="hidden whitespace-nowrap font-mono text-[10px] uppercase tracking-[0.16em] text-mute sm:inline">/ Dielines</span>
     </Link>
   );
 }
