@@ -148,13 +148,14 @@ function worldKeys() {
   const cw = app(cv.x, cv.y);
   const canvasAt = (z: number) => ({ x: cw.x, y: cw.y, z, r: 0 });
   // The best angle sits between the canvas and the product button.
-  const best = { x: lerp(cw.x, C.x, 0.45), y: lerp(cw.y, C.y, 0.6), z: 1.12, r: 0 };
+  const pb = app(mid(META.productBtn).x, mid(META.productBtn).y);
+  const best = { x: (cw.x + pb.x) / 2, y: (cw.y + pb.y) / 2, z: 1.3, r: 0 };
   camKeys = [
     [B[9], B[16], full, { ...full, z: 1.04 }, lin],
     [B[16], B[22], { ...full, z: 1.04 }, canvasAt(1.22), io2],
     [B[22], B[23], canvasAt(1.22), canvasAt(2.6), in3],
-    [B[27], B[30], { ...best, z: 1.6, r: -2 }, best, outX],
-    [B[30], B[36], best, { ...best, z: 1.07 }, lin],
+    [B[27], B[30], { ...best, z: 1.75, r: -2 }, best, outX],
+    [B[30], B[36], best, { ...best, z: 1.24 }, lin],
   ];
 }
 function worldCam(t: number): Cam {
@@ -220,10 +221,11 @@ function cursorAt(t: number): [number, number, number, number] {
   if (t < B[27]) return [0, 0, 0, 0];
   if (t < B[30] + 0.1) {
     // Dragging the carton round to the best angle (the capture's own orbit).
-    const k = out3(clamp((t - B[27]) / (B[30] - B[27])));
-    return [cv.x - 430 * k, cv.y - 40 * k, 1, 0.6];
+    const backOut = (k: number) => 1 + 2.70158 * Math.pow(k - 1, 3) + 1.70158 * Math.pow(k - 1, 2);
+    const k = backOut(clamp((t - B[27]) / (B[30] - B[27])));
+    return [cv.x + 55 * k, cv.y + 40 * k, 1, 0.6];
   }
-  const from = { x: cv.x - 430, y: cv.y - 40 };
+  const from = { x: cv.x + 55, y: cv.y + 40 };
   if (t < B[34] + 0.4) {
     const p = lerpP(from, pb, io3(clamp((t - B[32]) / (B[34] - 0.06 - B[32]))));
     return [p.x, p.y, 1, press(B[34] - 0.04)];
@@ -293,7 +295,7 @@ const SEQ: [string, number, number][] = [
   ["make", B[7], B[15]],
   ["drop", B[15], B[17]],
   ["fold", B[17], B[23]],
-  ["angle", B[27], B[36]],
+  ["angle", B[27] - 0.02, B[36]],
 ];
 let appShown = "";
 async function renderApp() {

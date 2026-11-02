@@ -26,7 +26,9 @@ await p.waitForTimeout(800);
 // Where the preview draws the dieline (to land the film's drawn line exactly on it).
 meta.preview = await p.evaluate(() => { const s = document.querySelector('.dieline-preview svg'); const r = s.getBoundingClientRect(); return { vb: s.getAttribute('viewBox'), x: r.x, y: r.y, w: r.width, h: r.height }; });
 meta.uploadBtn = await rect(p.getByRole('button', { name: 'رفع تصميم' }));
-const shoot = async (dir, n) => { for (let i = 0; i < n; i++) await p.screenshot({ path: `${OUT}/${dir}/${String(i).padStart(4, '0')}.png` }); };
+const ONLY = process.env.ANGLE_ONLY === '1';
+const snap = (o) => (ONLY ? null : p.screenshot(o));
+const shoot = async (dir, n) => { for (let i = 0; i < n; i++) await snap({ path: `${OUT}/${dir}/${String(i).padStart(4, '0')}.png` }); };
 const frames = (t0, t1) => Math.round((t1 - t0) * FPS);
 
 // 1. The editor, while the camera pulls back and holds (B7 -> B15).
@@ -40,7 +42,7 @@ const nDrop = frames(B[15], B[17]);
 const atDrop = frames(B[15], B[16]);
 for (let i = 0; i < nDrop; i++) {
   if (i === atDrop) await p.locator('input[type="file"]').setInputFiles(PDF);
-  await p.screenshot({ path: `${OUT}/drop/${String(i).padStart(4, '0')}.png` });
+  await snap({ path: `${OUT}/drop/${String(i).padStart(4, '0')}.png` });
 }
 await p.waitForSelector('[role="status"]', { timeout: 120000 });
 await p.waitForTimeout(1500);
@@ -80,7 +82,7 @@ for (let i = 0; i < nFold; i++) {
   const t = B[17] + i / FPS;
   await setFold(fold(t));
   if (t >= B[21]) await orbit(-1.2, 0);
-  await p.screenshot({ path: `${OUT}/fold/${String(i).padStart(4, '0')}.png` });
+  await snap({ path: `${OUT}/fold/${String(i).padStart(4, '0')}.png` });
 }
 await release();
 
@@ -91,9 +93,11 @@ let downloaded = null;
 for (let i = 0; i < nAngle; i++) {
   const t = B[27] + i / FPS;
   if (t < B[30]) {
-    const k0 = easeOut((t - B[27]) / (B[30] - B[27]));
-    const k1 = easeOut(Math.min(1, (t + 1 / FPS - B[27]) / (B[30] - B[27])));
-    await orbit(-430 * (k1 - k0), -40 * (k1 - k0));
+    // A swing with a small overshoot, settling on the front three-quarter view.
+    const backOut = (k) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); };
+    const k0 = backOut((t - B[27]) / (B[30] - B[27]));
+    const k1 = backOut(Math.min(1, (t + 1 / FPS - B[27]) / (B[30] - B[27])));
+    await orbit(55 * (k1 - k0), 40 * (k1 - k0));
   } else await release();
   if (!downloaded && t >= B[34]) {
     const [dl] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: 'صورة المنتج' }).click()]);
