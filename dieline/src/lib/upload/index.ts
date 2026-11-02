@@ -65,31 +65,52 @@ export async function analysePdf(file: File): Promise<UploadResult> {
   const real = canvas.getContext("2d")!;
   // With no layer to hide, leave out the dieline's own drawing: the canvas strokes and fills in the order the page draws them.
   const noLayer = read.dielineLayers.includes("-") || read.dielineLayers.length === 0;
-  // Only the shapes that drew the dieline (and long rules such as its bleed outline): small text drawn as thin shapes stays.
+  // Only the shapes that drew the dieline: those in its cut colour or the colour of its panel folds,
+  // at least 4 mm across, within the blank or long enough to be a rule (bleed, frame). Artwork in other colours stays.
   const drawn = (raw: DieSeg[]) => {
     const len = new Map<number, number>();
-    for (const g of raw) if (g.ord !== undefined) len.set(g.ord, (len.get(g.ord) ?? 0) + Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y));
-    const keep = new Set(found.segs.map((g) => g.ord).filter((o): o is number => o !== undefined));
-    for (const [o, l] of len) if (l >= 40) keep.add(o);
+    const box = new Map<number, [number, number, number, number]>();
+    for (const g of raw) {
+      if (g.ord === undefined) continue;
+      len.set(g.ord, (len.get(g.ord) ?? 0) + Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y));
+      const b = box.get(g.ord) ?? [Infinity, Infinity, -Infinity, -Infinity];
+      box.set(g.ord, [Math.min(b[0], g.a.x, g.b.x), Math.min(b[1], g.a.y, g.b.y), Math.max(b[2], g.a.x, g.b.x), Math.max(b[3], g.a.y, g.b.y)]);
+    }
+    // Letters of small text can share the dieline's colour: a dieline shape spans at least 4 mm.
+    const span = (o: number) => {
+      const b = box.get(o)!;
+      return Math.max(b[2] - b[0], b[3] - b[1]);
+    };
+    const { xs, top, bottom } = found.body;
+    const onFold = (g: DieSeg) => Math.abs(g.a.x - g.b.x) < 1 && xs.some((x) => Math.abs(g.a.x - x) < 1) && Math.abs(g.a.y - g.b.y) > (bottom - top) / 2;
+    const colours = new Set(found.segs.filter((g) => g.kind === "cut" || onFold(g)).map((g) => g.color));
+    const used = new Set(found.segs.map((g) => g.ord));
+    const keep = new Set<number>();
+    for (const g of raw) if (g.ord !== undefined && colours.has(g.color) && span(g.ord) >= 4 && (used.has(g.ord) || (len.get(g.ord) ?? 0) >= 40)) keep.add(g.ord);
     return keep;
   };
   const skipStroke = noLayer && !fromFills ? drawn(read.segs) : null;
   const skipFill = fromFills && noLayer ? drawn(read.fillSegs) : null;
   let ns = 0;
   let nf = 0;
-  const ctx =
-    skipStroke || skipFill
-      ? new Proxy(real, {
-          get(t, k) {
-            if (k === "stroke") return (...a: [Path2D?]) => (skipStroke?.has(ns++) ? undefined : t.stroke(...(a as [Path2D])));
-            if (k === "fill") return (...a: [CanvasFillRule?]) => (skipFill?.has(nf++) ? undefined : t.fill(...(a as [CanvasFillRule])));
-            const v = Reflect.get(t, k);
-            return typeof v === "function" ? v.bind(t) : v;
-          },
-          set: (t, k, v) => Reflect.set(t, k, v),
-        })
-      : real;
-  await page.render({ canvasContext: ctx, viewport, optionalContentConfigPromise: Promise.resolve(oc) }).promise;
+  // pdf.js may draw parts of the page on its own scratch canvases (transparency groups, masks), so the
+  // filter sits on every 2D context while this page renders, counting fills and strokes in page order.
+  const proto = CanvasRenderingContext2D.prototype;
+  const { fill, stroke } = proto;
+  if (skipStroke || skipFill) {
+    proto.fill = function (this: CanvasRenderingContext2D, ...a: unknown[]) {
+      if (!skipFill?.has(nf++)) (fill as (...x: unknown[]) => void).apply(this, a);
+    };
+    proto.stroke = function (this: CanvasRenderingContext2D, ...a: unknown[]) {
+      if (!skipStroke?.has(ns++)) (stroke as (...x: unknown[]) => void).apply(this, a);
+    };
+  }
+  try {
+    await page.render({ canvasContext: real, viewport, optionalContentConfigPromise: Promise.resolve(oc) }).promise;
+  } finally {
+    proto.fill = fill;
+    proto.stroke = stroke;
+  }
 
   return {
     ok: true,

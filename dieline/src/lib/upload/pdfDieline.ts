@@ -12,6 +12,8 @@ export interface DieSeg {
   kind: "cut" | "crease";
   /** The page's stroke or fill operation (counted from 0) that drew it. */
   ord?: number;
+  /** The colour it was drawn in. */
+  color?: string;
 }
 
 export interface LayerInfo {
@@ -120,8 +122,8 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
         const per = sub.reduce((k, sp) => k + sp.slice(1).reduce((q, p, j) => q + Math.hypot(p.x - sp[j].x, p.y - sp[j].y), 0), 0);
         const area = Math.abs(sub.reduce((k, sp) => k + sp.slice(1).reduce((q, p, j) => q + (sp[j].x * p.y - p.x * sp[j].y), 0), 0)) / 2;
         const width = per ? (2 * area) / per : 0;
-        // Line-like: thin, at least 5 mm long and many times longer than wide (glyphs of small text are not).
-        if (width < 0.6 && per / 2 >= 5 && per / 2 > 25 * Math.max(width, 0.05)) thinFills.push({ layer: layer(), ordinal: fillCount, pts: sub, dashed: false, color: fillColor });
+        // Line-like: under 1 mm wide, at least 5 mm long and many times longer than wide (glyphs of small text are not).
+        if (width < 1 && per / 2 >= 5 && per / 2 > 25 * Math.max(width, 0.05)) thinFills.push({ layer: layer(), ordinal: fillCount, pts: sub, dashed: false, color: fillColor });
       }
       fillCount++;
     }
@@ -281,7 +283,7 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
   const segs: DieSeg[] = [];
   for (const r of mine) {
     const kind = anyDash ? (r.dashed ? "crease" : "cut") : r.color === cutColor ? "cut" : "crease";
-    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) segs.push({ a: sub[j - 1], b: sub[j], kind, ord: r.ordinal });
+    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) segs.push({ a: sub[j - 1], b: sub[j], kind, ord: r.ordinal, color: r.color });
   }
   // Which strokes draw the dieline, to leave them out of the artwork when it has no layer of its own.
   const dielineStrokes = mine.map((r) => r.ordinal);
@@ -295,7 +297,21 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
   const fillSegs: DieSeg[] = [];
   for (const r of fillPool) {
     const kind = r.color === outer ? "cut" : "crease";
-    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) fillSegs.push({ a: sub[j - 1], b: sub[j], kind, ord: r.ordinal });
+    for (const sub of r.pts) {
+      // A plain bar (four corners) is one line: its centre line, not its two long sides.
+      const c = sub.filter((p, j) => j === 0 || Math.hypot(p.x - sub[j - 1].x, p.y - sub[j - 1].y) > 1e-3);
+      if (c.length > 1 && Math.hypot(c[0].x - c[c.length - 1].x, c[0].y - c[c.length - 1].y) < 1e-3) c.pop();
+      if (c.length === 4) {
+        const d = (i: number) => Math.hypot(c[(i + 1) % 4].x - c[i].x, c[(i + 1) % 4].y - c[i].y);
+        const k = d(0) < d(1) ? 0 : 1;
+        if (Math.min(d(0), d(1)) < 1) {
+          const mid = (i: number) => pt((c[i].x + c[(i + 1) % 4].x) / 2, (c[i].y + c[(i + 1) % 4].y) / 2);
+          fillSegs.push({ a: mid(k), b: mid(k + 2), kind, ord: r.ordinal, color: r.color });
+          continue;
+        }
+      }
+      for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) fillSegs.push({ a: sub[j - 1], b: sub[j], kind, ord: r.ordinal, color: r.color });
+    }
   }
   const dielineFills = fillPool.map((r) => r.ordinal);
   return { width, height, layers: layersOut, layer: best, dielineLayers: [...chosen], dielineStrokes, segs, fillSegs, dielineFills };
