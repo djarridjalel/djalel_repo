@@ -237,6 +237,25 @@ await p.getByRole('button', { name: 'New', exact: true }).click();
 await p.waitForTimeout(500);
 ok('New resets the carton', (await p.getByLabel('Project name').inputValue()) === 'Untitled carton' && await p.locator('.dieline-preview #Braille').count() === 0);
 
+// Arabic: the switch turns the page right to left, and the PDF carries Arabic text
+await p.goto(BASE + '/editor', { waitUntil: 'networkidle' });
+await p.getByRole('button', { name: 'العربية' }).click();
+await p.waitForTimeout(300);
+ok('Arabic: page turns right to left', (await p.evaluate(() => document.documentElement.dir)) === 'rtl');
+ok('Arabic: interface in Arabic', (await p.getByText('نوع العلبة').count()) > 0 && (await p.getByText('إنشاء مخطط قطع').count()) > 0);
+ok('Arabic: panel names on the dieline', (await p.locator('.dieline-preview text', { hasText: 'الأمام' }).count()) > 0);
+{
+  const [dl] = await Promise.all([p.waitForEvent('download', { timeout: 30000 }), p.getByRole('button', { name: 'PDF', exact: true }).click()]);
+  const f = `${OUT}/arabic.pdf`;
+  await dl.saveAs(f);
+  const bytes = fs.readFileSync(f);
+  // The Arabic typeface is embedded in full (about 220 kB); the English PDF uses the PDF's own Helvetica.
+  ok('Arabic: PDF downloads with the Arabic font', bytes.subarray(0, 4).toString() === '%PDF' && bytes.length > 150000, `${bytes.length} bytes`);
+}
+await p.getByRole('button', { name: 'English' }).click();
+await p.waitForTimeout(300);
+ok('Arabic: back to English', (await p.evaluate(() => document.documentElement.dir)) === 'ltr' && (await p.getByText('Carton style').count()) > 0);
+
 // Opening on the upload side from the landing page's link
 await p.goto(BASE + '/editor?mode=upload', { waitUntil: 'networkidle' });
 await p.waitForTimeout(300);

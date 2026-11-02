@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState, type ReactNode } from "react";
+import { useLang } from "./LangProvider";
 
 /** Asks the editor's sections to open and the matching field to come into view, from anywhere (a click on the dieline, a check). */
 export const FOCUS_EVENT = "dieline:focus";
@@ -9,6 +10,7 @@ export function focusField(field: string, sections: string[]) {
 }
 
 export function Section({ title, children, defaultOpen = true, aside, summary }: { title: string; children: ReactNode; defaultOpen?: boolean; aside?: ReactNode; summary?: string }) {
+  const { t } = useLang();
   const [open, setOpen] = useState(defaultOpen);
   useEffect(() => {
     const on = (e: Event) => {
@@ -23,10 +25,10 @@ export function Section({ title, children, defaultOpen = true, aside, summary }:
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-start"
         aria-expanded={open}
       >
-        <span className="shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-ink">{title}</span>
+        <span className="shrink-0 font-mono text-[11px] font-medium uppercase tracking-[0.12em] text-ink">{t(title)}</span>
         <span className="flex min-w-0 items-center gap-2">
           {!open && summary && <span className="truncate text-[12px] text-mute">{summary}</span>}
           {aside}
@@ -79,6 +81,7 @@ export function NumberField({
   max?: number;
   hint?: string;
 }) {
+  const { t } = useLang();
   const id = useId();
   const [text, setText] = useState(value == null ? "" : String(value));
   useEffect(() => {
@@ -87,13 +90,13 @@ export function NumberField({
       return parsed === value ? t : value == null ? "" : String(value);
     });
   }, [value]);
-  const placeholder = auto && resolved != null ? `${Math.round(resolved * 100) / 100} auto` : "";
+  const placeholder = auto && resolved != null ? `${Math.round(resolved * 100) / 100} ${t("auto")}` : "";
   return (
     <div data-field={field}>
       <Label htmlFor={id} hint={hint}>
         {label}
       </Label>
-      <div className="flex h-10 items-center rounded-md border border-rule bg-paper focus-within:border-ink">
+      <div dir="ltr" className="flex h-10 items-center rounded-md border border-rule bg-paper focus-within:border-ink">
         <input
           id={id}
           inputMode="decimal"
@@ -118,11 +121,11 @@ export function NumberField({
           max={max}
         />
         {auto && value != null && (
-          <button type="button" className="px-2 font-mono text-[10px] uppercase text-mute hover:text-ink" onClick={() => onChange(null)} title="Back to automatic">
-            auto
+          <button type="button" className="px-2 font-mono text-[10px] uppercase text-mute hover:text-ink" onClick={() => onChange(null)} title="auto">
+            {t("auto")}
           </button>
         )}
-        <span className="pr-3 font-mono text-[12px] text-mute">{unit}</span>
+        <span className="whitespace-nowrap pe-3 font-mono text-[12px] text-mute">{t(unit)}</span>
       </div>
     </div>
   );
@@ -179,7 +182,7 @@ export function Toggle({ label, checked, onChange, hint }: { label: string; chec
       <span className="relative inline-flex">
         <input type="checkbox" className="peer sr-only" checked={checked} onChange={(e) => onChange(e.target.checked)} />
         <span className="h-6 w-10 rounded-full bg-rule transition-colors peer-checked:bg-ink peer-focus-visible:ring-2 peer-focus-visible:ring-accent" />
-        <span className="absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-paper shadow transition-transform peer-checked:translate-x-4" />
+        <span className="absolute start-0.5 top-0.5 h-5 w-5 rounded-full bg-paper shadow transition-transform peer-checked:translate-x-4" />
       </span>
     </label>
   );

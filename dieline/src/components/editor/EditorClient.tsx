@@ -5,6 +5,7 @@ import { DEFAULT_PARAMS } from "@/lib/dieline";
 import type { CartonParams } from "@/lib/dieline/types";
 import { clearLocalDraft, cloudStore, loadLocalDraft, localStore } from "@/lib/projects";
 import { Editor } from "./Editor";
+import { useLang } from "../LangProvider";
 
 export function CloudEditor({ id, name, params, userLabel }: { id: string; name: string; params: CartonParams; userLabel: string | null }) {
   const store = useMemo(() => cloudStore(id), [id]);
@@ -12,6 +13,7 @@ export function CloudEditor({ id, name, params, userLabel }: { id: string; name:
 }
 
 export function DemoEditor() {
+  const { t } = useLang();
   const store = useMemo(() => localStore(), []);
   const [draft, setDraft] = useState<{ name: string; params: CartonParams } | null>(null);
   const [session, setSession] = useState(0);
@@ -20,7 +22,7 @@ export function DemoEditor() {
   }, []);
   if (!draft) return <div className="h-dvh bg-bone" />;
   const startNew = () => {
-    if (!confirm("Start a new carton? The current one and its versions are removed from this browser.")) return;
+    if (!confirm(t("Start a new carton? The current one and its versions are removed from this browser."))) return;
     clearLocalDraft();
     setDraft({ name: "Untitled carton", params: DEFAULT_PARAMS });
     setSession((n) => n + 1);

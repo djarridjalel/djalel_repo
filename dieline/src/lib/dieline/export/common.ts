@@ -1,5 +1,6 @@
 import { boardById } from "../boards";
 import type { Dieline, StyleId } from "../types";
+import { translate, type Lang } from "../../i18n";
 
 export const STYLE_NAMES: Record<StyleId, { name: string; ecma: string }> = {
   rte: { name: "Reverse tuck end", ecma: "ECMA A20.20.03.01" },
@@ -22,20 +23,22 @@ export interface ExportMeta {
 
 export const BRAND = "Djarri Design Studio — Dieline Generator";
 
-export function titleRows(d: Dieline, meta: ExportMeta): [string, string][] {
+export function titleRows(d: Dieline, meta: ExportMeta, lang: Lang = "en"): [string, string][] {
+  const t = (s: string) => translate(lang, s);
   const p = d.params;
   const s = STYLE_NAMES[p.style];
   const board = boardById(p.boardId);
-  const dims = `${p.L} × ${p.W} × ${p.H} mm (${p.dimMode} L × W × H)`;
+  const mm = t("mm");
+  const dims = lang === "ar" ? `${p.L} × ${p.W} × ${p.H} ${mm} (${t(p.dimMode === "inside" ? "Inside" : "Outside")}، ${t("L × W × H")})` : `${p.L} × ${p.W} × ${p.H} mm (${p.dimMode} L × W × H)`;
   const date = (meta.date ?? new Date()).toISOString().slice(0, 10);
   return [
-    ["Job", meta.projectName || "Untitled carton"],
-    ["Style", `${s.name} · ${s.ecma}`],
-    ["Dimensions", dims],
-    ["Board", `${board ? board.name : "Custom board"} · caliper ${p.caliper} mm`],
-    ["Flat size", `${d.stats.flatWidth} × ${d.stats.flatHeight} mm`],
-    ["Rule length", `cut ${d.stats.cutLength} mm · crease ${d.stats.creaseLength} mm${d.stats.perfLength ? ` · perf ${d.stats.perfLength} mm` : ""}`],
-    ["Version", `${meta.version ? `v${meta.version} · ` : ""}${date}${meta.author ? ` · ${meta.author}` : ""}`],
+    [t("Job"), meta.projectName ? (meta.projectName === "Untitled carton" ? t(meta.projectName) : meta.projectName) : t("Untitled carton")],
+    [t("Style"), `${t(s.name)} · ${t(s.ecma)}`],
+    [t("Dimensions"), dims],
+    [t("Board"), `${board ? board.name : t("Custom board")} · ${t("caliper")} ${p.caliper} ${mm}`],
+    [t("Flat size"), `${d.stats.flatWidth} × ${d.stats.flatHeight} ${mm}`],
+    [t("Rule length"), `${t("cut")} ${d.stats.cutLength} ${mm} · ${t("crease")} ${d.stats.creaseLength} ${mm}${d.stats.perfLength ? ` · ${t("perf")} ${d.stats.perfLength} ${mm}` : ""}`],
+    [t("Version"), `${meta.version ? `v${meta.version} · ` : ""}${date}${meta.author ? ` · ${meta.author}` : ""}`],
   ];
 }
 

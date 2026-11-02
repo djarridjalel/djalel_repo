@@ -1,5 +1,6 @@
 "use client";
 
+import { useLang } from "../LangProvider";
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -61,6 +62,7 @@ const DEPTH = {
  * Views can be saved as angles and exported as a product image or a depth map.
  */
 export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { model: Model3D; mini?: boolean; art?: Artwork | null; fileBase?: string }) {
+  const { t: tr } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(1);
   const [noGl, setNoGl] = useState(false);
@@ -364,14 +366,14 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
   return (
     <div className="flex h-full min-h-0 flex-col sm:flex-row">
       <div className="relative min-h-0 flex-1">
-        <div ref={host} className="absolute inset-0 cursor-grab overflow-hidden active:cursor-grabbing" aria-label="Carton in 3D" role="img">
-          {noGl && <p className="p-4 text-[12px] text-mute">This browser cannot draw 3D (WebGL is off).</p>}
+        <div ref={host} className="absolute inset-0 cursor-grab overflow-hidden active:cursor-grabbing" aria-label={tr("Carton in 3D")} role="img">
+          {noGl && <p className="p-4 text-[12px] text-mute">{tr("This browser cannot draw 3D (WebGL is off).")}</p>}
         </div>
         {!noGl && (
-          <div className="absolute right-3 top-3 z-10 flex max-w-[70%] flex-col items-end gap-2 text-[13px]">
+          <div className="absolute end-3 top-3 z-10 flex max-w-[70%] flex-col items-end gap-2 text-[13px]">
             <div className="flex flex-wrap justify-end gap-1.5">
               <button type="button" onClick={saveAngle} className="h-9 rounded-md border border-ink bg-paper px-3 font-medium shadow-sm hover:bg-bone">
-                Save angle
+                {tr("Save angle")}
               </button>
               {(
                 [
@@ -383,18 +385,18 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
                     <path d="M7 1.5v8M3.5 6l3.5 3.5L10.5 6M2 12.5h10" />
                   </svg>
-                  {busy === k ? "Rendering…" : l}
+                  {busy === k ? tr("Rendering…") : tr(l)}
                 </button>
               ))}
             </div>
             {angles.length > 0 && (
-              <ul className="flex flex-wrap justify-end gap-1" aria-label="Saved angles">
+              <ul className="flex flex-wrap justify-end gap-1" aria-label={tr("Saved angles")}>
                 {angles.map((a) => (
                   <li key={a.name} className="flex items-center overflow-hidden rounded-full border border-rule bg-paper">
-                    <button type="button" onClick={() => goToAngle(a)} className="h-7 pl-3 pr-1.5 hover:text-ink">
+                    <button type="button" onClick={() => goToAngle(a)} className="h-7 ps-3 pe-1.5 hover:text-ink">
                       {a.name}
                     </button>
-                    <button type="button" onClick={() => dropAngle(a.name)} aria-label={`Delete ${a.name}`} className="h-7 pl-1 pr-2.5 text-mute hover:text-danger">
+                    <button type="button" onClick={() => dropAngle(a.name)} aria-label={`${tr("Delete")} ${a.name}`} className="h-7 ps-1 pe-2.5 text-mute hover:text-danger">
                       ×
                     </button>
                   </li>
@@ -404,21 +406,21 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
           </div>
         )}
       </div>
-      <div className="flex shrink-0 flex-col gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-36 sm:flex-col-reverse sm:items-center sm:border-l sm:border-t-0 sm:px-3 sm:py-5">
+      <div className="flex shrink-0 flex-col gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-36 sm:flex-col-reverse sm:items-center sm:border-s sm:border-t-0 sm:px-3 sm:py-5">
         <input
           type="range"
           min={0}
           max={steps * 1000}
           value={Math.round(t * 1000)}
           onChange={(e) => setT(Number(e.target.value) / 1000)}
-          aria-label={model.present ? `Fold from flat to closed, then to ${model.present.toLowerCase()}` : "Fold from flat to closed"}
+          aria-label={tr("Fold from flat to closed")}
           className="fold-slider min-w-0 sm:min-h-0 sm:flex-1"
           style={{ ["--fill" as string]: `${(t / steps) * 100}%` }}
         />
         <div className="flex gap-1 rounded-md border border-rule bg-paper p-1 text-[12px] font-medium sm:w-full sm:flex-col-reverse">
           {(model.present ? ["Flat", "Closed", model.present] : ["Flat", "Closed"]).map((l, k) => (
             <button key={l} type="button" onClick={() => setT(k)} className={`h-8 flex-1 whitespace-nowrap rounded px-1 ${Math.abs(t - k) < 0.02 ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
-              {l}
+              {tr(l)}
             </button>
           ))}
         </div>

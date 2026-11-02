@@ -1,5 +1,6 @@
 "use client";
 
+import { useLang } from "../LangProvider";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { renderSvg } from "@/lib/dieline/export/svg";
@@ -11,7 +12,7 @@ type VB = { x: number; y: number; w: number; h: number };
 
 const Fold3D = dynamic(() => import("./Fold3D").then((m) => m.Fold3D), {
   ssr: false,
-  loading: () => <p className="p-4 text-[12px] text-mute">Loading 3D…</p>,
+  loading: () => <p className="p-4 text-[12px] text-mute">{"Loading 3D…"}</p>,
 });
 
 /** Smallest size, in screen pixels, the drawing's labels and dimensions are shown at. */
@@ -41,6 +42,7 @@ export function Preview({
   highlight: string[];
   onPanelClick: (p: Panel) => void;
 }) {
+  const { t, lang } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement | null>(null);
   const overlay = useRef<SVGSVGElement>(null);
@@ -53,7 +55,7 @@ export function Preview({
   const [hover, setHover] = useState<{ panel: Panel; x: number; y: number } | null>(null);
   const [layersOpen, setLayersOpen] = useState(false);
 
-  const svg = useMemo(() => renderSvg(d, { layers, margin: 6, blankFill: "#ffffff" }), [d, layers]);
+  const svg = useMemo(() => renderSvg(d, { layers, margin: 6, blankFill: "#ffffff", lang }), [d, layers, lang]);
 
   const fitBox = useCallback((): VB => {
     const m = 12;
@@ -256,14 +258,14 @@ export function Preview({
         ) : (
           <div className="flex min-h-0 flex-1 items-center justify-center p-6">
             <div className="w-full max-w-[520px] rounded-lg border-2 border-dashed border-rule bg-paper/60 px-6 py-12 text-center">
-              <p className="text-[18px] font-medium">{reading ? "Reading your PDF…" : "Drop a packaging PDF here"}</p>
+              <p className="text-[18px] font-medium">{t(reading ? "Reading your PDF…" : "Drop a packaging PDF here")}</p>
               <p className="mx-auto mt-2 max-w-[380px] text-[13px] leading-relaxed text-mute">
-                The dieline is found and matched to a carton style, checked, and folded in 3D with your artwork. The file is read in your browser and never leaves your device.
+                {t("The dieline is found and matched to a carton style, checked, and folded in 3D with your artwork. The file is read in your browser and never leaves your device.")}
               </p>
               <button type="button" onClick={onChooseFile} disabled={reading} className="mt-6 inline-flex h-11 items-center rounded-md bg-ink px-5 text-[14px] font-medium text-paper transition-colors hover:bg-accent hover:text-ink">
-                {reading ? "Reading…" : "Choose a PDF"}
+                {t(reading ? "Reading…" : "Choose a PDF")}
               </button>
-              {upload && !upload.ok && <p className="mx-auto mt-4 max-w-[380px] text-[13px] text-danger">{upload.reason}</p>}
+              {upload && !upload.ok && <p className="mx-auto mt-4 max-w-[380px] text-[13px] text-danger">{t(upload.reason)}</p>}
             </div>
           </div>
         )}
@@ -274,15 +276,15 @@ export function Preview({
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex items-center gap-2 border-b border-rule bg-bone px-3 py-2">
-        <div className="flex overflow-hidden rounded-full border border-rule bg-paper text-[12px]" role="group" aria-label="View">
+        <div className="flex overflow-hidden rounded-full border border-rule bg-paper text-[12px]" role="group" aria-label={t("View")}>
           {(
             [
               ["flat", "Flat"],
               ["3d", "3D"],
             ] as const
           ).map(([v, l]) => (
-            <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v} title={`${l} view (F)`} className={`h-8 px-4 ${view === v ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
-              {l}
+            <button key={v} type="button" onClick={() => setView(v)} aria-pressed={view === v} title={`${t(l)} (F)`} className={`h-8 px-4 ${view === v ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
+              {t(l)}
             </button>
           ))}
         </div>
@@ -294,7 +296,7 @@ export function Preview({
               aria-expanded={layersOpen}
               className="relative z-30 flex h-8 items-center gap-2 rounded-full border border-rule bg-paper px-3 text-[12px] hover:border-ink"
             >
-              Layers
+              {t("Layers")}
               <span className="font-mono text-[11px] text-mute">
                 {LAYER_ORDER.filter((l) => hasContent(d, l) && layers.has(l)).length}/{LAYER_ORDER.filter((l) => hasContent(d, l)).length}
               </span>
@@ -305,7 +307,7 @@ export function Preview({
             {layersOpen && (
               <>
                 <div className="fixed inset-0 z-20" onClick={() => setLayersOpen(false)} aria-hidden />
-                <ul className="absolute left-0 top-10 z-30 w-[220px] rounded-md border border-rule bg-paper p-1 shadow-md" role="menu">
+                <ul className="absolute start-0 top-10 z-30 w-[220px] rounded-md border border-rule bg-paper p-1 shadow-md" role="menu">
                   {LAYER_ORDER.filter((l) => hasContent(d, l)).map((l) => {
                     const st = LAYERS[l];
                     const onL = layers.has(l);
@@ -316,7 +318,7 @@ export function Preview({
                           role="menuitemcheckbox"
                           aria-checked={onL}
                           onClick={() => onToggleLayer(l)}
-                          className="flex h-9 w-full items-center gap-2.5 rounded px-2 text-left text-[13px] hover:bg-bone"
+                          className="flex h-9 w-full items-center gap-2.5 rounded px-2 text-start text-[13px] hover:bg-bone"
                         >
                           <span className={`flex h-4 w-4 items-center justify-center rounded border ${onL ? "border-ink bg-ink text-paper" : "border-rule"}`} aria-hidden>
                             {onL && (
@@ -326,7 +328,7 @@ export function Preview({
                             )}
                           </span>
                           <span className="h-2.5 w-2.5 rounded-full" style={{ background: st.color }} />
-                          <span className={onL ? "" : "text-mute"}>{st.label}</span>
+                          <span className={onL ? "" : "text-mute"}>{t(st.label)}</span>
                         </button>
                       </li>
                     );
@@ -336,12 +338,12 @@ export function Preview({
             )}
           </div>
         )}
-        <p className="ml-auto hidden text-[11px] text-mute lg:block">{view === "flat" ? "Click a panel to edit it · drag to pan · scroll to zoom" : "Drag to turn · scroll to zoom"}</p>
+        <p className="ms-auto hidden text-[11px] text-mute lg:block">{t(view === "flat" ? "Click a panel to edit it · drag to pan · scroll to zoom" : "Drag to turn · scroll to zoom")}</p>
       </div>
       {view === "3d" && (
         <div className="relative min-h-0 flex-1">
           <Fold3D model={d.model3d} />
-          <Inset label="Flat" onClick={() => setView("flat")}>
+          <Inset label={t("Flat")} onClick={() => setView("flat")}>
             <div className="h-full w-full p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
           </Inset>
         </div>
@@ -364,8 +366,8 @@ export function Preview({
         </svg>
         {hover && (
           <div className="pointer-events-none absolute z-20 rounded bg-ink px-2 py-1 text-[11px] text-paper shadow" style={{ left: hover.x + 14, top: hover.y + 14 }}>
-            {hover.panel.name} · <span className="font-mono">{fmt(hover.panel.w)} × {fmt(hover.panel.h)} mm</span>
-            <span className="ml-1 text-paper/60">· click to edit</span>
+            {t(hover.panel.name)} · <span className="font-mono" dir="ltr">{fmt(hover.panel.w)} × {fmt(hover.panel.h)} {t("mm")}</span>
+            <span className="ms-1 text-paper/60">· {t("click to edit")}</span>
           </div>
         )}
         {view === "flat" && d.model3d.faces.length > 0 && (
@@ -373,18 +375,18 @@ export function Preview({
             <Fold3D model={d.model3d} mini />
           </Inset>
         )}
-        <div ref={scaleBar} className="pointer-events-none absolute bottom-4 left-4 flex flex-col items-start gap-1" aria-hidden>
-          <span className="font-mono text-[11px] text-mute" />
+        <div ref={scaleBar} className="pointer-events-none absolute bottom-4 start-4 flex flex-col items-start gap-1" aria-hidden>
+          <span dir="ltr" className="font-mono text-[11px] text-mute" />
           <div className="h-1.5 border-x border-b border-ink/70" style={{ width: "var(--w, 80px)" }} />
         </div>
-        <div className="absolute bottom-3 right-3 flex overflow-hidden rounded-md border border-rule bg-paper shadow-sm">
-          <ZoomBtn label="Zoom out" keyHint="−" onClick={() => zoomAt(...center(), 1 / 1.4)}>−</ZoomBtn>
-          <ZoomBtn label="Fit" keyHint="0" onClick={fit}>
+        <div className="absolute bottom-3 end-3 flex overflow-hidden rounded-md border border-rule bg-paper shadow-sm">
+          <ZoomBtn label={t("Zoom out")} keyHint="−" onClick={() => zoomAt(...center(), 1 / 1.4)}>−</ZoomBtn>
+          <ZoomBtn label={t("Fit")} keyHint="0" onClick={fit}>
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.4">
               <path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9" />
             </svg>
           </ZoomBtn>
-          <ZoomBtn label="Zoom in" keyHint="+" onClick={() => zoomAt(...center(), 1.4)}>+</ZoomBtn>
+          <ZoomBtn label={t("Zoom in")} keyHint="+" onClick={() => zoomAt(...center(), 1.4)}>+</ZoomBtn>
         </div>
       </div>
     </div>
@@ -403,45 +405,46 @@ export function UploadPanel({
   onAnswer: (v: boolean) => void;
   onDownloadCorrected: () => void;
 }) {
+  const { t } = useLang();
   return (
     <div className="rounded-md border border-rule bg-paper p-3 text-[13px] leading-relaxed" role="status">
       <p className="truncate font-medium">{upload.fileName}</p>
       {!upload.ok ? (
-        <p className="mt-1 text-danger">{upload.reason}</p>
+        <p className="mt-1 text-danger">{t(upload.reason)}</p>
       ) : (
         <>
-          <p className="mt-1 text-mute">Matched: {upload.label}</p>
-          {upload.issues.length === 0 && <p className="mt-2">No problems found in the dieline.</p>}
+          <p className="mt-1 text-mute">{t("Matched:")} {t(upload.label)}</p>
+          {upload.issues.length === 0 && <p className="mt-2">{t("No problems found in the dieline.")}</p>}
           {upload.issues.length > 0 && corrected === null && (
             <div className="mt-2 rounded border border-danger/40 p-2">
-              <p className="font-medium text-danger">This dieline has {upload.issues.length === 1 ? "a problem" : `${upload.issues.length} problems`}:</p>
-              <ul className="mt-1 list-disc pl-4">
+              <p className="font-medium text-danger">{t(upload.issues.length === 1 ? "This dieline has a problem:" : `This dieline has ${upload.issues.length} problems:`)}</p>
+              <ul className="mt-1 list-disc ps-4">
                 {upload.issues.map((c) => (
                   <li key={c.id}>
-                    {c.closure}: {c.detail}
+                    {t(c.closure)}: {t(c.detail)}
                   </li>
                 ))}
               </ul>
-              <p className="mt-1">Correct the dieline? The corrected dieline uses the app&apos;s construction at your file&apos;s size; the 3D view shows it, with your artwork.</p>
+              <p className="mt-1">{t("Correct the dieline? The corrected dieline uses the app’s construction at your file’s size; the 3D view shows it, with your artwork.")}</p>
               <div className="mt-2 flex gap-2">
                 <button type="button" onClick={() => onAnswer(true)} className="h-8 rounded-md bg-ink px-3 font-medium text-paper">
-                  Correct it
+                  {t("Correct it")}
                 </button>
                 <button type="button" onClick={() => onAnswer(false)} className="h-8 rounded-md border border-rule px-3">
-                  Keep as drawn
+                  {t("Keep as drawn")}
                 </button>
               </div>
             </div>
           )}
           {corrected === true && (
             <p className="mt-2">
-              Corrected.{" "}
+              {t("Corrected.")}{" "}
               <button type="button" className="underline underline-offset-2" onClick={onDownloadCorrected}>
-                Download the corrected dieline
+                {t("Download the corrected dieline")}
               </button>
             </p>
           )}
-          {corrected === false && <p className="mt-2 text-mute">Kept as drawn. The 3D view folds your file&apos;s own flaps.</p>}
+          {corrected === false && <p className="mt-2 text-mute">{t("Kept as drawn. The 3D view folds your file’s own flaps.")}</p>}
         </>
       )}
     </div>
@@ -450,13 +453,14 @@ export function UploadPanel({
 
 /** The other view floating in the preview's top-left corner, without a frame; clicking it switches views. */
 function Inset({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  const { t } = useLang();
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={`Show ${label === "3D" ? "the 3D view" : "the flat dieline"}`}
-      title={label === "3D" ? "Open the 3D view (F)" : "Back to the flat dieline (F)"}
-      className="absolute left-3 top-3 z-10 h-[110px] w-[150px] cursor-pointer bg-transparent transition-opacity hover:opacity-80 sm:h-[200px] sm:w-[300px]"
+      title={t(label === "3D" ? "Open the 3D view (F)" : "Back to the flat dieline (F)")}
+      className="absolute start-3 top-3 z-10 h-[110px] w-[150px] cursor-pointer bg-transparent transition-opacity hover:opacity-80 sm:h-[200px] sm:w-[300px]"
     >
       {children}
     </button>
@@ -464,8 +468,9 @@ function Inset({ label, onClick, children }: { label: string; onClick: () => voi
 }
 
 function ZoomBtn({ children, onClick, label, keyHint }: { children: React.ReactNode; onClick: () => void; label: string; keyHint: string }) {
+  const { t } = useLang();
   return (
-    <button type="button" onClick={onClick} aria-label={label} title={`${label} (${keyHint})`} className="flex h-9 w-9 items-center justify-center text-[18px] text-ink hover:bg-bone">
+    <button type="button" onClick={onClick} aria-label={label} title={`${t(label)} (${keyHint})`} className="flex h-9 w-9 items-center justify-center text-[18px] text-ink hover:bg-bone">
       {children}
     </button>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { LangSwitch, useLang } from "../LangProvider";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generate, normalizeParams } from "@/lib/dieline";
@@ -40,6 +41,7 @@ export function Editor({
   backHref: string;
   onNew?: () => void;
 }) {
+  const { t, lang } = useLang();
   const [params, setParams] = useState<CartonParams>(() => normalizeParams(initialParams));
   const [name, setName] = useState(initialName);
   const [save, setSave] = useState<SaveState>("saved");
@@ -120,7 +122,7 @@ export function Editor({
   const doExport = async (kind: "pdf" | "svg" | "dxf") => {
     setBusy(kind);
     try {
-      await downloadDieline(kind, d, meta, exportLayers);
+      await downloadDieline(kind, d, meta, exportLayers, lang);
     } finally {
       setBusy(null);
     }
@@ -189,14 +191,14 @@ export function Editor({
   const output = (
     <div className="space-y-6 p-4">
       <div>
-        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Checks</h2>
+        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">{t("Checks")}</h2>
         <Checks d={d} set={set} onLocate={locate} />
       </div>
       <div>
-        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Download</h2>
+        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">{t("Download")}</h2>
         <div className="grid grid-cols-3 gap-2">
           {(["pdf", "svg", "dxf"] as const).map((k) => (
-            <Button key={k} variant={k === "pdf" ? "primary" : "secondary"} onClick={() => doExport(k)} disabled={!!busy} title={k === "pdf" ? "Download the PDF (D)" : undefined}>
+            <Button key={k} variant={k === "pdf" ? "primary" : "secondary"} onClick={() => doExport(k)} disabled={!!busy} title={k === "pdf" ? t("Download the PDF (D)") : undefined}>
               {busy === k ? "…" : k.toUpperCase()}
             </Button>
           ))}
@@ -214,28 +216,28 @@ export function Editor({
               onClick={() => setExportSet(v)}
               className={`h-8 rounded text-[12px] ${exportSet === v ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}
             >
-              {l}
+              {t(l)}
             </button>
           ))}
         </div>
         <p className="mt-2 text-[12px] leading-relaxed text-mute">
-          {exportSet === "production"
+          {t(exportSet === "production"
             ? "Cut, crease, perforation and Braille only, for the cutting die."
-            : "Every layer switched on in the preview, in its own named spot colour, plus a title block."}
+            : "Every layer switched on in the preview, in its own named spot colour, plus a title block.")}
         </p>
-        {blocking && <p className="mt-2 text-[12px] text-danger">Fix the blocking checks before sending this dieline to production.</p>}
+        {blocking && <p className="mt-2 text-[12px] text-danger">{t("Fix the blocking checks before sending this dieline to production.")}</p>}
       </div>
       <div>
-        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Versions</h2>
+        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">{t("Versions")}</h2>
         <div className="flex gap-2">
           <input
             value={versionLabel}
             onChange={(e) => setVersionLabel(e.target.value)}
-            placeholder={`Note for v${(latest ?? 0) + 1} (optional)`}
+            placeholder={`${t("Note for")} v${(latest ?? 0) + 1} ${t("(optional)")}`}
             className="h-10 min-w-0 flex-1 rounded-md border border-rule bg-paper px-3 text-[16px] outline-none focus:border-ink sm:text-[13px]"
           />
           <Button onClick={saveVersion} disabled={busy === "version"}>
-            Save v{(latest ?? 0) + 1}
+            {t("Save")} v{(latest ?? 0) + 1}
           </Button>
         </div>
         {versions.length > 0 && (
@@ -253,19 +255,19 @@ export function Editor({
                   <div className="flex shrink-0 items-center gap-3 text-[12px]">
                     <span className="text-mute">Delete v{v.version}?</span>
                     <button type="button" className="font-medium text-danger underline-offset-2 hover:underline" disabled={busy === "delete"} onClick={() => deleteVersion(v.id)}>
-                      Delete
+                      {t("Delete")}
                     </button>
                     <button type="button" className="underline-offset-2 hover:underline" onClick={() => setConfirmDelete(null)}>
-                      Cancel
+                      {t("Cancel")}
                     </button>
                   </div>
                 ) : (
                   <div className="flex shrink-0 items-center gap-3 text-[12px]">
                     <button type="button" className="underline-offset-2 hover:underline" onClick={() => setParams(normalizeParams(v.params))}>
-                      Restore
+                      {t("Restore")}
                     </button>
                     <button type="button" className="text-mute underline-offset-2 hover:text-danger hover:underline" aria-label={`Delete version ${v.version}`} onClick={() => setConfirmDelete(v.id)}>
-                      Delete
+                      {t("Delete")}
                     </button>
                   </div>
                 )}
@@ -280,33 +282,33 @@ export function Editor({
   const uploadSide = (
     <div className="space-y-4 p-4">
       <div>
-        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">Your design</h2>
+        <h2 className="mb-2 font-mono text-[11px] font-medium uppercase tracking-[0.12em]">{t("Your design")}</h2>
         {upload ? (
           <UploadPanel
             upload={upload}
             corrected={corrected}
             onAnswer={setCorrected}
             onDownloadCorrected={() =>
-              upload.ok && downloadDieline("pdf", upload.dieline, { projectName: `${upload.fileName.replace(/\.pdf$/i, "")} corrected`, version: null, author: null }, new Set(LAYER_ORDER))
+              upload.ok && downloadDieline("pdf", upload.dieline, { projectName: `${upload.fileName.replace(/\.pdf$/i, "")} corrected`, version: null, author: null }, new Set(LAYER_ORDER), lang)
             }
           />
         ) : (
-          <p className="text-[13px] leading-relaxed text-mute">{reading ? "Reading your PDF…" : "No design yet. Drop a PDF on the page or choose one."}</p>
+          <p className="text-[13px] leading-relaxed text-mute">{t(reading ? "Reading your PDF…" : "No design yet. Drop a PDF on the page or choose one.")}</p>
         )}
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button variant="primary" onClick={chooseFile} disabled={reading} title="Upload a PDF (U)">
-          {upload ? "Upload another PDF" : "Choose a PDF"}
+        <Button variant="primary" onClick={chooseFile} disabled={reading} title={t("Upload a PDF (U)")}>
+          {t(upload ? "Upload another PDF" : "Choose a PDF")}
         </Button>
         {upload && (
-          <Button onClick={() => setUpload(null)} aria-label="Close the uploaded design">
-            Clear
+          <Button onClick={() => setUpload(null)} aria-label={t("Close the uploaded design")}>
+            {t("Clear")}
           </Button>
         )}
       </div>
       <div className="space-y-2 text-[12px] leading-relaxed text-mute">
-        <p>Works with print-ready PDFs of tuck-end cartons, crash-lock and snap-lock bottoms, shelf-ready trays and more. The dieline can be on its own layer or not, drawn with lines or outlined.</p>
-        <p>In the 3D view, turn the carton to the angle you want, then save the angle or export a product image (transparent PNG) or a depth map.</p>
+        <p>{t("Works with print-ready PDFs of tuck-end cartons, crash-lock and snap-lock bottoms, shelf-ready trays and more. The dieline can be on its own layer or not, drawn with lines or outlined.")}</p>
+        <p>{t("In the 3D view, turn the carton to the angle you want, then save the angle or export a product image (transparent PNG) or a depth map.")}</p>
       </div>
     </div>
   );
@@ -321,7 +323,7 @@ export function Editor({
       : ([
           ["design", "Design"],
           ["preview", "Preview"],
-          ["output", issueCount ? `Checks · ${issueCount}` : "Checks & export"],
+          ["output", issueCount ? `${t("Checks")} · ${issueCount}` : "Checks & export"],
         ] as const);
 
   return (
@@ -344,27 +346,29 @@ export function Editor({
     >
       <input ref={fileInput} type="file" accept="application/pdf,.pdf" className="hidden" onChange={(e) => { onUpload(e.target.files?.[0] ?? undefined); e.target.value = ""; }} />
       <header className="studio-bar relative z-10 flex h-14 shrink-0 items-center gap-3 px-3 sm:px-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
         <Brand href={backHref} />
         <span className="hidden h-5 w-px bg-rule sm:block" />
         {mode === "make" && (
           <label className="group hidden min-w-0 flex-1 items-center rounded sm:flex hover:bg-paper/70 focus-within:bg-paper sm:max-w-[300px]">
             <input
-              value={name}
+              value={name === "Untitled carton" ? t(name) : name}
               onChange={(e) => setName(e.target.value)}
-              aria-label="Project name"
+              aria-label={t("Project name")}
               className="h-9 min-w-0 flex-1 bg-transparent px-2 text-[16px] outline-none sm:text-[14px]"
             />
-            <svg width="13" height="13" viewBox="0 0 14 14" className="mr-2 shrink-0 text-mute group-hover:text-ink" aria-hidden>
+            <svg width="13" height="13" viewBox="0 0 14 14" className="me-2 shrink-0 text-mute group-hover:text-ink" aria-hidden>
               <path d="M9.5 2.5 11.5 4.5 5 11H3V9z" fill="none" stroke="currentColor" strokeWidth="1.3" />
             </svg>
           </label>
         )}
         {mode === "make" && (
-          <span className="hidden whitespace-nowrap text-[11px] text-mute md:inline" title={local ? "Kept in this browser on this device" : undefined}>
-            {save === "saving" ? "Saving…" : save === "unsaved" ? "Editing…" : save === "error" ? "Not saved" : local ? "Saved in this browser" : "Saved"}
+          <span className="hidden truncate whitespace-nowrap text-[11px] text-mute xl:inline" title={local ? t("Saved in this browser") : undefined}>
+            {t(save === "saving" ? "Saving…" : save === "unsaved" ? "Editing…" : save === "error" ? "Not saved" : local ? "Saved in this browser" : "Saved")}
           </span>
         )}
-        <div className="flex shrink-0 overflow-hidden rounded-full border border-rule bg-paper text-[12px] sm:text-[13px] md:absolute md:left-1/2 md:-translate-x-1/2" role="group" aria-label="What to do">
+        </div>
+        <div className="flex shrink-0 overflow-hidden rounded-full border border-rule bg-paper text-[12px] sm:text-[13px]" role="group" aria-label={t("What to do")}>
           {(
             [
               ["make", "Make a dieline", "Make"],
@@ -372,35 +376,36 @@ export function Editor({
             ] as const
           ).map(([v, l, short]) => (
             <button key={v} type="button" onClick={() => setMode(v)} aria-pressed={mode === v} className={`h-8 flex-1 whitespace-nowrap px-3 sm:px-4 ${mode === v ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
-              <span className="hidden lg:inline">{l}</span>
-              <span className="lg:hidden">{short}</span>
+              <span className="hidden lg:inline">{t(l)}</span>
+              <span className="lg:hidden">{t(short)}</span>
             </button>
           ))}
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="flex flex-1 shrink-0 items-center justify-end gap-2">
+          <LangSwitch />
           {onNew && mode === "make" && (
             <button type="button" onClick={onNew} className="hidden h-8 rounded-md border border-rule bg-paper px-3 text-[12px] hover:border-ink sm:block">
-              New
+              {t("New")}
             </button>
           )}
           <Link href={backHref} className="flex h-8 items-center rounded-md border border-rule bg-paper px-3 text-[12px] hover:border-ink">
-            {backHref === "/projects" ? "Projects" : "Home"}
+            {t(backHref === "/projects" ? "Projects" : "Home")}
           </Link>
         </div>
       </header>
 
       <div className="flex min-h-0 flex-1">
-        <aside className={`${tab === "design" ? "block" : "hidden"} w-full overflow-y-auto border-r border-rule bg-bone lg:block lg:w-[330px] lg:shrink-0`}>
+        <aside className={`${tab === "design" ? "block" : "hidden"} w-full overflow-y-auto border-e border-rule bg-bone lg:block lg:w-[330px] lg:shrink-0`}>
           {mode === "make" ? (
             <>
               <Controls p={params} d={d} set={set} onOpenContents={() => setContentsOpen(true)} />
               <p className="px-4 py-4 text-[11px] leading-relaxed text-mute">
-                Dielines are generated from standard construction rules. Check the structure with a physical sample on the production board before ordering the cutting die.
+                {t("Dielines are generated from standard construction rules. Check the structure with a physical sample on the production board before ordering the cutting die.")}
               </p>
               {onNew && (
                 <div className="px-4 pb-6 sm:hidden">
                   <Button onClick={onNew} className="w-full">
-                    Start a new carton
+                    {t("Start a new carton")}
                   </Button>
                 </div>
               )}
@@ -424,7 +429,7 @@ export function Editor({
           />
         </main>
         {mode === "make" && (
-          <aside className={`${tab === "output" ? "block" : "hidden"} w-full overflow-y-auto border-l border-rule bg-bone lg:block lg:w-[320px] lg:shrink-0`}>
+          <aside className={`${tab === "output" ? "block" : "hidden"} w-full overflow-y-auto border-s border-rule bg-bone lg:block lg:w-[320px] lg:shrink-0`}>
             {output}
           </aside>
         )}
@@ -439,7 +444,7 @@ export function Editor({
             className={`h-12 text-[13px] ${tab === k ? "font-medium text-ink" : "text-mute"}`}
             aria-pressed={tab === k}
           >
-            <span className={`border-b-2 pb-1 ${tab === k ? "border-accent-dark" : "border-transparent"}`}>{l}</span>
+            <span className={`border-b-2 pb-1 ${tab === k ? "border-accent-dark" : "border-transparent"}`}>{t(l)}</span>
           </button>
         ))}
       </nav>

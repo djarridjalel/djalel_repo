@@ -25,6 +25,7 @@ import {
 } from "../ui";
 import { useEffect, useState } from "react";
 import { FOCUS_EVENT } from "../ui";
+import { useLang } from "../LangProvider";
 import { StyleIcon } from "./StyleIcon";
 
 type Set = (patch: Partial<CartonParams>) => void;
@@ -86,10 +87,11 @@ export function Controls({
   set: Set;
   onOpenContents: () => void;
 }) {
+  const { t } = useLang();
   const r = d.resolved;
   const panelOptions = d.panels
     .filter((q, i) => d.panels.findIndex((o) => o.id === q.id) === i)
-    .map((q) => ({ value: q.id, label: q.name }));
+    .map((q) => ({ value: q.id, label: t(q.name) }));
   const tuckEnd = p.style === "rte" || p.style === "ste";
   const lid = hasTopLid(p.style);
   const tube = isTube(p.style);
@@ -112,46 +114,46 @@ export function Controls({
         <StylePicker value={p.style} onPick={(s) => set(styleChange(p, s))} />
       </Section>
 
-      <Section title="Size" summary={`${p.dimMode === "inside" ? "Inside" : "Outside"} ${p.L} × ${p.W} × ${p.H} mm`}>
+      <Section title="Size" summary={`${t(p.dimMode === "inside" ? "Inside" : "Outside")} ${p.L} × ${p.W} × ${p.H} ${t("mm")}`}>
         <Segmented
           value={p.dimMode}
           onChange={(v) => set({ dimMode: v })}
           options={[
-            { value: "inside", label: "Inside" },
-            { value: "outside", label: "Outside" },
+            { value: "inside", label: t("Inside") },
+            { value: "outside", label: t("Outside") },
           ]}
         />
         <div className="grid grid-cols-3 gap-2">
           <NumberField
             field="L"
-            label="Length"
+            label={t("Length")}
             value={p.L}
             onChange={(v) => set({ L: v ?? p.L })}
             hint={hL}
           />
           <NumberField
             field="W"
-            label="Width"
+            label={t("Width")}
             value={p.W}
             onChange={(v) => set({ W: v ?? p.W })}
             hint={hW}
           />
           <NumberField
             field="H"
-            label="Height"
+            label={t("Height")}
             value={p.H}
             onChange={(v) => set({ H: v ?? p.H })}
             hint={hH || undefined}
           />
         </div>
         <Button onClick={onOpenContents} className="w-full">
-          Size from blister + leaflet
+          {t("Size from blister + leaflet")}
         </Button>
       </Section>
 
-      <Section title="Board" summary={`${board?.name ?? "Custom"} · ${p.caliper} mm`}>
+      <Section title="Board" summary={`${board?.name ?? t("Custom board")} · ${p.caliper} ${t("mm")}`}>
         <Select
-          label="Material"
+          label={t("Material")}
           value={board ? p.boardId : "custom"}
           onChange={(id) => {
             const b = boardById(id);
@@ -160,13 +162,13 @@ export function Controls({
           }}
           options={[
             ...BOARDS.map((b) => ({ value: b.id, label: b.name })),
-            { value: "custom", label: "Custom board" },
+            { value: "custom", label: t("Custom board") },
           ]}
         />
         <div className="grid grid-cols-2 gap-2">
           <NumberField
             field="caliper"
-            label="Caliper"
+            label={t("Caliper")}
             value={p.caliper}
             step={0.01}
             onChange={(v) =>
@@ -175,11 +177,11 @@ export function Controls({
                 boardId: board && v !== board.caliper ? "custom" : p.boardId,
               })
             }
-            hint="Board thickness from the supplier's data sheet"
+            hint={t("Board thickness from the supplier's data sheet")}
           />
           <NumberField
             field="gsm"
-            label="Grammage"
+            label={t("Grammage")}
             unit="g/m²"
             value={p.gsm}
             step={1}
@@ -187,37 +189,37 @@ export function Controls({
           />
         </div>
         <Segmented
-          label="Grain direction"
+          label={t("Grain direction")}
           value={p.grain}
           onChange={(v) => set({ grain: v })}
           options={[
-            { value: "horizontal", label: "Around the carton" },
-            { value: "vertical", label: "Along the height" },
+            { value: "horizontal", label: t("Around the carton") },
+            { value: "vertical", label: t("Along the height") },
           ]}
         />
       </Section>
 
       {lid && (
-        <Section title="Closures" summary={`${p.lock === "slit" ? "Slit lock" : p.lock === "friction" ? "Friction" : "Plain"} · tuck ${fmt(r.tuckDepth)} mm`}>
+        <Section title="Closures" summary={`${t(p.lock === "slit" ? "Slit lock" : p.lock === "friction" ? "Friction" : "Plain")} · ${t("tuck")} ${fmt(r.tuckDepth)} ${t("mm")}`}>
           <Segmented
-            label="Tuck lock"
+            label={t("Tuck lock")}
             value={p.lock}
             onChange={(v) => set({ lock: v })}
             options={[
-              { value: "slit", label: "Slit lock" },
-              { value: "friction", label: "Friction" },
-              { value: "none", label: "Plain" },
+              { value: "slit", label: t("Slit lock") },
+              { value: "friction", label: t("Friction") },
+              { value: "none", label: t("Plain") },
             ]}
           />
           <Toggle
-            label="Lock tab through the lid fold"
+            label={t("Lock tab through the lid fold")}
             checked={p.lockTab}
             onChange={(v) => set({ lockTab: v })}
           />
           <div className="grid grid-cols-2 gap-2">
             <NumberField
               field="tuckDepth"
-            label="Tuck depth"
+            label={t("Tuck depth")}
               auto
               value={p.tuckDepth}
               resolved={r.tuckDepth}
@@ -225,7 +227,7 @@ export function Controls({
             />
             <NumberField
               field="tuckRadius"
-            label="Tuck corner radius"
+            label={t("Tuck corner radius")}
               auto
               value={p.tuckRadius}
               resolved={r.tuckRadius}
@@ -234,7 +236,7 @@ export function Controls({
             {p.lock === "slit" && (
               <NumberField
                 field="slitLength"
-            label="Slit length"
+            label={t("Slit length")}
                 auto
                 value={p.slitLength}
                 resolved={r.slitLength}
@@ -243,7 +245,7 @@ export function Controls({
             )}
             <NumberField
               field="glueWidth"
-              label="Glue flap width"
+              label={t("Glue flap width")}
               auto
               value={p.glueWidth}
               resolved={r.glueWidth}
@@ -251,7 +253,7 @@ export function Controls({
             />
             <NumberField
               field="glueAngle"
-            label="Glue flap angle"
+            label={t("Glue flap angle")}
               unit="°"
               step={1}
               auto
@@ -262,12 +264,12 @@ export function Controls({
             {!tuckEnd && (
               <NumberField
                 field="bottomExtension"
-              label="Base lock reach"
+              label={t("Base lock reach")}
                 auto
                 value={p.bottomExtension}
                 resolved={r.bottomExtension}
                 onChange={(v) => set({ bottomExtension: v })}
-                hint="How far the base flaps reach past the centre line"
+                hint={t("How far the base flaps reach past the centre line")}
               />
             )}
           </div>
@@ -275,25 +277,25 @@ export function Controls({
       )}
 
       {p.style === "gable" && (
-        <Section title="Handle" summary={`Handle ${p.gable.handleHeight} mm`}>
+        <Section title="Handle" summary={`${t("Handle")} ${p.gable.handleHeight} ${t("mm")}`}>
           <div className="grid grid-cols-3 gap-2">
             <NumberField
               field="gable.handleHeight"
-            label="Handle height"
+            label={t("Handle height")}
               value={p.gable.handleHeight}
               onChange={(v) =>
                 set({ gable: { ...p.gable, handleHeight: v ?? 40 } })
               }
             />
             <NumberField
-              label="Hole width"
+              label={t("Hole width")}
               value={p.gable.holeWidth}
               onChange={(v) =>
                 set({ gable: { ...p.gable, holeWidth: v ?? 70 } })
               }
             />
             <NumberField
-              label="Hole height"
+              label={t("Hole height")}
               value={p.gable.holeHeight}
               onChange={(v) =>
                 set({ gable: { ...p.gable, holeHeight: v ?? 24 } })
@@ -303,7 +305,7 @@ export function Controls({
           <div className="grid grid-cols-2 gap-2">
             <NumberField
               field="glueWidth"
-              label="Glue flap width"
+              label={t("Glue flap width")}
               auto
               value={p.glueWidth}
               resolved={r.glueWidth}
@@ -311,63 +313,61 @@ export function Controls({
             />
             <NumberField
               field="bottomExtension"
-              label="Base lock reach"
+              label={t("Base lock reach")}
               auto
               value={p.bottomExtension}
               resolved={r.bottomExtension}
               onChange={(v) => set({ bottomExtension: v })}
-              hint="How far the base flaps reach past the centre line"
+              hint={t("How far the base flaps reach past the centre line")}
             />
           </div>
           <p className="text-[12px] leading-relaxed text-mute">
-            The roofs meet in the middle and the two handles are glued back to
-            back; their ends slide into the slots in the gable ends.
+            {t("The roofs meet in the middle and the two handles are glued back to back; their ends slide into the slots in the gable ends.")}
           </p>
         </Section>
       )}
 
       {isTray(p.style) && (
-        <Section title="Tear-away front" summary={`Tear depth ${fmt(r.tearDepth)} mm`}>
+        <Section title="Tear-away front" summary={`${t("Tear depth")} ${fmt(r.tearDepth)} ${t("mm")}`}>
           <div className="grid grid-cols-2 gap-2">
             <NumberField
               field="srp.tearDepth"
-            label="Tear depth"
+            label={t("Tear depth")}
               value={p.srp.tearDepth}
               onChange={(v) => set({ srp: { ...p.srp, tearDepth: v ?? 0 } })}
-              hint="From the top; 0 for half the height"
+              hint={t("From the top; 0 for half the height")}
             />
             <NumberField
-              label="Finger opening"
+              label={t("Finger opening")}
               value={p.srp.fingerWidth}
               onChange={(v) => set({ srp: { ...p.srp, fingerWidth: v ?? 0 } })}
               hint="0 for a straight tear"
             />
           </div>
           <p className="text-[12px] leading-relaxed text-mute">
-            The front tears off along the perforation, down both sides from the
-            back corners. The lid folds back on its middle crease.
+            {t("The front tears off along the perforation, down both sides from the back corners. The lid folds back on its middle crease.")}
           </p>
         </Section>
       )}
 
       {p.style === "display" && (
-        <Section title="Display" summary={`Header ${p.display.header} mm`}>
+        <Section title="Display" summary={`${t("Header")} ${p.display.header} ${t("mm")}`}>
           <div className="grid grid-cols-2 gap-2">
             <NumberField
               field="display.rise"
-            label="Side rise"
+            label={t("Side rise")}
               value={p.display.rise}
               onChange={(v) => set({ display: { ...p.display, rise: v ?? 0 } })}
-              hint="Extra side height at the back"
+              hint={t("Extra side height at the back")}
             />
             <NumberField
               field="display.header"
-            label="Header"
+            label={t("Header")}
               value={p.display.header}
               onChange={(v) =>
                 set({ display: { ...p.display, header: v ?? 0 } })
               }
-              hint="Header card above the back, 0 for none"
+              hint={t("Header card above the back, 0 for none")}
             />
           </div>
         </Section>
@@ -375,22 +375,22 @@ export function Controls({
 
 
       {lid && (
-        <Section title="Tamper evidence" defaultOpen={false} summary={p.tamper === "none" ? "None" : p.tamper === "glueTuck" ? "Glued tuck" : "Tear strip"}>
+        <Section title="Tamper evidence" defaultOpen={false} summary={t(p.tamper === "none" ? "None" : p.tamper === "glueTuck" ? "Glued tuck" : "Tear strip")}>
           <Segmented
             value={p.tamper}
             onChange={(v) => set({ tamper: v })}
             options={[
-              { value: "none", label: "None" },
-              { value: "glueTuck", label: "Glued tuck" },
-              { value: "tearStrip", label: "Tear strip" },
+              { value: "none", label: t("None") },
+              { value: "glueTuck", label: t("Glued tuck") },
+              { value: "tearStrip", label: t("Tear strip") },
             ]}
           />
           <p className="text-[12px] leading-relaxed text-mute">
             {p.tamper === "glueTuck" &&
-              "The top tuck is glued and perforated: opening tears it, leaving visible evidence."}
+              t("The top tuck is glued and perforated: opening tears it, leaving visible evidence.")}
             {p.tamper === "tearStrip" &&
-              "Two perforations across the top lid with a thumb notch; the tuck is glued, so the strip must be torn to open."}
-            {p.tamper === "none" && "Plain closure, no evidence of opening."}
+              t("Two perforations across the top lid with a thumb notch; the tuck is glued, so the strip must be torn to open.")}
+            {p.tamper === "none" && t("Plain closure, no evidence of opening.")}
           </p>
         </Section>
       )}
@@ -398,31 +398,31 @@ export function Controls({
       {lid && (
         <Section
           title="Hang tab"
-        summary={p.hangTab.enabled ? (p.hangTab.slot === "euro" ? "Euro slot" : "Round hole") : "Off"}
+        summary={t(p.hangTab.enabled ? (p.hangTab.slot === "euro" ? "Euro slot" : "Round hole") : "Off")}
           defaultOpen={p.hangTab.enabled}
           aside={p.hangTab.enabled ? <Dot /> : null}
         >
           <Toggle
-            label="Hanger above the front panel"
+            label={t("Hanger above the front panel")}
             checked={p.hangTab.enabled}
             onChange={(v) => set({ hangTab: { ...p.hangTab, enabled: v } })}
           />
           {p.hangTab.enabled && (
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label="Hanger height"
+                label={t("Hanger height")}
                 value={p.hangTab.height}
                 onChange={(v) =>
                   set({ hangTab: { ...p.hangTab, height: v ?? 25 } })
                 }
-                hint="Each of the two layers"
+                hint={t("Each of the two layers")}
               />
               <Select
-                label="Hole"
+                label={t("Hole")}
                 value={p.hangTab.slot}
                 options={[
-                  { value: "euro", label: "Euro slot" },
-                  { value: "round", label: "Round hole" },
+                  { value: "euro", label: t("Euro slot") },
+                  { value: "round", label: t("Round hole") },
                 ]}
                 onChange={(v) => set({ hangTab: { ...p.hangTab, slot: v } })}
               />
@@ -433,12 +433,12 @@ export function Controls({
 
       <Section
         title="Window"
-        summary={p.window.enabled ? `${p.window.width} × ${p.window.height} mm` : "Off"}
+        summary={p.window.enabled ? `${p.window.width} × ${p.window.height} ${t("mm")}` : t("Off")}
         defaultOpen={p.window.enabled}
         aside={p.window.enabled ? <Dot /> : null}
       >
         <Toggle
-          label="Window cut-out"
+          label={t("Window cut-out")}
           checked={p.window.enabled}
           onChange={(v) => set({ window: { ...p.window, enabled: v } })}
         />
@@ -446,21 +446,21 @@ export function Controls({
           <>
             <div className="grid grid-cols-3 gap-2">
               <NumberField
-                label="Width"
+                label={t("Width")}
                 value={p.window.width}
                 onChange={(v) =>
                   set({ window: { ...p.window, width: v ?? 30 } })
                 }
               />
               <NumberField
-                label="Height"
+                label={t("Height")}
                 value={p.window.height}
                 onChange={(v) =>
                   set({ window: { ...p.window, height: v ?? 40 } })
                 }
               />
               <NumberField
-                label="Corner"
+                label={t("Corner")}
                 value={p.window.radius}
                 onChange={(v) =>
                   set({ window: { ...p.window, radius: v ?? 0 } })
@@ -468,27 +468,27 @@ export function Controls({
               />
             </div>
             <Select
-              label="Panel"
+              label={t("Panel")}
               value={p.window.panel}
               options={panelOptions}
               onChange={(v) => set({ window: { ...p.window, panel: v } })}
             />
             <Segmented
-              label="Position"
+              label={t("Position")}
               value={p.window.align}
-              options={ALIGN}
+              options={ALIGN.map((a) => ({ ...a, label: t(a.label) }))}
               onChange={(v) => set({ window: { ...p.window, align: v } })}
             />
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label="Shift right"
+                label={t("Shift right")}
                 value={p.window.offsetX}
                 onChange={(v) =>
                   set({ window: { ...p.window, offsetX: v ?? 0 } })
                 }
               />
               <NumberField
-                label="Shift down"
+                label={t("Shift down")}
                 value={p.window.offsetY}
                 onChange={(v) =>
                   set({ window: { ...p.window, offsetY: v ?? 0 } })
@@ -502,12 +502,12 @@ export function Controls({
       {tube && (
         <Section
           title="Zip opening"
-        summary={p.zipStrip.enabled ? `${p.zipStrip.width} mm strip` : "Off"}
+        summary={p.zipStrip.enabled ? `${t("Strip width")} ${p.zipStrip.width} ${t("mm")}` : t("Off")}
           defaultOpen={p.zipStrip.enabled}
           aside={p.zipStrip.enabled ? <Dot /> : null}
         >
           <Toggle
-            label="Zip strip round the body"
+            label={t("Zip strip round the body")}
             checked={p.zipStrip.enabled}
             onChange={(v) => set({ zipStrip: { ...p.zipStrip, enabled: v } })}
           />
@@ -515,14 +515,14 @@ export function Controls({
             <>
               <div className="grid grid-cols-2 gap-2">
                 <NumberField
-                  label="From the top"
+                  label={t("From the top")}
                   value={p.zipStrip.fromTop}
                   onChange={(v) =>
                     set({ zipStrip: { ...p.zipStrip, fromTop: v ?? 15 } })
                   }
                 />
                 <NumberField
-                  label="Strip width"
+                  label={t("Strip width")}
                   value={p.zipStrip.width}
                   onChange={(v) =>
                     set({ zipStrip: { ...p.zipStrip, width: v ?? 6 } })
@@ -530,9 +530,8 @@ export function Controls({
                 />
               </div>
               <p className="text-[12px] leading-relaxed text-mute">
-                Opened from the pull tab on the free edge of the front panel.
-                Glue the top closure for tamper evidence.
-              </p>
+                {t("Opened from the pull tab on the free edge of the front panel. Glue the top closure for tamper evidence.")}
+          </p>
             </>
           )}
         </Section>
@@ -540,12 +539,12 @@ export function Controls({
 
       <Section
         title="Dispenser opening"
-        summary={p.dispenser.enabled ? `${p.dispenser.width} × ${p.dispenser.height} mm` : "Off"}
+        summary={p.dispenser.enabled ? `${p.dispenser.width} × ${p.dispenser.height} ${t("mm")}` : t("Off")}
         defaultOpen={p.dispenser.enabled}
         aside={p.dispenser.enabled ? <Dot /> : null}
       >
         <Toggle
-          label="Perforated push-in opening"
+          label={t("Perforated push-in opening")}
           checked={p.dispenser.enabled}
           onChange={(v) => set({ dispenser: { ...p.dispenser, enabled: v } })}
         />
@@ -553,21 +552,21 @@ export function Controls({
           <>
             <div className="grid grid-cols-3 gap-2">
               <NumberField
-                label="Width"
+                label={t("Width")}
                 value={p.dispenser.width}
                 onChange={(v) =>
                   set({ dispenser: { ...p.dispenser, width: v ?? 40 } })
                 }
               />
               <NumberField
-                label="Height"
+                label={t("Height")}
                 value={p.dispenser.height}
                 onChange={(v) =>
                   set({ dispenser: { ...p.dispenser, height: v ?? 30 } })
                 }
               />
               <NumberField
-                label="From bottom"
+                label={t("From bottom")}
                 value={p.dispenser.fromBottom}
                 onChange={(v) =>
                   set({ dispenser: { ...p.dispenser, fromBottom: v ?? 12 } })
@@ -575,7 +574,7 @@ export function Controls({
               />
             </div>
             <Select
-              label="Panel"
+              label={t("Panel")}
               value={p.dispenser.panel}
               options={panelOptions}
               onChange={(v) => set({ dispenser: { ...p.dispenser, panel: v } })}
@@ -586,36 +585,36 @@ export function Controls({
 
       <Section
         title="Braille"
-        summary={p.braille.enabled ? p.braille.text || "No text yet" : "Off"}
+        summary={p.braille.enabled ? p.braille.text || t("No text yet") : t("Off")}
         defaultOpen={p.braille.enabled}
         aside={p.braille.enabled ? <Dot /> : null}
       >
         <Toggle
-          label="Add Braille (Marburg Medium)"
+          label={t("Add Braille (Marburg Medium)")}
           checked={p.braille.enabled}
           onChange={(v) => set({ braille: { ...p.braille, enabled: v } })}
         />
         {p.braille.enabled && (
           <>
             <TextField
-              label="Text"
+              label={t("Text")}
               value={p.braille.text}
               placeholder="e.g. Paracétamol 500 mg"
               onChange={(v) => set({ braille: { ...p.braille, text: v } })}
             />
             <div className="grid grid-cols-2 gap-2">
               <Select
-                label="Panel"
+                label={t("Panel")}
                 value={p.braille.panel}
                 options={panelOptions}
                 onChange={(v) => set({ braille: { ...p.braille, panel: v } })}
               />
               <Select
-                label="Direction"
+                label={t("Direction")}
                 value={p.braille.orientation}
                 options={[
-                  { value: "horizontal", label: "Across" },
-                  { value: "vertical", label: "Along height" },
+                  { value: "horizontal", label: t("Across") },
+                  { value: "vertical", label: t("Along height") },
                 ]}
                 onChange={(v) =>
                   set({ braille: { ...p.braille, orientation: v } })
@@ -623,21 +622,21 @@ export function Controls({
               />
             </div>
             <Segmented
-              label="Position"
+              label={t("Position")}
               value={p.braille.align}
-              options={ALIGN}
+              options={ALIGN.map((a) => ({ ...a, label: t(a.label) }))}
               onChange={(v) => set({ braille: { ...p.braille, align: v } })}
             />
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label="Shift right"
+                label={t("Shift right")}
                 value={p.braille.offsetX}
                 onChange={(v) =>
                   set({ braille: { ...p.braille, offsetX: v ?? 0 } })
                 }
               />
               <NumberField
-                label="Shift down"
+                label={t("Shift down")}
                 value={p.braille.offsetY}
                 onChange={(v) =>
                   set({ braille: { ...p.braille, offsetY: v ?? 0 } })
@@ -650,12 +649,12 @@ export function Controls({
 
       <Section
         title="Coding window"
-        summary={p.codingWindow.enabled ? CODING_PRESETS[p.codingWindow.preset].label : "Off"}
+        summary={p.codingWindow.enabled ? t(CODING_PRESETS[p.codingWindow.preset].label) : t("Off")}
         defaultOpen={p.codingWindow.enabled}
         aside={p.codingWindow.enabled ? <Dot /> : null}
       >
         <Toggle
-          label="Varnish-free coding area"
+          label={t("Varnish-free coding area")}
           checked={p.codingWindow.enabled}
           onChange={(v) =>
             set({ codingWindow: { ...p.codingWindow, enabled: v } })
@@ -664,15 +663,15 @@ export function Controls({
         {p.codingWindow.enabled && (
           <>
             <Select
-              label="Content"
+              label={t("Content")}
               value={p.codingWindow.preset}
               options={(Object.keys(CODING_PRESETS) as CodingPreset[]).map(
                 (k) => ({
                   value: k,
                   label:
                     k === "custom"
-                      ? CODING_PRESETS[k].label
-                      : `${CODING_PRESETS[k].label} (${CODING_PRESETS[k].width} × ${CODING_PRESETS[k].height})`,
+                      ? t(CODING_PRESETS[k].label)
+                      : `${t(CODING_PRESETS[k].label)} (${CODING_PRESETS[k].width} × ${CODING_PRESETS[k].height})`,
                 }),
               )}
               onChange={(v) =>
@@ -682,14 +681,14 @@ export function Controls({
             {p.codingWindow.preset === "custom" && (
               <div className="grid grid-cols-2 gap-2">
                 <NumberField
-                  label="Width"
+                  label={t("Width")}
                   value={p.codingWindow.width}
                   onChange={(v) =>
                     set({ codingWindow: { ...p.codingWindow, width: v ?? 40 } })
                   }
                 />
                 <NumberField
-                  label="Height"
+                  label={t("Height")}
                   value={p.codingWindow.height}
                   onChange={(v) =>
                     set({
@@ -700,7 +699,7 @@ export function Controls({
               </div>
             )}
             <Select
-              label="Panel"
+              label={t("Panel")}
               value={p.codingWindow.panel}
               options={panelOptions}
               onChange={(v) =>
@@ -708,23 +707,23 @@ export function Controls({
               }
             />
             <Segmented
-              label="Position"
+              label={t("Position")}
               value={p.codingWindow.align}
-              options={ALIGN}
+              options={ALIGN.map((a) => ({ ...a, label: t(a.label) }))}
               onChange={(v) =>
                 set({ codingWindow: { ...p.codingWindow, align: v } })
               }
             />
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label="Shift right"
+                label={t("Shift right")}
                 value={p.codingWindow.offsetX}
                 onChange={(v) =>
                   set({ codingWindow: { ...p.codingWindow, offsetX: v ?? 0 } })
                 }
               />
               <NumberField
-                label="Shift down"
+                label={t("Shift down")}
                 value={p.codingWindow.offsetY}
                 onChange={(v) =>
                   set({ codingWindow: { ...p.codingWindow, offsetY: v ?? 0 } })
@@ -737,12 +736,12 @@ export function Controls({
 
       <Section
         title="Pharmacode"
-        summary={p.pharmacode.enabled ? `${p.pharmacode.width} mm` : "Off"}
+        summary={p.pharmacode.enabled ? `${p.pharmacode.width} ${t("mm")}` : t("Off")}
         defaultOpen={p.pharmacode.enabled}
         aside={p.pharmacode.enabled ? <Dot /> : null}
       >
         <Toggle
-          label="Pharmacode zone"
+          label={t("Pharmacode zone")}
           checked={p.pharmacode.enabled}
           onChange={(v) => set({ pharmacode: { ...p.pharmacode, enabled: v } })}
         />
@@ -750,14 +749,14 @@ export function Controls({
           <>
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label="Length"
+                label={t("Length")}
                 value={p.pharmacode.width}
                 onChange={(v) =>
                   set({ pharmacode: { ...p.pharmacode, width: v ?? 30 } })
                 }
               />
               <NumberField
-                label="Bar height"
+                label={t("Bar height")}
                 value={p.pharmacode.height}
                 onChange={(v) =>
                   set({ pharmacode: { ...p.pharmacode, height: v ?? 8 } })
@@ -765,7 +764,7 @@ export function Controls({
               />
             </div>
             <Select
-              label="Panel"
+              label={t("Panel")}
               value={p.pharmacode.panel}
               options={panelOptions}
               onChange={(v) =>
@@ -773,23 +772,23 @@ export function Controls({
               }
             />
             <Segmented
-              label="Position"
+              label={t("Position")}
               value={p.pharmacode.align}
-              options={ALIGN}
+              options={ALIGN.map((a) => ({ ...a, label: t(a.label) }))}
               onChange={(v) =>
                 set({ pharmacode: { ...p.pharmacode, align: v } })
               }
             />
             <div className="grid grid-cols-2 gap-2">
               <NumberField
-                label="Shift right"
+                label={t("Shift right")}
                 value={p.pharmacode.offsetX}
                 onChange={(v) =>
                   set({ pharmacode: { ...p.pharmacode, offsetX: v ?? 0 } })
                 }
               />
               <NumberField
-                label="Shift down"
+                label={t("Shift down")}
                 value={p.pharmacode.offsetY}
                 onChange={(v) =>
                   set({ pharmacode: { ...p.pharmacode, offsetY: v ?? 0 } })
@@ -800,24 +799,24 @@ export function Controls({
         )}
       </Section>
 
-      <Section title="Print setup" defaultOpen={false} summary={`Bleed ${p.bleed} · safe ${p.safeMargin} mm`}>
+      <Section title="Print setup" defaultOpen={false} summary={`${t("Bleed")} ${p.bleed} · ${t("Safe margin")} ${p.safeMargin} ${t("mm")}`}>
         <div className="grid grid-cols-2 gap-2">
           <NumberField
             field="bleed"
-            label="Bleed"
+            label={t("Bleed")}
             value={p.bleed}
             onChange={(v) => set({ bleed: v ?? 0 })}
           />
           <NumberField
             field="safeMargin"
-            label="Safe margin"
+            label={t("Safe margin")}
             value={p.safeMargin}
             onChange={(v) => set({ safeMargin: v ?? 0 })}
-            hint="Keep text this far from creases and cuts"
+            hint={t("Keep text this far from creases and cuts")}
           />
         </div>
         <Toggle
-          label="Show dimensions"
+          label={t("Show dimensions")}
           checked={p.showDimensions}
           onChange={(v) => set({ showDimensions: v })}
         />
@@ -830,23 +829,24 @@ const fmt = (v: number | undefined) => (v == null ? "auto" : String(Math.round(v
 
 /** The chosen style as one row; the full set of styles opens from it. */
 function StylePicker({ value, onPick }: { value: StyleId; onPick: (s: StyleId) => void }) {
+  const { t } = useLang();
   const [open, setOpen] = useState(false);
   if (!open)
     return (
       <button
         type="button"
         onClick={() => setOpen(true)}
-        aria-label="Change carton style"
-        className="flex w-full items-center gap-3 rounded-md border border-rule bg-paper px-3 py-2 text-left transition hover:border-ink"
+        aria-label={t("Change carton style")}
+        className="flex w-full items-center gap-3 rounded-md border border-rule bg-paper px-3 py-2 text-start transition hover:border-ink"
       >
         <span className="w-[72px] shrink-0 [&>svg]:h-auto [&>svg]:w-full">
           <StyleIcon style={value} />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-[13px] leading-tight">{STYLE_NAMES[value].name}</span>
-          <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-mute">{STYLE_NAMES[value].ecma}</span>
+          <span className="block text-[13px] leading-tight">{t(STYLE_NAMES[value].name)}</span>
+          <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-wider text-mute">{t(STYLE_NAMES[value].ecma)}</span>
         </span>
-        <span className="shrink-0 text-[12px] text-mute underline underline-offset-2">Change</span>
+        <span className="shrink-0 text-[12px] text-mute underline underline-offset-2">{t("Change")}</span>
       </button>
     );
   return (
@@ -864,12 +864,12 @@ function StylePicker({ value, onPick }: { value: StyleId; onPick: (s: StyleId) =
             aria-pressed={value === s}
           >
             <StyleIcon style={s} />
-            <span className="text-[12px] leading-tight">{STYLE_NAMES[s].name}</span>
+            <span className="text-[12px] leading-tight">{t(STYLE_NAMES[s].name)}</span>
           </button>
         ))}
       </div>
       <button type="button" onClick={() => setOpen(false)} className="text-[12px] text-mute underline underline-offset-2 hover:text-ink">
-        Keep {STYLE_NAMES[value].name}
+        {t("Keep")} {t(STYLE_NAMES[value].name)}
       </button>
     </>
   );

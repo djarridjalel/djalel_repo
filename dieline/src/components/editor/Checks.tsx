@@ -1,5 +1,6 @@
 "use client";
 
+import { useLang } from "../LangProvider";
 import type { FlapKind, FoldView } from "@/lib/dieline/fold";
 import type { CartonParams, Dieline } from "@/lib/dieline/types";
 
@@ -10,11 +11,12 @@ const ICON = {
 };
 
 export function Checks({ d, set, onLocate }: { d: Dieline; set: (patch: Partial<CartonParams>) => void; onLocate?: (field: string) => void }) {
+  const { t } = useLang();
   if (!d.issues.length) {
     return (
       <div className="flex items-start gap-3 rounded-md border border-rule bg-paper p-3">
         <span className="mt-0.5 h-2.5 w-2.5 shrink-0 rounded-full bg-[#00A651]" />
-        <p className="text-[13px] leading-relaxed">All checks passed. The structure is consistent for these dimensions and this board.</p>
+        <p className="text-[13px] leading-relaxed">{t("All checks passed. The structure is consistent for these dimensions and this board.")}</p>
       </div>
     );
   }
@@ -24,11 +26,11 @@ export function Checks({ d, set, onLocate }: { d: Dieline; set: (patch: Partial<
         const s = ICON[it.severity];
         return (
           <li key={i} data-severity={it.severity} className={`rounded-md border border-rule p-3 ${s.bg}`}>
-            <p className={`mb-1 font-mono text-[10px] uppercase tracking-wider ${s.c}`}>{s.label}</p>
-            <p className="text-[13px] leading-relaxed">{it.message}</p>
+            <p className={`mb-1 font-mono text-[10px] uppercase tracking-wider ${s.c}`}>{t(s.label)}</p>
+            <p className="text-[13px] leading-relaxed">{t(it.message)}</p>
             {it.field && onLocate && it.field !== "fold" && (
-              <button type="button" onClick={() => onLocate(String(it.field))} className="mt-2 mr-3 text-[12px] underline underline-offset-2 hover:text-ink">
-                Show on the dieline
+              <button type="button" onClick={() => onLocate(String(it.field))} className="mt-2 me-3 text-[12px] underline underline-offset-2 hover:text-ink">
+                {t("Show on the dieline")}
               </button>
             )}
             {it.fix && (
@@ -37,7 +39,7 @@ export function Checks({ d, set, onLocate }: { d: Dieline; set: (patch: Partial<
                 onClick={() => set({ [it.fix!.field]: it.fix!.value } as Partial<CartonParams>)}
                 className="mt-2 rounded border border-ink px-2.5 py-1 text-[12px] font-medium hover:bg-ink hover:text-paper"
               >
-                {it.fix.label}
+                {t(it.fix.label)}
               </button>
             )}
           </li>
@@ -48,6 +50,7 @@ export function Checks({ d, set, onLocate }: { d: Dieline; set: (patch: Partial<
 }
 
 export function Stats({ d }: { d: Dieline }) {
+  const { t } = useLang();
   const s = d.stats;
   const rows: [string, string][] = [
     ["Flat size", `${s.flatWidth} × ${s.flatHeight} mm`],
@@ -62,7 +65,7 @@ export function Stats({ d }: { d: Dieline }) {
     <dl className="divide-y divide-rule rounded-md border border-rule bg-paper">
       {rows.map(([k, v]) => (
         <div key={k} className="flex items-center justify-between px-3 py-2">
-          <dt className="text-[12px] text-mute">{k}</dt>
+          <dt className="text-[12px] text-mute">{t(k)}</dt>
           <dd className="font-mono text-[13px]">{v}</dd>
         </div>
       ))}
@@ -82,6 +85,7 @@ const FLAP_STYLE: Record<FlapKind, { fill: string; stroke: string; label: string
 };
 
 function FoldPicture({ v }: { v: FoldView }) {
+  const { t } = useLang();
   const pad = Math.max(v.Lb, v.Wb) * 0.04;
   const Y = (y: number) => v.Wb - y;
   const path = (pts: { x: number; y: number }[], close = true) => "M" + pts.map((q) => `${q.x.toFixed(2)} ${Y(q.y).toFixed(2)}`).join("L") + (close ? "Z" : "");
@@ -89,17 +93,17 @@ function FoldPicture({ v }: { v: FoldView }) {
   return (
     <figure className="rounded-md border border-rule bg-paper p-3">
       <figcaption className="mb-2 flex flex-wrap items-center justify-between gap-2 text-[12px]">
-        <span className="font-medium">{v.title}</span>
+        <span className="font-medium">{t(v.title)}</span>
         <span className="flex flex-wrap gap-2 text-mute">
           {kinds.map((k) => (
             <span key={k} className="flex items-center gap-1">
               <span className="h-2 w-2 rounded-sm" style={{ background: FLAP_STYLE[k].fill, opacity: 0.6 }} />
-              {FLAP_STYLE[k].label}
+              {t(FLAP_STYLE[k].label)}
             </span>
           ))}
         </span>
       </figcaption>
-      {v.note && <p className="mb-2 text-[12px] leading-relaxed text-mute">{v.note} Dashed shapes are tucked out of sight.</p>}
+      {v.note && <p className="mb-2 text-[12px] leading-relaxed text-mute">{t(v.note)} {t("Dashed shapes are tucked out of sight.")}</p>}
       <svg viewBox={`${-pad} ${-pad} ${v.Lb + 2 * pad} ${v.Wb + 2 * pad}`} className="mx-auto block max-h-56 w-full" role="img" aria-label={v.title}>
         <rect x={0} y={0} width={v.Lb} height={v.Wb} fill="none" stroke="currentColor" strokeWidth={0.6} vectorEffect="non-scaling-stroke" />
         {v.flaps.map((f, i) => (
@@ -115,7 +119,7 @@ function FoldPicture({ v }: { v: FoldView }) {
           ),
         )}
         <text x={v.Lb / 2} y={v.Wb + pad * 0.85} textAnchor="middle" fontSize={Math.max(v.Lb, v.Wb) * 0.045} fill="currentColor" opacity={0.6}>
-          FRONT
+          {t("FRONT")}
         </text>
       </svg>
     </figure>
@@ -124,13 +128,14 @@ function FoldPicture({ v }: { v: FoldView }) {
 
 /** Each closure folded flat, with the measurements that decide whether it closes and locks. */
 export function ClosingCheck({ d }: { d: Dieline }) {
+  const { t } = useLang();
   const { views, checks } = d.fold;
   if (!checks.length) return null;
   const failed = checks.filter((c) => !c.ok).length;
   return (
     <div className="space-y-3">
       <p className="text-[12px] leading-relaxed text-mute">
-        Each closure folded flat on its opening, as if the carton were closed. {failed ? `${failed} of ${checks.length} checks need attention.` : `All ${checks.length} checks pass.`}
+        {t("Each closure folded flat on its opening, as if the carton were closed.")} {failed ? `${failed} / ${checks.length} ${t("checks need attention.")}` : `${t("All checks pass.")} (${checks.length})`}
       </p>
       {views.map((v) => (
         <FoldPicture key={v.id} v={v} />
@@ -141,10 +146,10 @@ export function ClosingCheck({ d }: { d: Dieline }) {
             <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${c.ok ? "bg-[#00A651]" : c.severity === "error" ? "bg-danger" : "bg-warn"}`} />
             <div className="min-w-0">
               <p className="text-[13px]">
-                <span className="font-mono text-[11px] uppercase tracking-wider text-mute">{c.closure} · </span>
-                {c.label}
+                <span className="font-mono text-[11px] uppercase tracking-wider text-mute">{t(c.closure)} · </span>
+                {t(c.label)}
               </p>
-              <p className="text-[12px] leading-relaxed text-mute">{c.detail}</p>
+              <p className="text-[12px] leading-relaxed text-mute">{t(c.detail)}</p>
             </div>
           </li>
         ))}

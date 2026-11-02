@@ -2,6 +2,7 @@ import { arcSweep, type Pt, type Seg } from "../geom";
 import { LAYERS, LAYER_ORDER } from "../layers";
 import type { Dieline, Dimension, Layer } from "../types";
 import { BRAND, DISCLAIMER, titleRows, type ExportMeta } from "./common";
+import { translate, type Lang } from "../../i18n";
 
 const n = (v: number) => (Math.round(v * 1000) / 1000).toString();
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -31,6 +32,8 @@ export interface SvgOptions {
   background?: string | null;
   /** Fill the blank's outline, e.g. white paper on a grey canvas. */
   blankFill?: string | null;
+  /** Language of the labels and title block. */
+  lang?: Lang;
 }
 
 function dimSvg(dm: Dimension, size: number): string {
@@ -63,6 +66,9 @@ export function renderSvg(d: Dieline, opts: SvgOptions = {}): string {
   const k = opts.strokeScale ?? 1;
   const margin = opts.margin ?? 10;
   const tb = opts.titleBlock ?? false;
+  const lang: Lang = opts.lang ?? "en";
+  const t = (s: string) => translate(lang, s);
+  const arFont = lang === "ar" ? ` font-family="IBM Plex Sans Arabic, Arial, sans-serif"` : "";
   const tbH = tb ? 40 : 0;
   const minX = d.bbox.minX - margin;
   const minY = d.bbox.minY - margin;
@@ -89,7 +95,7 @@ export function renderSvg(d: Dieline, opts: SvgOptions = {}): string {
     for (const tx of d.texts.filter((q) => q.layer === layer)) {
       const rot = tx.rotate ? ` transform="rotate(${n(tx.rotate)} ${n(tx.at.x)} ${n(tx.at.y)})"` : "";
       parts.push(
-        `<text x="${n(tx.at.x)}" y="${n(tx.at.y)}"${rot} text-anchor="${tx.anchor ?? "start"}" dominant-baseline="middle" font-size="${n(tx.size)}" stroke="none" fill="${st.color}">${esc(tx.text)}</text>`,
+        `<text x="${n(tx.at.x)}" y="${n(tx.at.y)}"${rot} text-anchor="${tx.anchor ?? "start"}" dominant-baseline="middle" font-size="${n(tx.size)}" stroke="none" fill="${st.color}"${arFont}>${esc(t(tx.text))}</text>`,
       );
     }
     if (!parts.length) continue;
@@ -100,16 +106,16 @@ export function renderSvg(d: Dieline, opts: SvgOptions = {}): string {
   }
 
   if (tb) {
-    const rows = titleRows(d, opts.meta ?? { projectName: "Untitled carton" });
+    const rows = titleRows(d, opts.meta ?? { projectName: "Untitled carton" }, lang);
     const x0 = d.bbox.minX;
     const y0 = d.bbox.maxY + margin + 4;
     let s = `<g id="TitleBlock" inkscape:groupmode="layer" inkscape:label="Title block" font-family="Helvetica, Arial, sans-serif" fill="#1a1a1a" stroke="none">`;
-    s += `<text x="${n(x0)}" y="${n(y0 + 3)}" font-size="3.6" font-weight="700">${esc(BRAND)}</text>`;
+    s += `<text x="${n(x0)}" y="${n(y0 + 3)}" font-size="3.6" font-weight="700"${arFont}>${esc(t(BRAND))}</text>`;
     rows.forEach(([kk, v], i) => {
       const yy = y0 + 9 + i * 3.8;
-      s += `<text x="${n(x0)}" y="${n(yy)}" font-size="2.6" fill="#666">${esc(kk)}</text><text x="${n(x0 + 24)}" y="${n(yy)}" font-size="2.6">${esc(v)}</text>`;
+      s += `<text x="${n(x0)}" y="${n(yy)}" font-size="2.6" fill="#666"${arFont}>${esc(kk)}</text><text x="${n(x0 + 24)}" y="${n(yy)}" font-size="2.6"${arFont}>${esc(v)}</text>`;
     });
-    s += `<text x="${n(x0)}" y="${n(y0 + 9 + rows.length * 3.8 + 1)}" font-size="2.3" fill="#B00020">${esc(DISCLAIMER)}</text>`;
+    s += `<text x="${n(x0)}" y="${n(y0 + 9 + rows.length * 3.8 + 1)}" font-size="2.3" fill="#B00020"${arFont}>${esc(t(DISCLAIMER))}</text>`;
     s += `</g>`;
     groups.push(s);
   }

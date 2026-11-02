@@ -22,7 +22,7 @@ Environment variables on Vercel (all environments):
 
 ## State today
 
-Working and tested (59 unit tests and the 74 end-to-end checks in `scripts/e2e.mjs` passing on the live site):
+Working and tested (59 unit tests and the 79 end-to-end checks in `scripts/e2e.mjs` passing on the live site):
 
 - Styles: reverse tuck end, straight tuck end, crash-lock bottom, snap-lock (1-2-3) bottom, shelf-ready tray with tear-away front (crash-lock or snap-lock bottom), gable box with handle (snap-lock bottom), mailer box (FEFCO 0427), counter display with sloped sides and header.
 - Board library (GC1, GC2, SBS, GD2) with caliper allowances; inside or outside dimensions.
@@ -40,6 +40,7 @@ Working and tested (59 unit tests and the 74 end-to-end checks in `scripts/e2e.m
 - Exports: PDF (true scale, one spot colour and one layer per line type, overprint, title block), SVG (named layers), DXF R12 (named layers, mm). "Die-maker only" exports cut, crease, perforation and Braille.
 - Accounts, projects and versions are built (Supabase, row-level security) but **switched off** for testing. Without accounts, work and versions are kept in the visitor's browser.
 - Editor layout: the header switches between the two jobs (Make a dieline / Upload a design); the project name has an edit pencil, the save state reads "Saved in this browser", New and Home are buttons (New moves to the bottom of the Design tab on phones). Making: the left column shows the chosen style as one row (Change opens the tiles), then Size; every collapsed section shows a one-line summary of its settings. The preview toolbar has Flat/3D and one Layers menu (checkboxes). Hovering a panel highlights it and names its size; clicking it opens and focuses the field that sizes it (`focus.ts`: `fieldOfPanel`, `FIELD_SECTIONS`, sections open on the `dieline:focus` event). A check with a field has "Show on the dieline": it focuses the field and highlights the panels it shapes. Labels and dimensions never shrink below 9 px on screen; a scale bar follows the zoom. Keys: F flat/3D, + − zoom, 0 fit, U upload, D download PDF. Uploading: the left column holds the file, its match, its problems and the correct/keep choice; the preview is an empty drop zone until a file is read, then the 3D view.
+- Arabic: an EN / ع switch (header of the landing page and the editor, kept in the browser) turns the whole app into Arabic, right to left, in IBM Plex Sans Arabic. All text is written in English and translated where it is shown (`src/lib/i18n`: `translate`, the `AR` dictionary and `AR_PATTERNS` for messages with numbers); a unit test fails if any interface string, panel name, check or issue message lacks Arabic. In Arabic the panel names on the dieline and the PDF/SVG title block are Arabic too; the PDF embeds IBM Plex Sans Arabic (`public/fonts`, OFL) with fontkit and orders each line by the bidi rules (`visualRuns`), the title block set against the right margin. DXF stays in English (its TEXT entities cannot join Arabic letters).
 - Look: the studio website's bone ground, translucent top bar, DJARRI / DESIGN STUDIO mark, Poppins and IBM Plex Mono.
 
 ## Deploying
