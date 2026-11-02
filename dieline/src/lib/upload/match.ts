@@ -4,7 +4,7 @@
 
 import { DEFAULT_PARAMS, generate } from "../dieline";
 import { foldTube, type ClosurePiece, type FoldCheck } from "../dieline/fold";
-import { pt, samplePath, type Pt } from "../dieline/geom";
+import { pt, samplePath, type Pt, type Seg } from "../dieline/geom";
 import type { CartonParams, Dieline, StyleId } from "../dieline/types";
 import { distanceField, findBody, prepare, reach, region, type Body } from "./analyse";
 import type { DieSeg } from "./pdfDieline";
@@ -87,21 +87,16 @@ export function matchTube(segs: DieSeg[], body: Body, inside: (p: Pt) => boolean
  * traced from the uploaded blank as a profile above its hinge, folded onto
  * the opening with the slots of the matched style.
  */
-export function checkUploaded(match: Match, body: Body, inside: (p: Pt) => boolean): FoldCheck[] {
-  const r = match.dieline.resolved;
+/** The uploaded flaps traced as profiles above their hinges: how far the blank reaches beyond the body along each panel. */
+export function traceFlaps(match: Match, body: Body, inside: (p: Pt) => boolean) {
   const order = ORDER(match.style);
   const edges = [body.xs[0], ...body.xs.slice(1), body.right];
-  const ours = match.dieline;
-  // Slot names come from the app's own closures for this style.
-  const blank = ours.fold.views.length ? ours : null;
-  if (!blank) return [];
-  const pieces: ClosurePiece[] = [];
+  const out = { top: [null, null, null, null] as (Seg[] | null)[], bottom: [null, null, null, null] as (Seg[] | null)[], pieces: [] as ClosurePiece[] };
   for (const which of ["top", "bottom"] as const) {
     for (let panel = 0 as 0 | 1 | 2 | 3; panel < 4; panel = (panel + 1) as 0 | 1 | 2 | 3) {
       const j = order.indexOf(panel);
       const [x0, x1] = [edges[j], edges[j + 1]];
       const w = x1 - x0;
-      // Profile of the flap: how far the blank reaches beyond the hinge along the panel.
       const from = which === "top" ? body.top : body.bottom;
       const dir = which === "top" ? -1 : 1;
       const depth = (u: number) => {
@@ -115,12 +110,25 @@ export function checkUploaded(match: Match, body: Body, inside: (p: Pt) => boole
       const pts: Pt[] = [pt(0, 0)];
       for (let u = 0.5; u <= w - 0.5; u += 0.5) pts.push(pt(u, u < 2 ? Math.min(depth(u), edgeL) : u > w - 2 ? Math.min(depth(u), edgeR) : depth(u)));
       pts.push(pt(w, 0));
-      // Local frame matches the app's: u left to right on the blank; top flaps are drawn mirrored in v only.
+      if (Math.max(...pts.map((q) => q.y)) < 1) continue;
+      // Local frame matches the app's: u left to right on the blank, v away from the body.
+      const outline: Seg[] = pts.slice(1).map((q, k) => ({ kind: "line" as const, a: pts[k], b: q }));
+      out[which][panel] = outline;
       const slot = slotOf(match.style, which, panel);
-      if (!slot) continue;
-      pieces.push({ which, panel, slot, w, outline: pts.slice(1).map((q, k) => ({ kind: "line" as const, a: pts[k], b: q })) });
+      if (slot) out.pieces.push({ which, panel, slot, w, outline });
     }
   }
+  return out;
+}
+
+/**
+ * Checks the uploaded closures the way the app checks its own: each flap,
+ * traced from the uploaded blank as a profile above its hinge, folded onto
+ * the opening with the slots of the matched style.
+ */
+export function checkUploaded(match: Match, body: Body, inside: (p: Pt) => boolean): FoldCheck[] {
+  const r = match.dieline.resolved;
+  const pieces = traceFlaps(match, body, inside).pieces;
   // Only checks that depend on how far each flap reaches hold for a flap traced as a profile.
   const reliable = new Set(["dust", "tuck", "reach", "apart"]);
   return foldTube(pieces, { Lb: (r.panelWidths[0] + r.panelWidths[2]) / 2, Wb: (r.panelWidths[1] + r.panelWidths[3]) / 2, t: r.t, bodyHeight: r.bodyHeight }).checks.filter(
@@ -157,6 +165,8 @@ export interface UploadAnalysis {
   segs: DieSeg[];
   matches: Match[];
   checks: FoldCheck[];
+  /** The matched style at the uploaded size, folded with the upload's own flaps. */
+  drawn: Dieline;
 }
 
 /**
@@ -177,7 +187,10 @@ export function analyseTube(raw: DieSeg[], pageW: number, pageH: number): Upload
     if (!body || body.glue !== "left" || body.widths.length !== 4) continue;
     const matches = matchTube(segs, body, board);
     if (!matches.length) continue;
-    if (!best || matches[0].score < best.matches[0].score) best = { orientation: { swap, sx, sy }, body, segs, matches, checks: checkUploaded(matches[0], body, board) };
+    if (!best || matches[0].score < best.matches[0].score) {
+      const flaps = traceFlaps(matches[0], body, board);
+      best = { orientation: { swap, sx, sy }, body, segs, matches, checks: checkUploaded(matches[0], body, board), drawn: generate(matches[0].params, { top: flaps.top, bottom: flaps.bottom }) };
+    }
   }
   return best;
 }
@@ -194,6 +207,8 @@ export function familyOf(segs: DieSeg[], body: Body, board?: (p: Pt) => boolean)
   const len = (s: DieSeg) => Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y);
   const diag = (s: DieSeg) => !flat(s) && Math.abs(angle(s) - 90) > 8 && len(s) > 8;
   const below = folds.filter((s) => Math.min(s.a.y, s.b.y) > body.bottom + 1);
+  // Every style closes its top with a lid folded across: with no such fold above the body, the blank is upside down.
+  if (!folds.some((s) => Math.max(s.a.y, s.b.y) < body.top - 1 && flat(s) && len(s) > 8)) return [];
   // Tear lines run from fold to fold across the body; guide boxes drawn inside a panel do not.
   const atFold = (p: Pt) => [...body.xs, body.right].some((x) => Math.abs(p.x - x) < 1);
   const within = folds.filter((s) => Math.min(s.a.y, s.b.y) > body.top + 2 && Math.max(s.a.y, s.b.y) < body.bottom - 2 && (diag(s) || flat(s)) && len(s) > 8 && (atFold(s.a) || atFold(s.b)));

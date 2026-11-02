@@ -194,7 +194,7 @@ export function Preview({ d, layers, onToggleLayer }: { d: Dieline; layers: Set<
       </div>
       {view === "3d" && (
         <div className="relative min-h-0 flex-1">
-          {upload?.ok ? <Fold3D model={upload.model} art={upload.art} fileBase={upload.fileName.replace(/\.pdf$/i, "")} /> : <Fold3D model={d.model3d} />}
+          {upload?.ok ? <Fold3D model={corrected ? upload.corrected : upload.model} art={upload.art} fileBase={upload.fileName.replace(/\.pdf$/i, "")} /> : <Fold3D model={d.model3d} />}
           {upload && <UploadPanel upload={upload} corrected={corrected} onAnswer={setCorrected} onClose={() => setUpload(null)} />}
           <Inset label="Flat" onClick={() => setView("flat")}>
             <div className="h-full w-full p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
@@ -255,7 +255,7 @@ function UploadPanel({ upload, corrected, onAnswer, onClose }: { upload: UploadR
                   </li>
                 ))}
               </ul>
-              <p className="mt-1">Correct the dieline? The 3D view and the corrected dieline use the app&apos;s construction at your file&apos;s size.</p>
+              <p className="mt-1">Correct the dieline? The corrected dieline uses the app&apos;s construction at your file&apos;s size; the 3D view shows it, with your artwork.</p>
               <div className="mt-2 flex gap-2">
                 <button type="button" onClick={() => onAnswer(true)} className="h-8 rounded-md bg-ink px-3 font-medium text-paper">
                   Correct it
@@ -278,7 +278,7 @@ function UploadPanel({ upload, corrected, onAnswer, onClose }: { upload: UploadR
               </button>
             </p>
           )}
-          {corrected === false && <p className="mt-2 text-mute">Kept as drawn. The 3D view folds the app&apos;s construction at your size; your file&apos;s problems are listed above when you upload it again.</p>}
+          {corrected === false && <p className="mt-2 text-mute">Kept as drawn. The 3D view folds your file&apos;s own flaps.</p>}
         </>
       )}
     </div>

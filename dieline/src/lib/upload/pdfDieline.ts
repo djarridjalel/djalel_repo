@@ -10,6 +10,8 @@ export interface DieSeg {
   a: Pt;
   b: Pt;
   kind: "cut" | "crease";
+  /** The page's stroke or fill operation (counted from 0) that drew it. */
+  ord?: number;
 }
 
 export interface LayerInfo {
@@ -113,7 +115,8 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
       s.fills++;
       // Thin filled shapes: dielines are sometimes drawn as outlined lines rather than strokes.
       if (path.length) {
-        const sub = path.map((sp) => sp.map(toMM));
+        // Filled paths close themselves: measure each shape closed, or an open 4-point bar reads twice as wide.
+        const sub = path.map((sp) => sp.map(toMM)).map((sp) => (sp.length > 2 && Math.hypot(sp[0].x - sp[sp.length - 1].x, sp[0].y - sp[sp.length - 1].y) > 1e-3 ? [...sp, sp[0]] : sp));
         const per = sub.reduce((k, sp) => k + sp.slice(1).reduce((q, p, j) => q + Math.hypot(p.x - sp[j].x, p.y - sp[j].y), 0), 0);
         const area = Math.abs(sub.reduce((k, sp) => k + sp.slice(1).reduce((q, p, j) => q + (sp[j].x * p.y - p.x * sp[j].y), 0), 0)) / 2;
         const width = per ? (2 * area) / per : 0;
@@ -278,7 +281,7 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
   const segs: DieSeg[] = [];
   for (const r of mine) {
     const kind = anyDash ? (r.dashed ? "crease" : "cut") : r.color === cutColor ? "cut" : "crease";
-    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) segs.push({ a: sub[j - 1], b: sub[j], kind });
+    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) segs.push({ a: sub[j - 1], b: sub[j], kind, ord: r.ordinal });
   }
   // Which strokes draw the dieline, to leave them out of the artwork when it has no layer of its own.
   const dielineStrokes = mine.map((r) => r.ordinal);
@@ -292,7 +295,7 @@ export async function readPdfDieline(doc: PDFDocumentProxy, OPS: Record<string, 
   const fillSegs: DieSeg[] = [];
   for (const r of fillPool) {
     const kind = r.color === outer ? "cut" : "crease";
-    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) fillSegs.push({ a: sub[j - 1], b: sub[j], kind });
+    for (const sub of r.pts) for (let j = 1; j < sub.length; j++) if (Math.hypot(sub[j].x - sub[j - 1].x, sub[j].y - sub[j - 1].y) > 1e-3) fillSegs.push({ a: sub[j - 1], b: sub[j], kind, ord: r.ordinal });
   }
   const dielineFills = fillPool.map((r) => r.ordinal);
   return { width, height, layers: layersOut, layer: best, dielineLayers: [...chosen], dielineStrokes, segs, fillSegs, dielineFills };

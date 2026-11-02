@@ -92,7 +92,13 @@ function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; 
  */
 const orderFor = (style: CartonParams["style"]): readonly number[] => (style === "rte" ? [0, 1, 2, 3] : [3, 0, 1, 2]);
 
-export function buildBlank(p: CartonParams, r: Resolved): Blank {
+/** Flap outlines to use instead of the app's own, per panel (0 Front … 3 Side B), in each flap's local frame. */
+export interface FlapOverride {
+  top: (Seg[] | null)[];
+  bottom: (Seg[] | null)[];
+}
+
+export function buildBlank(p: CartonParams, r: Resolved, override?: FlapOverride): Blank {
   const { t, panelWidths: pw, bodyHeight: Hp } = r;
   const ORDER = orderFor(p.style);
   // X[i]: left edge of panel i on the blank.
@@ -213,8 +219,10 @@ export function buildBlank(p: CartonParams, r: Resolved): Blank {
     for (const lp of piece.panels) panels.push(localToPanel(lp, x0, which, Hp));
   };
 
-  const topPieces = top.map((s, i) => makePiece(s, i, "top"));
-  const botPieces = bottom.map((s, i) => makePiece(s, i, "bottom"));
+  // An uploaded dieline's own flaps replace the app's, so its artwork folds on the shapes it was drawn for.
+  const own = (piece: Piece, outline: Seg[] | null | undefined): Piece => (outline ? { outline, strokes: [], regions: [], panels: [] } : piece);
+  const topPieces = top.map((s, i) => own(makePiece(s, i, "top"), override?.top[i]));
+  const botPieces = bottom.map((s, i) => own(makePiece(s, i, "bottom"), override?.bottom[i]));
   const handle = p.gable.handleHeight;
   const metaFor = (slot: Slot, i: number): Record<string, number> | undefined =>
     slot === "lid"

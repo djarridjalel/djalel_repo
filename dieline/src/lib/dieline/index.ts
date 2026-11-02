@@ -3,6 +3,7 @@ import { DEFAULT_BOARD } from "./boards";
 import { buildBlank } from "./carton";
 import { STYLE_NAMES } from "./export/common";
 import { foldTube } from "./fold";
+import type { FlapOverride } from "./carton";
 import { attachLines } from "./fold3d";
 import { buildDisplay, buildMailer } from "./styles";
 import { boxOf, findSelfIntersection, line, pointInPolygon, pt, round, samplePath, sampleSeg, segLength, signedArea, type Pt, type Seg } from "./geom";
@@ -76,11 +77,11 @@ function offsetPolygon(poly: Pt[], d: number): Pt[][] {
   return out.map((ring) => ring.map((q) => pt(q.X / SCALE, q.Y / SCALE)));
 }
 
-export function generate(params: CartonParams): Dieline {
+export function generate(params: CartonParams, override?: FlapOverride): Dieline {
   const p = normalizeParams(params);
   const { r, issues } = resolve(p);
   const blank =
-    p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : buildBlank(p, r);
+    p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : buildBlank(p, r, override);
   const pharma = buildPharma(p, blank.panels);
   const allIssues: Issue[] = [...issues, ...pharma.issues];
 

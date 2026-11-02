@@ -8,7 +8,7 @@ import { STYLE_NAMES } from "../dieline/export/common";
 import type { Dieline } from "../dieline/types";
 import type { FoldCheck } from "../dieline/fold";
 import { analyseTube, type Match, type Orientation } from "./match";
-import { readPdfDieline } from "./pdfDieline";
+import { readPdfDieline, type DieSeg } from "./pdfDieline";
 
 export interface UploadArt {
   image: HTMLCanvasElement;
@@ -28,7 +28,10 @@ export type UploadResult =
       dieline: Dieline;
       /** Problems found in the uploaded closures. */
       issues: FoldCheck[];
+      /** The upload folded with its own flaps, as drawn. */
       model: Model3D;
+      /** The corrected construction at the uploaded size. */
+      corrected: Model3D;
       art: UploadArt;
     }
   | { ok: false; fileName: string; reason: string };
@@ -62,8 +65,16 @@ export async function analysePdf(file: File): Promise<UploadResult> {
   const real = canvas.getContext("2d")!;
   // With no layer to hide, leave out the dieline's own drawing: the canvas strokes and fills in the order the page draws them.
   const noLayer = read.dielineLayers.includes("-") || read.dielineLayers.length === 0;
-  const skipStroke = noLayer && !fromFills ? new Set(read.dielineStrokes) : null;
-  const skipFill = fromFills && noLayer ? new Set(read.dielineFills) : null;
+  // Only the shapes that drew the dieline (and long rules such as its bleed outline): small text drawn as thin shapes stays.
+  const drawn = (raw: DieSeg[]) => {
+    const len = new Map<number, number>();
+    for (const g of raw) if (g.ord !== undefined) len.set(g.ord, (len.get(g.ord) ?? 0) + Math.hypot(g.b.x - g.a.x, g.b.y - g.a.y));
+    const keep = new Set(found.segs.map((g) => g.ord).filter((o): o is number => o !== undefined));
+    for (const [o, l] of len) if (l >= 40) keep.add(o);
+    return keep;
+  };
+  const skipStroke = noLayer && !fromFills ? drawn(read.segs) : null;
+  const skipFill = fromFills && noLayer ? drawn(read.fillSegs) : null;
   let ns = 0;
   let nf = 0;
   const ctx =
@@ -87,7 +98,8 @@ export async function analysePdf(file: File): Promise<UploadResult> {
     match,
     dieline: match.dieline,
     issues: found.checks.filter((c) => !c.ok),
-    model: orient(match.dieline.model3d, found.orientation, match, read.width, read.height),
+    model: orient(found.drawn.model3d, found.orientation, match, read.width, read.height),
+    corrected: orient(match.dieline.model3d, found.orientation, match, read.width, read.height),
     art: { image: canvas, x0: 0, y0: 0, w: read.width, h: read.height },
   };
 }
@@ -99,7 +111,7 @@ const fmt = (v: number) => (Math.round(v * 10) / 10).toString();
  * body and mirrored the way the upload is drawn, so each face sits on its own
  * part of the artwork.
  */
-function orient(m: Model3D, o: Orientation, match: Match, W: number, H: number): Model3D {
+export function orient(m: Model3D, o: Orientation, match: Match, W: number, H: number): Model3D {
   // Undo the way the upload was turned for matching: unmirror on the turned page, then turn back.
   const [w, h] = o.swap ? [H, W] : [W, H];
   const f = (p: Pt) => {
