@@ -4,6 +4,10 @@
 
 import * as THREE from "three";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { BokehPass } from "three/examples/jsm/postprocessing/BokehPass.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { apply, pose, type Model3D } from "../../../dieline/src/lib/dieline/fold3d";
 import type { Carton } from "./nutri";
 
@@ -30,6 +34,12 @@ export interface Box3D {
   render(mode?: "beauty" | "depth"): void;
   radius: number;
   setGround(on: boolean): void;
+  /** Shallow depth of field, focused on the current shot's target; null turns it off. */
+  setDof(d: { aperture: number; maxblur: number; background: string } | null): void;
+  /** Screen rectangle (px) of the carton as it stands now. */
+  bounds(): { x0: number; y0: number; x1: number; y1: number };
+  /** Renders only this screen rectangle, at the full canvas size (sharp crops). */
+  renderCrop(r: { x: number; y: number; w: number; h: number }, mode?: "beauty" | "depth"): void;
 }
 
 export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: number; transparent?: boolean }): Box3D {
@@ -125,6 +135,15 @@ export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: nu
   rim.position.set(1.6, 1.2, -1.4).multiplyScalar(radius * 3).add(centre);
 
   const depthMat = new THREE.MeshDepthMaterial({ side: THREE.DoubleSide });
+  let focusDist = radius * 3;
+  let dof: { aperture: number; maxblur: number; background: string } | null = null;
+  const composer = new EffectComposer(renderer);
+  composer.setPixelRatio(1);
+  composer.setSize(opts.w, opts.h);
+  composer.addPass(new RenderPass(scene, camera));
+  const bokeh = new BokehPass(scene, camera, { focus: radius * 3, aperture: 0.002, maxblur: 0.01 });
+  composer.addPass(bokeh);
+  composer.addPass(new OutputPass());
 
   /** World point and outward normal of an artwork position on the closed carton. */
   const inside = (poly: { x: number; y: number }[], p: { x: number; y: number }) => {
@@ -177,6 +196,7 @@ export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: nu
     if (v.roll) camera.rotateZ(THREE.MathUtils.degToRad(v.roll));
     camera.fov = v.fov;
     const d = camera.position.distanceTo(v.target);
+    focusDist = d;
     camera.near = Math.max(0.5, d / 30);
     camera.far = d + radius * 8;
     camera.updateProjectionMatrix();
@@ -242,7 +262,41 @@ export function createBox(host: HTMLElement, c: Carton, opts: { w: number; h: nu
         camera.near = near;
         camera.far = far;
         camera.updateProjectionMatrix();
+      } else if (dof) {
+        renderer.setClearColor(new THREE.Color(dof.background), 1);
+        const u = bokeh.uniforms as Record<string, { value: number }>;
+        u.focus.value = focusDist;
+        u.aperture.value = dof.aperture;
+        u.maxblur.value = dof.maxblur;
+        u.nearClip.value = camera.near;
+        u.farClip.value = camera.far;
+        u.aspect.value = camera.aspect;
+        composer.render();
+        renderer.setClearColor(0x000000, 0);
       } else renderer.render(scene, camera);
+    },
+    setDof(d) {
+      dof = d;
+    },
+    bounds() {
+      scene.updateMatrixWorld(true);
+      camera.updateMatrixWorld();
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const o of faces) o.traverse((x) => {
+        if (!(x instanceof THREE.Mesh) || x.material.side !== THREE.FrontSide) return;
+        const pos = x.geometry.getAttribute("position");
+        for (let k = 0; k < pos.count; k++) {
+          const v = new THREE.Vector3(pos.getX(k), pos.getY(k), pos.getZ(k)).applyMatrix4(x.matrixWorld).project(camera);
+          const px = ((v.x + 1) / 2) * opts.w, py = ((1 - v.y) / 2) * opts.h;
+          x0 = Math.min(x0, px); x1 = Math.max(x1, px); y0 = Math.min(y0, py); y1 = Math.max(y1, py);
+        }
+      });
+      return { x0, y0, x1, y1 };
+    },
+    renderCrop(r, mode = "beauty") {
+      camera.setViewOffset(opts.w, opts.h, r.x, r.y, r.w, r.h);
+      box.render(mode);
+      camera.clearViewOffset();
     },
   };
   box.setFold(1);

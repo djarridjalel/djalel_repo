@@ -11,18 +11,19 @@ from PIL import Image
 FPS = 60
 # Scene cuts (s) and strength: the transitions land exactly on these beats.
 CUTS = [
-    (3.74, 0.9),   # dieline -> words
-    (5.87, 1.0),   # words -> size (dark)
-    (7.41, 1.0),   # size -> fold
-    (9.43, 0.8),   # fold -> verbs
-    (11.47, 0.9),  # verbs -> lockup
-    (13.49, 1.0),  # lockup -> AI (dark)
-    (15.98, 1.1),  # AI -> macro
-    (21.13, 0.7),  # whole -> best angle
-    (23.15, 0.8),  # shutter -> reference card
+    (2.72, 0.9),   # dieline -> words
+    (4.32, 1.0),   # words -> size (dark)
+    (5.36, 0.5),   # size -> fold (light, the fold must stay readable)
+    (9.43, 0.9),   # fold -> name
+    (10.98, 1.0),  # name -> AI (dark)
+    (13.00, 1.0),  # AI -> close-ups
+    (14.02, 0.35), # close-up -> close-up
+    (15.02, 0.35),
+    (17.07, 0.8),  # whole -> best angle
+    (20.62, 0.7),  # shutter -> reference card
     (24.17, 0.9),  # -> Magnific
     (28.00, 1.4),  # the hit: Generate -> burst
-    (30.23, 0.8),  # -> end card
+    (31.11, 0.7),  # -> end card
 ]
 W, H = 1920, 1080
 yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)

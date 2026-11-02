@@ -37,7 +37,7 @@ export const AR: Record<string, string> = {
   "Start a new carton? The current one and its versions are removed from this browser.": "بدء علبة جديدة؟ ستُحذف العلبة الحالية وإصداراتها من هذا المتصفح.",
 
   // Landing
-  "Djarri Design Studio · Pharma packaging": "استوديو جاري للتصميم · تغليف الأدوية",
+  "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":
     "أنشئ مخطط قطع بالمقاس الحقيقي انطلاقًا من مقاس العلبة ونوع الكرتون، مفحوصًا وجاهزًا بصيغة PDF أو SVG أو DXF. أو ارفع ملف PDF لتغليفك وشاهد تصميمك مطويًا ثلاثي الأبعاد.",
   "Pick a style, enter the size, download.": "اختر النوع، أدخل المقاس، ثم نزّل الملف.",
@@ -354,7 +354,7 @@ export const AR: Record<string, string> = {
   "DataMatrix 14 × 14": "DataMatrix 14 × 14",
 
   // Exports
-  "Djarri Design Studio — Dieline Generator": "استوديو جاري للتصميم — مولّد مخططات القطع",
+  "Djarri Design Studio — Dieline Generator": "استوديو جرّي للتصميم — مولّد مخططات القطع",
   "Check the structure with a physical sample on the production board before ordering the cutting die.": "افحص البنية بعينة فعلية على كرتون الإنتاج قبل طلب قالب القص.",
   Job: "العمل",
   Style: "النوع",
