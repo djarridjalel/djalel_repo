@@ -150,3 +150,13 @@ export async function renameProject(id: string, name: string) {
   const { error } = await supabaseBrowser().from("projects").update({ name, updated_at: new Date().toISOString() }).eq("id", id);
   if (error) throw error;
 }
+
+/** Versions saved in this browser before the account existed. */
+export function loadLocalVersions(): VersionRow[] {
+  try {
+    const s = JSON.parse(localStorage.getItem(LOCAL_KEY) ?? "null");
+    return Array.isArray(s?.versions) ? s.versions : [];
+  } catch {
+    return [];
+  }
+}

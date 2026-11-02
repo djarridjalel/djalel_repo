@@ -2,11 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_ANON_KEY, SUPABASE_URL, authEnabled } from "@/lib/supabase/env";
 
+/** Pages that need an account. */
+const PRIVATE = ["/editor", "/projects", "/welcome", "/demo"];
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const path = request.nextUrl.pathname;
   if (!authEnabled) {
-    if (path === "/login" || path === "/signup" || path.startsWith("/projects")) {
+    if (path === "/login" || path === "/signup" || path === "/welcome" || path.startsWith("/projects")) {
       const url = request.nextUrl.clone();
       url.pathname = "/editor";
       url.search = "";
@@ -30,18 +33,21 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user && path.startsWith("/projects")) {
+  const redirect = (pathname: string, params: Record<string, string> = {}) => {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("next", path);
-    return NextResponse.redirect(url);
-  }
-  if (user && (path === "/login" || path === "/signup")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/projects";
+    url.pathname = pathname;
     url.search = "";
-    return NextResponse.redirect(url);
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v);
+    const res = NextResponse.redirect(url);
+    // Keep any refreshed session cookies.
+    for (const c of response.cookies.getAll()) res.cookies.set(c);
+    return res;
+  };
+
+  if (!user && PRIVATE.some((p) => path === p || path.startsWith(`${p}/`))) {
+    return redirect("/login", { next: path + request.nextUrl.search });
   }
+  if (user && (path === "/login" || path === "/signup")) return redirect("/projects");
   return response;
 }
 

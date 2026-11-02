@@ -6,7 +6,7 @@ export const metadata = { title: "Create an account · Dielines · Djarri Design
 
 export default function SignupPage() {
   return (
-    <AuthShell title="Create a free account" lead="Generate, save and version pharma carton dielines. Free, no card needed.">
+    <AuthShell title="Create a free account" lead="Make, upload, save and version pharma carton dielines. Free for now, no card needed.">
       <Suspense>
         <AuthForm mode="signup" />
       </Suspense>

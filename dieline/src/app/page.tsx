@@ -24,11 +24,5 @@ export default async function Home() {
     .replace(/stroke="#E30613" color="#E30613"/, 'stroke="#0A0A0B" color="#0A0A0B"')
     .replace(/stroke="#00A651" color="#00A651"/, 'stroke="#6E5400" color="#6E5400"');
 
-  const primary = signedIn
-    ? { href: "/projects", label: "Open your projects" }
-    : authEnabled
-      ? { href: "/signup", label: "Create a free account" }
-      : { href: "/editor", label: "Open the editor" };
-
-  return <Landing hero={hero} signedIn={signedIn} authEnabled={authEnabled} primary={primary} />;
+  return <Landing hero={hero} signedIn={signedIn} authEnabled={authEnabled} />;
 }

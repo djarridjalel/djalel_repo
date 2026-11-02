@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/Brand";
+import { DraftImport } from "@/components/DraftImport";
+import { LangSwitch } from "@/components/LangProvider";
+import { T } from "@/components/T";
 import { NewProjectButton, ProjectMenu } from "@/components/ProjectActions";
 import { generate, normalizeParams } from "@/lib/dieline";
 import { STYLE_NAMES } from "@/lib/dieline/export/common";
@@ -18,6 +21,8 @@ export default async function ProjectsPage() {
     data: { user },
   } = await db.auth.getUser();
   if (!user) redirect("/login");
+  const { data: profile } = await db.from("profiles").select("onboarded_at").eq("id", user.id).maybeSingle();
+  if (profile && !profile.onboarded_at) redirect("/welcome?next=/projects");
   const { data: rows, error } = await db.from("projects").select("id,name,params,updated_at").order("updated_at", { ascending: false });
 
   return (
@@ -25,25 +30,27 @@ export default async function ProjectsPage() {
       <header className="studio-bar sticky top-0 z-20 flex h-14 items-center justify-between px-4 sm:px-6">
         <Brand href="/projects" />
         <div className="flex items-center gap-3">
+          <LangSwitch />
           <span className="hidden max-w-[220px] truncate font-mono text-[12px] text-mute sm:inline">{user.email}</span>
           <form action="/auth/signout" method="post">
-            <button className="studio-link">Sign out</button>
+            <button className="studio-link"><T>Sign out</T></button>
           </form>
         </div>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-mute">Your cartons</p>
-            <h1 className="mt-1 text-[28px] font-medium">Projects</h1>
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-mute"><T>Your cartons</T></p>
+            <h1 className="mt-1 text-[28px] font-medium"><T>Projects</T></h1>
           </div>
           <NewProjectButton />
         </div>
-        {error && <p className="mt-6 text-[14px] text-danger">Could not load projects: {error.message}</p>}
+        <DraftImport />
+        {error && <p className="mt-6 text-[14px] text-danger"><T>Could not load projects:</T> {error.message}</p>}
         {rows && rows.length === 0 && (
           <div className="mt-10 rounded-lg border border-dashed border-rule bg-paper/60 p-10 text-center">
-            <p className="text-[16px]">No cartons yet.</p>
-            <p className="mt-1 text-[14px] text-mute">Start with a reverse tuck end and adjust from there.</p>
+            <p className="text-[16px]"><T>No cartons yet.</T></p>
+            <p className="mt-1 text-[14px] text-mute"><T>Start with a reverse tuck end and adjust from there.</T></p>
           </div>
         )}
         <ul className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -61,9 +68,9 @@ export default async function ProjectsPage() {
                   <Link href={`/projects/${row.id}`} className="min-w-0">
                     <p className="truncate text-[15px] font-medium">{row.name}</p>
                     <p className="mt-0.5 text-[12px] text-mute">
-                      {STYLE_NAMES[params.style].name} · {params.L} × {params.W} × {params.H} mm
+                      <T>{STYLE_NAMES[params.style].name}</T> · {params.L} × {params.W} × {params.H} mm
                     </p>
-                    <p className="mt-0.5 font-mono text-[11px] text-mute">Edited {new Date(row.updated_at).toLocaleDateString("en-GB")}</p>
+                    <p className="mt-0.5 font-mono text-[11px] text-mute"><T>Edited</T> {new Date(row.updated_at).toLocaleDateString("en-GB")}</p>
                   </Link>
                   <ProjectMenu id={row.id} name={row.name} params={params} />
                 </div>
