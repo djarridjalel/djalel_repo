@@ -30,6 +30,8 @@ export function fieldOfPanel(id: PanelId | string, style: StyleId): string {
     case "front":
     case "back":
     case "base":
+    case "doorInner":
+    case "innerFront":
       return "L";
     case "sideA":
     case "sideB":
@@ -54,7 +56,7 @@ export function fieldOfPanel(id: PanelId | string, style: StyleId): string {
 /** The panels a field shapes, to point at them on the dieline. */
 export function panelsOfField(field: string | undefined, style: StyleId): string[] {
   if (!field) return [];
-  const all = ["front", "back", "base", "sideA", "sideB", "topTuck", "bottomTuck", "topLid", "bottomLid", "glueFlap", "handle", "header"];
-  if (field === "H") return style === "mailer" || style === "display" ? ["front", "back", "sideA", "sideB"] : ["front", "back", "sideA", "sideB", "glueFlap"];
+  const all = ["front", "back", "base", "doorInner", "innerFront", "sideA", "sideB", "topTuck", "bottomTuck", "topLid", "bottomLid", "glueFlap", "handle", "header"];
+  if (field === "H") return style === "mailer" || style === "display" ? ["front", "back", "sideA", "sideB"] : style === "doorbox" ? ["front", "back", "doorInner", "innerFront", "sideA", "sideB", "glueFlap"] : ["front", "back", "sideA", "sideB", "glueFlap"];
   return all.filter((id) => fieldOfPanel(id, style) === field);
 }

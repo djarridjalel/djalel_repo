@@ -5,7 +5,7 @@ import { STYLE_NAMES } from "./export/common";
 import { foldTube } from "./fold";
 import type { FlapOverride } from "./carton";
 import { attachLines } from "./fold3d";
-import { buildDisplay, buildMailer } from "./styles";
+import { buildDisplay, buildDoorBox, buildMailer } from "./styles";
 import { boxOf, findSelfIntersection, line, pointInPolygon, pt, round, samplePath, sampleSeg, segLength, signedArea, type Pt, type Seg } from "./geom";
 import { buildPharma } from "./pharma";
 import { resolve } from "./resolve";
@@ -81,7 +81,7 @@ export function generate(params: CartonParams, override?: FlapOverride): Dieline
   const p = normalizeParams(params);
   const { r, issues } = resolve(p);
   const blank =
-    p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : buildBlank(p, r, override);
+    p.style === "mailer" ? buildMailer(p, r, issues) : p.style === "display" ? buildDisplay(p, r, issues) : p.style === "doorbox" ? buildDoorBox(p, r, issues) : buildBlank(p, r, override);
   const pharma = buildPharma(p, blank.panels);
   const allIssues: Issue[] = [...issues, ...pharma.issues];
 

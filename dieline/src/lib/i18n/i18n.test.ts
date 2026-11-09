@@ -37,7 +37,7 @@ describe("Arabic", () => {
   });
 
   it("translates what the generator says: panels, labels, checks and issues", () => {
-    const styles: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "srpSnap", "gable", "mailer", "display"];
+    const styles: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "srpSnap", "gable", "mailer", "display", "doorbox"];
     const variants: Partial<CartonParams>[] = [
       {},
       { L: 40, W: 80, H: 120 },

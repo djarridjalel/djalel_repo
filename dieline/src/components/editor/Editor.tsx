@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { generate, normalizeParams } from "@/lib/dieline";
 import { LAYER_ORDER } from "@/lib/dieline/layers";
-import type { CartonParams, Layer } from "@/lib/dieline/types";
+import type { CartonParams, Layer, StyleId } from "@/lib/dieline/types";
 import { downloadDieline } from "@/lib/download";
 import type { UploadResult } from "@/lib/upload";
 import type { Panel } from "@/lib/dieline/types";
@@ -31,7 +31,10 @@ export function Editor({
   backHref,
   onNew,
   local = false,
+  extraStyles = [],
 }: {
+  /** Styles made for this account only. */
+  extraStyles?: StyleId[];
   /** Saved in this browser only (no account). */
   local?: boolean;
   initialName: string;
@@ -398,7 +401,7 @@ export function Editor({
         <aside className={`${tab === "design" ? "block" : "hidden"} w-full overflow-y-auto border-e border-rule bg-bone lg:block lg:w-[330px] lg:shrink-0`}>
           {mode === "make" ? (
             <>
-              <Controls p={params} d={d} set={set} onOpenContents={() => setContentsOpen(true)} />
+              <Controls p={params} d={d} set={set} onOpenContents={() => setContentsOpen(true)} extraStyles={extraStyles} />
               <p className="px-4 py-4 text-[11px] leading-relaxed text-mute">
                 {t("Dielines are generated from standard construction rules. Check the structure with a physical sample on the production board before ordering the cutting die.")}
               </p>

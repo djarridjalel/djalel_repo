@@ -344,3 +344,218 @@ export function buildDisplay(p: CartonParams, r: Resolved, issues: Issue[]): Bla
 
   return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "base", gap: 0.15 });
 }
+
+/* ------------------------------------------------------------------ */
+/* Door box (double-layer door, reverse tuck)                          */
+/* ------------------------------------------------------------------ */
+
+/** Points along a cubic Bézier, without the first point. */
+function bezier(a: Pt, b: Pt, c: Pt, d: Pt, n = 16): Pt[] {
+  const out: Pt[] = [];
+  for (let k = 1; k <= n; k++) {
+    const s = k / n;
+    const u = 1 - s;
+    out.push(pt(u * u * u * a.x + 3 * u * u * s * b.x + 3 * u * s * s * c.x + s * s * s * d.x, u * u * u * a.y + 3 * u * u * s * b.y + 3 * u * s * s * c.y + s * s * s * d.y));
+  }
+  return out;
+}
+
+/** Fixed parts of the door box, in mm, as on the produced carton. */
+export const DOOR = {
+  notchR: 7.366,
+  notchDrop: 0.756,
+  tabW: 10,
+  tabH: 30,
+  tabR: 4.483,
+  moonR: 7.366,
+  slit: 32,
+  tuck: 14.5,
+  /** Dust flap depth, as a share of the door panel width. */
+  dust: 0.625,
+};
+
+/**
+ * Door box: one sheet, printed on one side. Left to right: glue flap, back
+ * (thumb notch, bottom lid), side A, door outer, door inner, inner front
+ * (top lid), side B. The door's two layers are glued back to back (3 | 4 folds
+ * 180°); the inner front folds back the other way (4 | 5, reverse fold), so the
+ * printed faces of door inner and inner front open as one spread. A tab on the
+ * door's free edge locks into a slit at the inner front | side B corner.
+ */
+export function buildDoorBox(p: CartonParams, r: Resolved, issues: Issue[]): Blank {
+  const t = r.t;
+  const A = r.Li + t;
+  const B = r.Wi + t;
+  const Hp = r.bodyHeight;
+  const D = B;
+  const T = clamp(p.tuckDepth ?? DOOR.tuck, 8, Math.max(8, D - 5));
+  const g = clamp(p.glueWidth ?? 10, 6, 20);
+  const taper = Math.min(5, Hp / 4);
+  const X = [0, A, A + B, 2 * A + B, 3 * A + B - t, 4 * A + B - 2 * t, 4 * A + 2 * B - 2 * t];
+  const cy = Hp / 2;
+  const h = DOOR.dust * A;
+  const s = 3 + (6.72 / 31.5) * (h - 6);
+  const { notchR, notchDrop, tabW, tabH, tabR, moonR } = DOOR;
+  const sl = DOOR.slit / 2;
+  const cx = A / 2;
+
+  if (A - t < 2 * 15.5 + 2) issues.push({ severity: "error", field: "L", message: `The tuck needs a lid at least 33 mm wide: make the length at least ${fmt(33 + 2 * t)} mm.` });
+  if (B < s + 6) issues.push({ severity: "error", field: "W", message: "The side panels are too narrow for their dust flaps. Increase the width." });
+  if (cy - sl < 10) issues.push({ severity: "error", field: "H", message: `The door tab and its slit need more height: keep the height above ${fmt(2 * (sl + 10) - t)} mm.` });
+  if (A < 2 * notchR + 8) issues.push({ severity: "warning", field: "L", message: "The thumb notch leaves little board either side on so narrow a back panel." });
+  if (T > D - 5) issues.push({ severity: "warning", field: "tuckDepth", message: `Tuck depth is limited to ${fmt(D - 5)} mm by the lid depth.` });
+
+  // Tuck lid from its hinge outwards: `dir` is −1 for the top, +1 for the bottom; x0..x1 the panel.
+  const lidRun = (x0: number, x1: number, y0: number, dir: 1 | -1, fromLeft: boolean): Pt[] => {
+    const yE = y0 + dir * D;
+    const yT = yE + dir * T;
+    const left = [pt(x0, y0), pt(x0, yE), pt(x0 + 0.5, yE), ...bezier(pt(x0 + 0.5, yE), pt(x0 + 0.5, yE + (dir * T * 2) / 3), pt(x0 + 5.5, yT), pt(x0 + 15.5, yT))];
+    const right = [pt(x1 - 15.5, yT), ...bezier(pt(x1 - 15.5, yT), pt(x1 - 5.5, yT), pt(x1 - 0.5, yE + (dir * T * 2) / 3), pt(x1 - 0.5, yE)), pt(x1, yE), pt(x1, y0)];
+    const run = [...left, ...right];
+    return fromLeft ? run : run.reverse();
+  };
+  // Dust flaps, from the panel's left fold xa.
+  const dustA = (xa: number, y0: number, dir: 1 | -1): Pt[] => [pt(xa + 1, y0 + dir), pt(xa + 4, y0 + dir * h), pt(xa + B - s, y0 + dir * h), pt(xa + B - 3, y0 + dir * 6), pt(xa + B - 1, y0 + dir * 4), pt(xa + B - 1, y0)];
+  const dustB = (xa: number, y0: number, dir: 1 | -1): Pt[] => [pt(xa + 1, y0), pt(xa + 1, y0 + dir * 4), pt(xa + 3, y0 + dir * 6), pt(xa + s, y0 + dir * h), pt(xa + B - 4, y0 + dir * h), pt(xa + B - 1, y0 + dir)];
+
+  const notchA = pt(cx - notchR, notchDrop);
+  const notchB = pt(cx + notchR, notchDrop);
+  const outline: Seg[] = [
+    ...poly([pt(0, 0), pt(cx - notchR, 0), notchA]),
+    arc3(notchA, pt(cx, notchDrop + notchR), notchB),
+    ...poly([
+      notchB,
+      pt(cx + notchR, 0),
+      pt(X[1], 0),
+      ...dustA(X[1], 0, -1),
+      ...lidRun(X[4], X[5], 0, -1, true),
+      ...dustB(X[5], 0, -1),
+      pt(X[6], 0),
+      pt(X[6], Hp),
+      ...[...dustA(X[5], Hp, 1)].reverse(),
+      pt(X[5], Hp),
+      pt(X[2], Hp),
+      ...[...dustB(X[1], Hp, 1)].reverse(),
+      pt(X[1], Hp),
+      ...lidRun(0, X[1], Hp, 1, false),
+      pt(-g, Hp - taper),
+      pt(-g, taper),
+      pt(0, 0),
+    ].filter((q, k, a) => k === 0 || Math.hypot(q.x - a[k - 1].x, q.y - a[k - 1].y) > 1e-6)),
+  ];
+
+  const strokes: Stroke[] = [];
+  const C = (a: Pt, b: Pt) => strokes.push({ layer: "crease", seg: line(a, b) });
+  const K = (a: Pt, b: Pt) => strokes.push({ layer: "cut", seg: line(a, b) });
+  C(pt(0, 0), pt(0, Hp));
+  C(pt(X[1], 0), pt(X[1], Hp));
+  C(pt(X[2], 0), pt(X[2], Hp));
+  C(pt(X[3], 0), pt(X[3], cy - tabH / 2));
+  C(pt(X[3], cy + tabH / 2), pt(X[3], Hp));
+  C(pt(X[4], 0), pt(X[4], Hp));
+  C(pt(X[5], 0), pt(X[5], cy - sl));
+  C(pt(X[5], cy + sl), pt(X[5], Hp));
+  C(pt(X[4], 0), pt(X[5], 0));
+  C(pt(0, Hp), pt(X[1], Hp));
+  for (const [xa, xb] of [
+    [X[1], X[2]],
+    [X[5], X[6]],
+  ]) {
+    C(pt(xa + 1, 0), pt(xb - 1, 0));
+    C(pt(xa + 1, Hp), pt(xb - 1, Hp));
+  }
+  // Tuck creases 0.5 mm in from the lid end, with short slits at each side.
+  for (const [x0, x1, yE, dir] of [
+    [X[4], X[5], -D, 1],
+    [0, X[1], Hp + D, -1],
+  ] as const) {
+    const yc = yE + dir * 0.5;
+    C(pt(x0 + 4, yc), pt(x1 - 4, yc));
+    for (const [xa, xb] of [
+      [x0 + 0.5, x0 + 4],
+      [x1 - 0.5, x1 - 4],
+    ]) {
+      K(pt(xa, yE), pt(xb, yE));
+      K(pt(xb, yE), pt(xb, yc));
+    }
+  }
+  // Door tab: cut in the door inner panel, left attached to the door outer.
+  const tabPts = [pt(X[3], cy - tabH / 2), pt(X[3] + tabW, cy - tabH / 2), pt(X[3] + tabW, cy + tabH / 2), pt(X[3], cy + tabH / 2)];
+  for (const seg of filletPolyline(tabPts, [0, tabR, tabR, 0])) strokes.push({ layer: "cut", seg });
+  // Slit on the inner front | side B fold, through a half-moon for the finger.
+  K(pt(X[5], cy - sl), pt(X[5], cy - moonR));
+  strokes.push({ layer: "cut", seg: arc3(pt(X[5], cy - moonR), pt(X[5] + moonR, cy), pt(X[5], cy + moonR)) });
+  K(pt(X[5], cy + moonR), pt(X[5], cy + sl));
+
+  const regions: Region[] = [
+    { layer: "glue", pts: insetConvex([pt(-g, taper), pt(0, 0), pt(0, Hp), pt(-g, Hp - taper)], 1.5), label: "Glue" },
+    { layer: "glue", pts: [pt(X[3] + tabW + 3, 3), pt(X[4] - 3, 3), pt(X[4] - 3, Hp - 3), pt(X[3] + tabW + 3, Hp - 3)], label: "Glue" },
+  ];
+
+  const panels: Panel[] = [
+    { id: "back", name: "Back", x: 0, y: 0, w: A, h: Hp, printable: true },
+    { id: "sideA", name: "Side A", x: X[1], y: 0, w: B, h: Hp, printable: true },
+    { id: "front", name: "Door outer", x: X[2], y: 0, w: A, h: Hp, printable: true },
+    { id: "doorInner", name: "Door inner", x: X[3], y: 0, w: A - t, h: Hp, printable: true },
+    { id: "innerFront", name: "Inner front", x: X[4], y: 0, w: A - t, h: Hp, printable: true },
+    { id: "sideB", name: "Side B", x: X[5], y: 0, w: B, h: Hp, printable: true },
+    { id: "topLid", name: "Top lid", x: X[4], y: -D, w: A - t, h: D, printable: true },
+    { id: "topTuck", name: "Top tuck", x: X[4] + 0.5, y: -D - T, w: A - t - 1, h: T, printable: true },
+    { id: "bottomLid", name: "Bottom lid", x: 0, y: Hp, w: A, h: D, printable: true },
+    { id: "bottomTuck", name: "Bottom tuck", x: 0.5, y: Hp + D, w: A - 1, h: T, printable: true },
+    { id: "glueFlap", name: "Glue flap", x: -g, y: 0, w: g, h: Hp, printable: false },
+  ];
+  const dims: Dimension[] = [
+    { a: pt(0, Hp * 0.3), b: pt(A, Hp * 0.3), offset: 0, text: fmt(A) },
+    { a: pt(X[1], Hp * 0.3), b: pt(X[2], Hp * 0.3), offset: 0, text: fmt(B) },
+    { a: pt(X[4], Hp * 0.3), b: pt(X[5], Hp * 0.3), offset: 0, text: fmt(A - t) },
+    { a: pt(X[1] + B * 0.25, 0), b: pt(X[1] + B * 0.25, Hp), offset: 0, text: fmt(Hp) },
+    { a: pt(X[4] + (A - t) * 0.25, -D), b: pt(X[4] + (A - t) * 0.25, 0), offset: 0, text: fmt(D) },
+  ];
+
+  // Closing checks.
+  const checks = [
+    check("door-tab", "Door", "The door tab fits its slit", tabH <= 2 * sl - 1 && cy - sl >= 10, `Tab ${mm(tabH)} mm into a ${mm(2 * sl)} mm slit, ${mm(cy - sl)} mm from the lids.`),
+    check("door-wrap", "Door", "The door's two layers and the inner front close flush", Math.abs(X[3] - X[2] - (X[5] - X[4]) - t) < 1e-6, `Door outer ${mm(A)} mm, door inner and inner front ${mm(A - t)} mm each (one caliper less).`),
+    check("tuck", "Lids", "The tucks reach inside the walls", T >= 8 && A - t >= 33, `Tuck ${mm(T)} mm on lids ${mm(A - t)} and ${mm(A)} mm wide.`),
+    check("dust", "Lids", "Dust flaps meet under the lid without hitting the far wall", h < A - 2 && 2 * h - A >= 0, `Dust flaps ${mm(h)} mm deep in a ${mm(A)} mm opening: they overlap ${mm(2 * h - A)} mm.`),
+  ];
+
+  // 3D: door layers glued and reverse-folded flat first, glue flap, the walls round, bottom then top, the tab last.
+  const F = new FaceList();
+  const P = (pts: [number, number][]) => pts.map(([x, y]) => pt(x, y));
+  const vh = (x: number): [Pt, Pt] => [pt(x, 0), pt(x, Hp)];
+  const notch = [pt(cx - notchR, 0), notchA, ...samplePath([arc3(notchA, pt(cx, notchDrop + notchR), notchB)], 1).slice(1), pt(cx + notchR, 0)];
+  const f1 = F.add([pt(0, 0), ...notch, pt(A, 0), pt(A, Hp), pt(0, Hp)], -1, null);
+  F.add(P([[0, 0], [-g, taper], [-g, Hp - taper], [0, Hp]]), f1, vh(0), 90, 0.16, 0.24, -1);
+  const f2 = F.add(P([[X[1], 0], [X[2], 0], [X[2], Hp], [X[1], Hp]]), f1, vh(X[1]), 90, 0.24, 0.42);
+  const f3 = F.add(P([[X[2], 0], [X[3], 0], [X[3], Hp], [X[2], Hp]]), f2, vh(X[2]), 90, 0.24, 0.42);
+  const f4 = F.add(P([[X[3], 0], [X[4], 0], [X[4], Hp], [X[3], Hp], [X[3], cy + tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3], cy - tabH / 2]]), f3, vh(X[3]), 180, 0, 0.08, 1);
+  // The half-moon disc bends with side B, leaving the finger hole at the corner.
+  const f5 = F.add(P([[X[4], 0], [X[5], 0], [X[5], Hp], [X[4], Hp]]), f4, vh(X[4]), -180, 0.08, 0.16, 0);
+  const f6 = F.add(P([[X[5], 0], [X[6], 0], [X[6], Hp], [X[5], Hp]]), f5, vh(X[5]), 90, 0.24, 0.42);
+  F.add(P([[X[3], cy - tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3], cy + tabH / 2]]), f3, [pt(X[3], cy - tabH / 2), pt(X[3], cy + tabH / 2)], 90, 0.94, 1, -1);
+  // Dust flaps overlap under the lid: side A's goes in first, side B's over it.
+  for (const [face, xa, flap, y0, win, layer] of [
+    [f2, X[1], dustA, 0, [0.72, 0.77], 0],
+    [f6, X[5], dustB, 0, [0.76, 0.81], 1],
+    [f2, X[1], dustB, Hp, [0.42, 0.47], 0],
+    [f6, X[5], dustA, Hp, [0.46, 0.51], 1],
+  ] as const) {
+    const pts = y0 === 0 ? flap(xa, 0, -1) : flap(xa, Hp, 1);
+    F.add([pt(xa, y0), ...pts, pt(xa + B, y0)], face, [pt(xa, y0), pt(xa + B, y0)], 90, win[0], win[1], layer);
+  }
+  // Lids and their tucks, split at the tuck crease.
+  for (const [face, x0, x1, y0, dir, win] of [
+    [f1, 0, X[1], Hp, 1, [0.52, 0.7]],
+    [f5, X[4], X[5], 0, -1, [0.8, 0.94]],
+  ] as const) {
+    const yc = y0 + dir * (D - 0.5);
+    const run = lidRun(x0, x1, y0, dir, true);
+    const tuckPts = [pt(x0 + 0.5, yc), ...run.filter((q) => dir * (q.y - yc) > 1e-6), pt(x1 - 0.5, yc)];
+    const lid = F.add([pt(x0, y0), pt(x0, yc), pt(x1, yc), pt(x1, y0)], face, [pt(x0, y0), pt(x1, y0)], 90, win[0], win[0] + (win[1] - win[0]) * 0.7, 2);
+    F.add(tuckPts, lid, [pt(x0 + 4, yc), pt(x1 - 4, yc)], 90, win[0] + (win[1] - win[0]) * 0.5, win[1], 0);
+  }
+
+  return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "wall", gap: Math.max(0.15, t * 0.5) });
+}

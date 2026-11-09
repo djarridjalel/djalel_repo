@@ -12,6 +12,7 @@ export const STYLE_NAMES: Record<StyleId, { name: string; ecma: string }> = {
   gable: { name: "Gable box with handle", ecma: "Snap-lock bottom" },
   mailer: { name: "Mailer box", ecma: "FEFCO 0427" },
   display: { name: "Counter display", ecma: "Sloped sides, header card" },
+  doorbox: { name: "Door box", ecma: "Double-layer door, reverse tuck" },
 };
 
 export interface ExportMeta {

@@ -15,6 +15,7 @@ const ICON_SIZES: Record<StyleId, Partial<CartonParams>> = {
   gable: { L: 120, W: 80, H: 100, gable: { handleHeight: 40, holeWidth: 60, holeHeight: 20 } },
   mailer: { L: 220, W: 160, H: 60, caliper: 1.5 },
   display: { L: 200, W: 120, H: 40 },
+  doorbox: { L: 60, W: 60, H: 150 },
 };
 
 interface IconData {

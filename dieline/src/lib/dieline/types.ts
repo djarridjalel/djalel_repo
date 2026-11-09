@@ -15,7 +15,10 @@ export type Layer =
   | "dimension"
   | "label";
 
-export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "srpSnap" | "gable" | "mailer" | "display";
+export type StyleId = "rte" | "ste" | "crash" | "snap" | "srp" | "srpSnap" | "gable" | "mailer" | "display" | "doorbox";
+
+/** Styles offered only to the accounts they were made for. */
+export const PRIVATE_STYLES: StyleId[] = ["doorbox"];
 
 /** Styles built as a four-panel tube with a manufacturer's joint. */
 export const TUBE_STYLES: StyleId[] = ["rte", "ste", "crash", "snap", "srp", "srpSnap", "gable"];
@@ -168,7 +171,9 @@ export type PanelId =
   | "hanger"
   | "base"
   | "header"
-  | "handle";
+  | "handle"
+  | "doorInner"
+  | "innerFront";
 
 export interface Panel {
   id: PanelId;

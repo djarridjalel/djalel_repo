@@ -88,6 +88,23 @@ export const AR: Record<string, string> = {
   "Terms of service": "شروط الخدمة",
   "terms of service": "شروط الخدمة",
   and: "و",
+  // Door box
+  "Door box": "علبة بباب",
+  "Double-layer door, reverse tuck": "باب بطبقتين، لسان طرفي معكوس",
+  "Door outer": "الباب الخارجي",
+  "Door inner": "الباب الداخلي",
+  "Inner front": "الواجهة الداخلية",
+  "Door and back panel width": "عرض الباب واللوح الخلفي",
+  "The door is two layers glued back to back. Its tab locks into the slit at the inner front corner. Tab, slit, thumb notch and tuck keep the sizes of the produced box.":
+    "الباب طبقتان ملصوقتان ظهرًا لظهر. يُقفل لسانه في الشق عند زاوية الواجهة الداخلية. اللسان والشق وفتحة الإبهام ولسان الإغلاق بمقاسات العلبة المنتَجة.",
+  Door: "الباب",
+  Lids: "الأغطية",
+  "The door tab fits its slit": "لسان الباب يدخل في شقه",
+  "The door's two layers and the inner front close flush": "طبقتا الباب والواجهة الداخلية تنطبق بدقة",
+  "The tucks reach inside the walls": "ألسنة الإغلاق تصل إلى داخل الجدران",
+  "Dust flaps meet under the lid without hitting the far wall": "أجنحة الغبار تلتقي تحت الغطاء دون أن تصطدم بالجدار المقابل",
+  "The side panels are too narrow for their dust flaps. Increase the width.": "الألواح الجانبية أضيق من أن تحمل أجنحة الغبار. زد العرض.",
+  "The thumb notch leaves little board either side on so narrow a back panel.": "تترك فتحة الإبهام القليل من الكرتون على جانبيها في لوح خلفي بهذا الضيق.",
   // Landing
   "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":
@@ -382,6 +399,9 @@ export const AR: Record<string, string> = {
   "Lid front": "واجهة الغطاء",
   BACK: "الخلف",
   "SIDE A": "الجانب أ",
+  "DOOR OUTER": "الباب الخارجي",
+  "DOOR INNER": "الباب الداخلي",
+  "INNER FRONT": "الواجهة الداخلية",
   "SIDE B": "الجانب ب",
   "TOP LID": "الغطاء العلوي",
   "TOP TUCK": "اللسان العلوي",
@@ -478,6 +498,13 @@ const n = "([\\d.,–-]+)";
 const re = (s: string) => new RegExp(`^${s}$`);
 
 export const AR_PATTERNS: Pattern[] = [
+  [re(`The tuck needs a lid at least 33 mm wide: make the length at least ${n} mm\\.`), (m) => `يحتاج لسان الإغلاق إلى غطاء بعرض 33 مم على الأقل: اجعل الطول ${m[1]} مم على الأقل.`],
+  [re(`The door tab and its slit need more height: keep the height above ${n} mm\\.`), (m) => `يحتاج لسان الباب وشقه إلى ارتفاع أكبر: اجعل الارتفاع أكثر من ${m[1]} مم.`],
+  [re(`Tuck depth is limited to ${n} mm by the lid depth\\.`), (m) => `عمق لسان الإغلاق محدود بـ ${m[1]} مم بسبب عمق الغطاء.`],
+  [re(`Tab ${n} mm into a ${n} mm slit, ${n} mm from the lids\\.`), (m) => `لسان ${m[1]} مم في شق ${m[2]} مم، على بعد ${m[3]} مم من الأغطية.`],
+  [re(`Door outer ${n} mm, door inner and inner front ${n} mm each \\(one caliper less\\)\\.`), (m) => `الباب الخارجي ${m[1]} مم، والباب الداخلي والواجهة الداخلية ${m[2]} مم لكل منهما (أقل بسماكة واحدة).`],
+  [re(`Tuck ${n} mm on lids ${n} and ${n} mm wide\\.`), (m) => `لسان إغلاق ${m[1]} مم على غطاءين بعرض ${m[2]} و${m[3]} مم.`],
+  [re(`Dust flaps ${n} mm deep in a ${n} mm opening: they overlap ${n} mm\\.`), (m) => `أجنحة الغبار بعمق ${m[1]} مم في فتحة ${m[2]} مم: تتداخل ${m[3]} مم.`],
   [re(`Set Width to ${n}`), (m) => `اجعل العرض ${m[1]}`],
   [re(`Each round lobe slides (.+) mm under the notch flap, past the notch's inner edge\\.`), (m) => `ينزلق كل فص دائري ${m[1].replace(" and ", " و")} مم تحت جناح الشق، متجاوزًا الحافة الداخلية للشق.`],
   [re(`The lobes slide only (.+) mm under the notch flap; under 3 mm they grip weakly on so small a carton\\.`), (m) => `تنزلق الفصوص ${m[1].replace(" and ", " و")} مم فقط تحت جناح الشق؛ أقل من 3 مم تمسك بضعف في علبة بهذا الصغر.`],

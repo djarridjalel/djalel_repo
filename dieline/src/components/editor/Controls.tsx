@@ -4,6 +4,7 @@ import { BOARDS, boardById } from "@/lib/dieline/boards";
 import { STYLE_NAMES } from "@/lib/dieline/export/common";
 import { DEFAULT_PARAMS, generate } from "@/lib/dieline";
 import { CODING_PRESETS } from "@/lib/dieline/pharma";
+import { DOOR } from "@/lib/dieline/styles";
 import {
   hasTopLid,
   isTray,
@@ -39,6 +40,7 @@ const STYLE_SIZES: Partial<Record<StyleId, Pick<CartonParams, "L" | "W" | "H">>>
   gable: { L: 120, W: 80, H: 100 },
   mailer: { L: 220, W: 160, H: 60 },
   display: { L: 200, W: 120, H: 40 },
+  doorbox: { L: 60, W: 60, H: 150 },
 };
 
 /**
@@ -81,11 +83,14 @@ export function Controls({
   d,
   set,
   onOpenContents,
+  extraStyles = [],
 }: {
   p: CartonParams;
   d: Dieline;
   set: Set;
   onOpenContents: () => void;
+  /** Styles made for this account only. */
+  extraStyles?: StyleId[];
 }) {
   const { t } = useLang();
   const r = d.resolved;
@@ -99,6 +104,7 @@ export function Controls({
     display: ["Inside width", "Inside depth", "Front wall height"],
     srp: ["Front panel width", "Side panel width (depth)", "Height"],
     srpSnap: ["Front panel width", "Side panel width (depth)", "Height"],
+    doorbox: ["Door and back panel width", "Side panel width (depth)", "Height"],
   };
   const [hL, hW, hH] = sizeHints[p.style] ?? [
     "Front panel width",
@@ -111,7 +117,7 @@ export function Controls({
   return (
     <div>
       <Section title="Carton style">
-        <StylePicker value={p.style} onPick={(s) => set(styleChange(p, s))} />
+        <StylePicker value={p.style} styles={[...STYLES, ...extraStyles.filter((s) => !STYLES.includes(s))]} onPick={(s) => set(styleChange(p, s))} />
       </Section>
 
       <Section title="Size" summary={`${t(p.dimMode === "inside" ? "Inside" : "Outside")} ${p.L} × ${p.W} × ${p.H} ${t("mm")}`}>
@@ -273,6 +279,33 @@ export function Controls({
               />
             )}
           </div>
+        </Section>
+      )}
+
+
+      {p.style === "doorbox" && (
+        <Section title="Closures" summary={`${t("tuck")} ${fmt(p.tuckDepth ?? DOOR.tuck)} ${t("mm")}`}>
+          <div className="grid grid-cols-2 gap-2">
+            <NumberField
+              field="tuckDepth"
+              label={t("Tuck depth")}
+              auto
+              value={p.tuckDepth}
+              resolved={DOOR.tuck}
+              onChange={(v) => set({ tuckDepth: v })}
+            />
+            <NumberField
+              field="glueWidth"
+              label={t("Glue flap width")}
+              auto
+              value={p.glueWidth}
+              resolved={10}
+              onChange={(v) => set({ glueWidth: v })}
+            />
+          </div>
+          <p className="text-[12px] leading-relaxed text-mute">
+            {t("The door is two layers glued back to back. Its tab locks into the slit at the inner front corner. Tab, slit, thumb notch and tuck keep the sizes of the produced box.")}
+          </p>
         </Section>
       )}
 
@@ -828,7 +861,7 @@ export function Controls({
 const fmt = (v: number | undefined) => (v == null ? "auto" : String(Math.round(v * 10) / 10));
 
 /** The chosen style as one row; the full set of styles opens from it. */
-function StylePicker({ value, onPick }: { value: StyleId; onPick: (s: StyleId) => void }) {
+function StylePicker({ value, styles, onPick }: { value: StyleId; styles: StyleId[]; onPick: (s: StyleId) => void }) {
   const { t } = useLang();
   const [open, setOpen] = useState(false);
   if (!open)
@@ -852,7 +885,7 @@ function StylePicker({ value, onPick }: { value: StyleId; onPick: (s: StyleId) =
   return (
     <>
       <div className="grid grid-cols-2 gap-2">
-        {STYLES.map((s) => (
+        {styles.map((s) => (
           <button
             key={s}
             type="button"

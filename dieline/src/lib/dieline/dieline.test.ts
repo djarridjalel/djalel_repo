@@ -105,6 +105,7 @@ describe("carton geometry", () => {
       gable: [[120, 80, 100], [310, 250, 190], [90, 60, 70]],
       mailer: [[220, 160, 60], [330, 205, 63], [150, 120, 40]],
       display: [[200, 120, 40], [300, 200, 60], [120, 80, 30]],
+      doorbox: [[60, 60, 150], [45, 30, 90], [90, 40, 200], [120, 120, 60]],
     };
     for (const [style, list] of Object.entries(sizes)) {
       for (const [L, W, H] of list) {
@@ -262,6 +263,7 @@ describe("closing check", () => {
     ["gable", [[120, 80, 100], [310, 250, 190]]],
     ["mailer", [[220, 160, 60], [150, 100, 40]]],
     ["display", [[200, 120, 40], [300, 200, 60]]],
+    ["doorbox", [[60, 60, 150], [45, 30, 90], [90, 40, 200]]],
   ];
 
   it("closes and locks every style across sizes and boards", () => {
@@ -328,6 +330,25 @@ describe("closing check", () => {
   });
 });
 
+describe("Door box", () => {
+  it("matches the produced carton at 60 × 60 × 150 (creases between the PDF's folds)", () => {
+    const d = generate({ ...DEFAULT_PARAMS, style: "doorbox", dimMode: "inside", L: 59.6, W: 59.6, H: 149.6, caliper: 0.4, bleed: 0 });
+    expect(d.issues.filter((x) => x.severity === "error")).toEqual([]);
+    const vx = [...new Set(d.strokes.filter((s) => s.layer === "crease" && s.seg.kind === "line" && s.seg.a.x === s.seg.b.x).map((s) => s.seg.a.x.toFixed(1)))];
+    expect(vx).toEqual(["0.0", "60.0", "120.0", "180.0", "239.6", "299.2"]);
+    // The slit runs 32 mm on the inner front | side B fold; the tab is 10 × 30 mm on the door fold.
+    const breaks = d.strokes.filter((s) => s.layer === "crease" && s.seg.kind === "line" && s.seg.a.x === s.seg.b.x && s.seg.b.y - s.seg.a.y < 100);
+    expect(breaks.map((s) => [s.seg.a.x.toFixed(1), s.seg.a.y.toFixed(1), s.seg.b.y.toFixed(1)])).toEqual([
+      ["180.0", "0.0", "60.0"],
+      ["180.0", "90.0", "150.0"],
+      ["299.2", "0.0", "59.0"],
+      ["299.2", "91.0", "150.0"],
+    ]);
+    expect(d.stats.flatWidth).toBeCloseTo(369.2, 1);
+    expect(d.stats.flatHeight).toBeCloseTo(299, 1);
+  });
+});
+
 describe("3D folding", () => {
   const SIZES: [StyleId, number, number, number][] = [
     ["rte", 80, 40, 100],
@@ -339,6 +360,7 @@ describe("3D folding", () => {
     ["gable", 120, 80, 100],
     ["mailer", 220, 160, 60],
     ["display", 200, 120, 40],
+    ["doorbox", 60, 60, 150],
   ];
   const extent = (d: ReturnType<typeof generate>, t: number) => {
     const P = pose(d.model3d, t);
