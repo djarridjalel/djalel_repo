@@ -5,7 +5,7 @@
 import type { Model3D } from "../dieline/fold3d";
 import { pt, type Pt } from "../dieline/geom";
 import { STYLE_NAMES } from "../dieline/export/common";
-import type { Dieline } from "../dieline/types";
+import type { Dieline, StyleId } from "../dieline/types";
 import type { FoldCheck } from "../dieline/fold";
 import { analyseTube, type Match, type Orientation } from "./match";
 import { readPdfDieline, type DieSeg } from "./pdfDieline";
@@ -38,16 +38,16 @@ export type UploadResult =
 
 const MAX_PX = 4096;
 
-export async function analysePdf(file: File): Promise<UploadResult> {
+export async function analysePdf(file: File, extraStyles: StyleId[] = []): Promise<UploadResult> {
   const pdfjs = await import("pdfjs-dist");
   pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
   const doc = await pdfjs.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
   const read = await readPdfDieline(doc, pdfjs.OPS as unknown as Record<string, number>);
   if (!read.segs.length && !read.fillSegs.length) return { ok: false, fileName: file.name, reason: "No dieline found: the PDF has no cut or fold lines." };
   // Stroked lines first; failing that, the dieline drawn as thin filled shapes.
-  let found = read.segs.length ? analyseTube(read.segs, read.width, read.height) : null;
+  let found = read.segs.length ? analyseTube(read.segs, read.width, read.height, extraStyles) : null;
   const fromFills = !found && read.fillSegs.length > 0;
-  if (fromFills) found = analyseTube(read.fillSegs, read.width, read.height);
+  if (fromFills) found = analyseTube(read.fillSegs, read.width, read.height, extraStyles);
   if (!found) return { ok: false, fileName: file.name, reason: "This dieline is not one of the app's carton styles, so it cannot be folded in 3D." };
   const match = found.matches[0];
   const r = match.dieline.resolved;

@@ -51,4 +51,16 @@ describe("uploaded dielines", () => {
     const a = analyseTube(r.segs, r.width, r.height)!;
     expect(a.checks.find((c) => c.id === "bottom.apart")?.ok).toBe(true);
   }, 30000);
+
+  it("reads back the door box, only for the accounts that have it", async () => {
+    const d = generate({ ...DEFAULT_PARAMS, style: "doorbox", dimMode: "inside", L: 59.6, W: 59.6, H: 149.6, caliper: 0.4 });
+    const r = await read(await renderPdf(d, { meta: { projectName: "t", version: null, author: null } }));
+    expect(analyseTube(r.segs, r.width, r.height)).toBeNull();
+    const a = analyseTube(r.segs, r.width, r.height, ["doorbox"])!;
+    expect(a.matches[0].style).toBe("doorbox");
+    const p = a.matches[0].params;
+    expect([p.L, p.W, p.H, p.caliper].map((v) => Math.round(v * 10) / 10)).toEqual([59.6, 59.6, 149.6, 0.4]);
+    expect(a.matches[0].score).toBeLessThan(2);
+    expect(a.checks.filter((c) => !c.ok)).toEqual([]);
+  }, 30000);
 });

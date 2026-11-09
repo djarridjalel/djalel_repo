@@ -81,7 +81,7 @@ export function Editor({
     setUpload(null);
     try {
       const { analysePdf } = await import("@/lib/upload");
-      setUpload(await analysePdf(file));
+      setUpload(await analysePdf(file, extraStyles));
     } catch {
       setUpload({ ok: false, fileName: file.name, reason: "This PDF could not be read." });
     } finally {

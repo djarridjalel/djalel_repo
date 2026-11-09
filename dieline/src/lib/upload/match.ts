@@ -8,6 +8,7 @@ import { pt, samplePath, type Pt, type Seg } from "../dieline/geom";
 import type { CartonParams, Dieline, StyleId } from "../dieline/types";
 import { distanceField, findBody, prepare, reach, region, type Body } from "./analyse";
 import type { DieSeg } from "./pdfDieline";
+import { DOOR } from "../dieline/styles";
 
 export interface Match {
   style: StyleId;
@@ -173,7 +174,7 @@ export interface UploadAnalysis {
  * Tries the dieline as drawn, mirrored, upside down and turned round, and
  * keeps the way it matches one of the app's models best.
  */
-export function analyseTube(raw: DieSeg[], pageW: number, pageH: number): UploadAnalysis | null {
+export function analyseTube(raw: DieSeg[], pageW: number, pageH: number, extraStyles: StyleId[] = []): UploadAnalysis | null {
   let best: UploadAnalysis | null = null;
   for (const [swap, sx, sy] of [false, true].flatMap((sw) => [[sw, 1, 1], [sw, -1, 1], [sw, 1, -1], [sw, -1, -1]] as const)) {
     const [w, h] = swap ? [pageH, pageW] : [pageW, pageH];
@@ -184,7 +185,13 @@ export function analyseTube(raw: DieSeg[], pageW: number, pageH: number): Upload
     const segs0 = raw.map((s) => ({ ...s, a: f(s.a), b: f(s.b) }));
     const { segs, board } = prepare(segs0);
     const body = findBody(segs, board);
-    if (!body || body.glue !== "left" || body.widths.length !== 4) continue;
+    if (!body || body.glue !== "left") continue;
+    if (body.widths.length === 6 && extraStyles.includes("doorbox")) {
+      const m = matchDoorBox(segs, body, board);
+      if (m && (!best || m.score < best.matches[0].score)) best = { orientation: { swap, sx, sy }, body, segs, matches: [m], checks: m.dieline.fold.checks, drawn: m.dieline };
+      continue;
+    }
+    if (body.widths.length !== 4) continue;
     const matches = matchTube(segs, body, board);
     if (!matches.length) continue;
     if (!best || matches[0].score < best.matches[0].score) {
@@ -220,4 +227,61 @@ export function familyOf(segs: DieSeg[], body: Body, board?: (p: Pt) => boolean)
   if (bottom === "crash") return tray ? ["srp", "crash"] : ["crash", "srp"];
   if (bottom === "snap") return tray ? ["srpSnap", "snap", "gable"] : ["snap", "gable", "srpSnap"];
   return ["rte", "ste"];
+}
+
+/** Mean distance between the app's outline (placed at dx, dy) and the uploaded cuts, in mm. */
+function outlineScore(segs: DieSeg[], d: Dieline, dx: number, dy: number) {
+  const cuts = segs.filter((s) => s.kind === "cut");
+  const box = region(segs);
+  const theirs = distanceField(cuts, box);
+  const theirPts = cuts.flatMap((s) => {
+    const n = Math.max(1, Math.ceil(Math.hypot(s.b.x - s.a.x, s.b.y - s.a.y)));
+    return Array.from({ length: n }, (_, k) => pt(s.a.x + ((s.b.x - s.a.x) * k) / n, s.a.y + ((s.b.y - s.a.y) * k) / n));
+  });
+  const mine = samplePath(d.outline, 1).map((q) => pt(q.x + dx, q.y + dy));
+  const ours = distanceField(
+    mine.map((q, i) => ({ a: q, b: mine[(i + 1) % mine.length] })),
+    box,
+  );
+  const c = (v: number) => Math.min(v, 20);
+  const a = mine.reduce((s, q) => s + c(theirs(q)), 0) / mine.length;
+  const b = theirPts.reduce((s, q) => s + c(ours(q)), 0) / Math.max(1, theirPts.length);
+  return (a + b) / 2;
+}
+
+/**
+ * The door box: six body panels after the glue flap, back | side A | door outer |
+ * door inner | inner front | side B, the door inner and inner front one caliper
+ * narrower than the back and door outer.
+ */
+export function matchDoorBox(segs: DieSeg[], body: Body, board: (p: Pt) => boolean): Match | null {
+  const [a1, b1, a2, a3, a4, b2] = body.widths;
+  const A = (a1 + a2) / 2;
+  // Side A sits between two folds; side B ends at the free edge, found on a 0.5 mm grid.
+  const B = b1;
+  const t0 = A - (a3 + a4) / 2;
+  // Side B ends at the free edge, which the scan can overrun by a few mm where other lines touch it.
+  if (Math.abs(a1 - a2) > 1.5 || Math.abs(b1 - b2) > 5 || Math.abs(a3 - a4) > 1.5 || t0 < -0.3 || t0 > 1.5) return null;
+  const t = Math.min(1.5, Math.max(0.15, t0 || DEFAULT_PARAMS.caliper));
+  const H = body.bottom - body.top;
+  const glueW = body.xs[0] - body.left;
+  // The top lid sits on the inner front: lid depth B, then the tuck.
+  const x4 = body.xs[4];
+  const lidReach = reach(board, x4 + (a4 * 0.3), x4 + (a4 * 0.7), body.top, -1);
+  const params: CartonParams = {
+    ...DEFAULT_PARAMS,
+    style: "doorbox",
+    dimMode: "inside",
+    L: A - t,
+    W: B - t,
+    H: H - t,
+    caliper: t,
+    glueWidth: glueW > 2 ? glueW : null,
+    // The reach is found on a 0.5 mm grid: keep the standard tuck when it is within that.
+    tuckDepth: lidReach > B + 6 && Math.abs(lidReach - B - DOOR.tuck) > 0.75 ? Math.round((lidReach - B) * 10) / 10 : null,
+  };
+  const d = generate(params);
+  const dx = body.xs[0];
+  const dy = body.top;
+  return { style: "doorbox", params, dieline: d, score: outlineScore(segs, d, dx, dy), dx, dy };
 }
