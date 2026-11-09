@@ -38,6 +38,13 @@ export interface Face3D {
   remove?: boolean;
   /** Cuts, creases and perforations inside the face, drawn on it. */
   lines?: { kind: "cut" | "crease" | "perf"; pts: Pt[] }[];
+  /**
+   * Folds turned between the parent and this face's own hinge, as if the face hung from a chain of
+   * faces that are not its parents (e.g. an inner wall that follows the walls while the door
+   * folded with it opens on its own). Each turns about its hinge like a face's own fold; the side
+   * it turns to is set by the centroid of face `ref`, and it lifts by `lift` board gaps.
+   */
+  via?: { hinge: [Pt, Pt]; angle: number; t0: number; t1: number; ref: number; lift: number }[];
 }
 
 export interface Model3D {
@@ -126,6 +133,18 @@ export function pose(m: Model3D, t: number): Mat4[] {
     const f = m.faces[i];
     if (f.parent < 0) return (out[i] = IDENTITY);
     if (!f.hinge) return (out[i] = at(f.parent));
+    let base = at(f.parent);
+    for (const v of f.via ?? []) {
+      const [va, vb] = v.hinge;
+      const vl = Math.hypot(vb.x - va.x, vb.y - va.y) || 1;
+      const vu = { x: (vb.x - va.x) / vl, y: (vb.y - va.y) / vl };
+      const rp = m.faces[v.ref].poly;
+      const rcx = rp.reduce((s, q) => s + q.x, 0) / rp.length - va.x;
+      const rcy = rp.reduce((s, q) => s + q.y, 0) / rp.length - va.y;
+      const vs = Math.sign(vu.x * rcy - vu.y * rcx) || 1;
+      const vk = v.t1 > v.t0 ? ease((t - v.t0) / (v.t1 - v.t0)) : t >= v.t1 ? 1 : 0;
+      base = mul(base, mul(rotAbout(va, vu, (-vs * v.angle * vk * Math.PI) / 180), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, v.lift * (m.gap ?? 0) * Math.min(1, vk), 1]));
+    }
     const [a, b] = f.hinge;
     const len = Math.hypot(b.x - a.x, b.y - a.y) || 1;
     const u = { x: (b.x - a.x) / len, y: (b.y - a.y) / len };
@@ -139,7 +158,7 @@ export function pose(m: Model3D, t: number): Mat4[] {
     const ang = (-side * (own + (f.angle2 ?? 0) * k2) * Math.PI) / 180;
     // Stack on the parent by the difference in layers, towards the printed side (outwards once closed).
     const lift = (f.layer - m.faces[f.parent].layer) * (m.gap ?? 0) * Math.min(1, k) + (f.lift2 ?? 0) * Math.min(1, 3 * k2);
-    let mat = mul(at(f.parent), mul(rotAbout(a, u, ang), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, lift, 1]));
+    let mat = mul(base, mul(rotAbout(a, u, ang), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, lift, 1]));
     if (f.remove && m.away && t > 1) {
       const kr = removal(t);
       mat = mul([1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, m.away.x * kr, m.away.y * kr, m.away.z * kr, 1], mat);

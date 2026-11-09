@@ -148,6 +148,7 @@ export function orient(m: Model3D, o: Orientation, match: Match, W: number, H: n
       ...face,
       poly: face.poly.map(f),
       hinge: face.hinge ? [f(face.hinge[0]), f(face.hinge[1])] : null,
+      via: face.via?.map((v) => ({ ...v, hinge: [f(v.hinge[0]), f(v.hinge[1])] as [Pt, Pt] })),
       lines: face.lines?.map((l) => ({ ...l, pts: l.pts.map(f) })),
     })),
     away: m.away ? (o.swap ? { x: m.away.y * o.sy, y: m.away.x * o.sx, z: m.away.z } : { x: m.away.x * o.sx, y: m.away.y * o.sy, z: m.away.z }) : undefined,

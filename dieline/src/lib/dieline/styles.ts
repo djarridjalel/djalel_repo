@@ -529,32 +529,38 @@ export function buildDoorBox(p: CartonParams, r: Resolved, issues: Issue[]): Bla
   const f1 = F.add([pt(0, 0), ...notch, pt(A, 0), pt(A, Hp), pt(0, Hp)], -1, null);
   F.add(P([[0, 0], [-g, taper], [-g, Hp - taper], [0, Hp]]), f1, vh(0), 90, 0.16, 0.24, -1);
   const f2 = F.add(P([[X[1], 0], [X[2], 0], [X[2], Hp], [X[1], Hp]]), f1, vh(X[1]), 90, 0.24, 0.42);
-  const f3 = F.add(P([[X[2], 0], [X[3], 0], [X[3], Hp], [X[2], Hp]]), f2, vh(X[2]), 90, 0.24, 0.42);
+  // The door (outer and inner layers) hangs from side A and closes last, so unfolding opens it first.
+  // The inner front follows the walls as if hung from the door's folds, without moving when the door opens.
+  const f3 = F.add(P([[X[2], 0], [X[3], 0], [X[3], Hp], [X[2], Hp]]), f2, vh(X[2]), 90, 0.86, 0.95);
   const f4 = F.add(P([[X[3], 0], [X[4], 0], [X[4], Hp], [X[3], Hp], [X[3], cy + tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3], cy - tabH / 2]]), f3, vh(X[3]), 180, 0, 0.08, 1);
   // The half-moon disc bends with side B, leaving the finger hole at the corner.
-  const f5 = F.add(P([[X[4], 0], [X[5], 0], [X[5], Hp], [X[4], Hp]]), f4, vh(X[4]), -180, 0.08, 0.16, 0);
-  const f6 = F.add(P([[X[5], 0], [X[6], 0], [X[6], Hp], [X[5], Hp]]), f5, vh(X[5]), 90, 0.24, 0.42);
-  F.add(P([[X[3], cy - tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3], cy + tabH / 2]]), f3, [pt(X[3], cy - tabH / 2), pt(X[3], cy + tabH / 2)], 90, 0.94, 1, -1);
+  const f5 = F.add(P([[X[4], 0], [X[5], 0], [X[5], Hp], [X[4], Hp]]), f2, vh(X[4]), -180, 0.08, 0.16, -1);
+  F.faces[f5].via = [
+    { hinge: vh(X[2]), angle: 90, t0: 0.24, t1: 0.42, ref: f3, lift: 0 },
+    { hinge: vh(X[3]), angle: 180, t0: 0, t1: 0.08, ref: f4, lift: 1 },
+  ];
+  const f6 = F.add(P([[X[5], 0], [X[6], 0], [X[6], Hp], [X[5], Hp]]), f5, vh(X[5]), 90, 0.24, 0.42, -1);
+  F.add(P([[X[3], cy - tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3], cy + tabH / 2]]), f3, [pt(X[3], cy - tabH / 2), pt(X[3], cy + tabH / 2)], 90, 0.95, 1, -1);
   // Dust flaps overlap under the lid: side A's goes in first, side B's over it.
   for (const [face, xa, flap, y0, win, layer] of [
-    [f2, X[1], dustA, 0, [0.72, 0.77], 0],
-    [f6, X[5], dustB, 0, [0.76, 0.81], 1],
+    [f2, X[1], dustA, 0, [0.66, 0.71], 0],
+    [f6, X[5], dustB, 0, [0.7, 0.75], 0],
     [f2, X[1], dustB, Hp, [0.42, 0.47], 0],
-    [f6, X[5], dustA, Hp, [0.46, 0.51], 1],
+    [f6, X[5], dustA, Hp, [0.46, 0.51], 0],
   ] as const) {
     const pts = y0 === 0 ? flap(xa, 0, -1) : flap(xa, Hp, 1);
     F.add([pt(xa, y0), ...pts, pt(xa + B, y0)], face, [pt(xa, y0), pt(xa + B, y0)], 90, win[0], win[1], layer);
   }
   // Lids and their tucks, split at the tuck crease.
-  for (const [face, x0, x1, y0, dir, win] of [
-    [f1, 0, X[1], Hp, 1, [0.52, 0.7]],
-    [f5, X[4], X[5], 0, -1, [0.8, 0.94]],
+  for (const [face, x0, x1, y0, dir, win, layer] of [
+    [f1, 0, X[1], Hp, 1, [0.52, 0.64], 2],
+    [f5, X[4], X[5], 0, -1, [0.74, 0.85], 1],
   ] as const) {
     const yc = y0 + dir * (D - 0.5);
     const run = lidRun(x0, x1, y0, dir, true);
     const tuckPts = [pt(x0 + 0.5, yc), ...run.filter((q) => dir * (q.y - yc) > 1e-6), pt(x1 - 0.5, yc)];
-    const lid = F.add([pt(x0, y0), pt(x0, yc), pt(x1, yc), pt(x1, y0)], face, [pt(x0, y0), pt(x1, y0)], 90, win[0], win[0] + (win[1] - win[0]) * 0.7, 2);
-    F.add(tuckPts, lid, [pt(x0 + 4, yc), pt(x1 - 4, yc)], 90, win[0] + (win[1] - win[0]) * 0.5, win[1], 0);
+    const lid = F.add([pt(x0, y0), pt(x0, yc), pt(x1, yc), pt(x1, y0)], face, [pt(x0, y0), pt(x1, y0)], 90, win[0], win[0] + (win[1] - win[0]) * 0.7, layer);
+    F.add(tuckPts, lid, [pt(x0 + 4, yc), pt(x1 - 4, yc)], 90, win[0] + (win[1] - win[0]) * 0.5, win[1], layer - 2);
   }
 
   return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "wall", gap: Math.max(0.15, t * 0.5) });
