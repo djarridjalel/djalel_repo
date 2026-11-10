@@ -532,7 +532,9 @@ export function buildDoorBox(p: CartonParams, r: Resolved, issues: Issue[]): Bla
   // The door (outer and inner layers) hangs from side A and closes last, so unfolding opens it first.
   // The inner front follows the walls as if hung from the door's folds, without moving when the door opens.
   const f3 = F.add(P([[X[2], 0], [X[3], 0], [X[3], Hp], [X[2], Hp]]), f2, vh(X[2]), 90, 0.86, 0.95);
-  const f4 = F.add(P([[X[3], 0], [X[4], 0], [X[4], Hp], [X[3], Hp], [X[3], cy + tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3], cy - tabH / 2]]), f3, vh(X[3]), 180, 0, 0.08, 1);
+  // The tab with its rounded corners, as on the dieline (from its base at the door fold, round and back).
+  const tabShape = samplePath(filletPolyline(tabPts, [0, tabR, tabR, 0]), 0.6);
+  const f4 = F.add([pt(X[3], 0), pt(X[4], 0), pt(X[4], Hp), pt(X[3], Hp), ...[...tabShape].reverse()], f3, vh(X[3]), 180, 0, 0.08, 1);
   // The half-moon disc bends with side B, leaving the finger hole at the corner.
   const f5 = F.add(P([[X[4], 0], [X[5], 0], [X[5], Hp], [X[4], Hp]]), f2, vh(X[4]), -180, 0.08, 0.16, -1);
   F.faces[f5].via = [
@@ -540,10 +542,10 @@ export function buildDoorBox(p: CartonParams, r: Resolved, issues: Issue[]): Bla
     { hinge: vh(X[3]), angle: 180, t0: 0, t1: 0.08, ref: f4, lift: 1 },
   ];
   const f6 = F.add(P([[X[5], 0], [X[6], 0], [X[6], Hp], [X[5], Hp]]), f5, vh(X[5]), 90, 0.24, 0.42, -1);
-  const tab = F.add(P([[X[3], cy - tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3], cy + tabH / 2]]), f3, [pt(X[3], cy - tabH / 2), pt(X[3], cy + tabH / 2)], 90, 0.95, 1, -1);
-  // The door's own slider: the tab comes out of its slit, then the door swings open.
-  if (tab >= 0) F.faces[tab].open = { angle: 90, e0: 0, e1: 0.2 };
-  if (f3 >= 0) F.faces[f3].open = { angle: 90, e0: 0.15, e1: 1 };
+  const tab = F.add(tabShape, f3, [pt(X[3], cy - tabH / 2), pt(X[3], cy + tabH / 2)], 90, 0.95, 1, -1);
+  // The door's own slider: the door swings open with its tab still bent, and the tab straightens only once it is fully open.
+  if (f3 >= 0) F.faces[f3].open = { angle: 90, e0: 0, e1: 0.85 };
+  if (tab >= 0) F.faces[tab].open = { angle: 90, e0: 0.85, e1: 1 };
   // Dust flaps overlap under the lid: side A's goes in first, side B's over it.
   for (const [face, xa, flap, y0, win, layer] of [
     [f2, X[1], dustA, 0, [0.42, 0.47], 0],
