@@ -67,6 +67,8 @@ export interface CartonParams {
   gable: GableParams;
   display: DisplayParams;
   srp: SrpParams;
+  /** Colour of the unprinted (inside) face in 3D, as #rrggbb. */
+  insideColor: string;
 }
 
 export interface GableParams {

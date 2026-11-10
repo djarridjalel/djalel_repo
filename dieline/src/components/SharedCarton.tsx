@@ -11,7 +11,7 @@ import { LangSwitch, useLang } from "./LangProvider";
 const Fold3D = dynamic(() => import("./editor/Fold3D").then((m) => m.Fold3D), { ssr: false });
 
 /** A shared design: the carton in 3D with its artwork, to turn and fold; nothing to edit. */
-export function SharedCarton({ name, model, image, art }: { name: string; model: Model3D; image: string; art: { x0: number; y0: number; w: number; h: number } }) {
+export function SharedCarton({ name, model, image, art }: { name: string; model: Model3D; image: string; art: { x0: number; y0: number; w: number; h: number; inside?: string } }) {
   const { t } = useLang();
   const [artwork, setArtwork] = useState<Artwork | null>(null);
   const [failed, setFailed] = useState(false);
@@ -38,7 +38,7 @@ export function SharedCarton({ name, model, image, art }: { name: string; model:
       </header>
       <main className="relative min-h-0 flex-1">
         {artwork ? (
-          <Fold3D model={model} art={artwork} tools={false} />
+          <Fold3D model={model} art={artwork} tools={false} inside={art.inside && /^#[0-9a-f]{6}$/i.test(art.inside) ? art.inside : undefined} />
         ) : (
           <p className="p-6 text-[14px] text-mute">{t(failed ? "The artwork could not be loaded." : "Loading the carton…")}</p>
         )}

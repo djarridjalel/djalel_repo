@@ -11,6 +11,8 @@ export interface ShareArt {
   y0: number;
   w: number;
   h: number;
+  /** Colour of the inside face, #rrggbb. */
+  inside?: string;
 }
 
 export interface ShareRow {

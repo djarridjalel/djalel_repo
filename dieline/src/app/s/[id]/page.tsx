@@ -6,7 +6,7 @@ import { supabaseServer } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
-type Share = { name: string; model: Model3D; art_path: string; art: { x0: number; y0: number; w: number; h: number } };
+type Share = { name: string; model: Model3D; art_path: string; art: { x0: number; y0: number; w: number; h: number; inside?: string } };
 
 async function load(id: string): Promise<Share | null> {
   if (!/^[A-Za-z0-9_-]{16,40}$/.test(id)) return null;

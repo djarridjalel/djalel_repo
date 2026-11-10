@@ -29,7 +29,10 @@ export function Preview({
   onChooseFile,
   highlight,
   onPanelClick,
+  onInside,
 }: {
+  /** Sets the inside colour of the carton (shown in 3D). */
+  onInside?: (hex: string) => void;
   d: Dieline;
   layers: Set<Layer>;
   onToggleLayer: (l: Layer) => void;
@@ -253,7 +256,7 @@ export function Preview({
       <div className="relative flex h-full min-h-0 flex-col">
         {upload?.ok ? (
           <div className="relative min-h-0 flex-1">
-            <Fold3D model={corrected ? upload.corrected : upload.model} art={upload.art} fileBase={upload.fileName.replace(/\.pdf$/i, "")} />
+            <Fold3D model={corrected ? upload.corrected : upload.model} art={upload.art} fileBase={upload.fileName.replace(/\.pdf$/i, "")} inside={d.params.insideColor} onInside={onInside} />
           </div>
         ) : (
           <div className="flex min-h-0 flex-1 items-center justify-center p-6">
@@ -342,7 +345,7 @@ export function Preview({
       </div>
       {view === "3d" && (
         <div className="relative min-h-0 flex-1">
-          <Fold3D model={d.model3d} />
+          <Fold3D model={d.model3d} inside={d.params.insideColor} onInside={onInside} />
           <Inset label={t("Flat")} onClick={() => setView("flat")}>
             <div className="h-full w-full p-2 [&>svg]:h-full [&>svg]:w-full" dangerouslySetInnerHTML={{ __html: svg }} />
           </Inset>
@@ -372,7 +375,7 @@ export function Preview({
         )}
         {view === "flat" && d.model3d.faces.length > 0 && (
           <Inset label="3D" onClick={() => setView("3d")}>
-            <Fold3D model={d.model3d} mini />
+            <Fold3D model={d.model3d} mini inside={d.params.insideColor} />
           </Inset>
         )}
         <div ref={scaleBar} className="pointer-events-none absolute bottom-4 start-4 flex flex-col items-start gap-1" aria-hidden>

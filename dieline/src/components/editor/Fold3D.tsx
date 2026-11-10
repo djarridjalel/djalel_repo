@@ -61,7 +61,26 @@ const DEPTH = {
  * `mini` draws it closed and slowly turning, without controls, as a thumbnail.
  * Views can be saved as angles and exported as a product image or a depth map.
  */
-export function Fold3D({ model, mini = false, art, fileBase = "carton", tools = true }: { model: Model3D; mini?: boolean; art?: Artwork | null; fileBase?: string; /** Angle saving and image exports; off on a shared link. */ tools?: boolean }) {
+export function Fold3D({
+  model,
+  mini = false,
+  art,
+  fileBase = "carton",
+  tools = true,
+  inside = INSIDE,
+  onInside,
+}: {
+  model: Model3D;
+  mini?: boolean;
+  art?: Artwork | null;
+  fileBase?: string;
+  /** Angle saving and image exports; off on a shared link. */
+  tools?: boolean;
+  /** Colour of the unprinted side (#rrggbb). */
+  inside?: string;
+  /** With it, a colour picker for the inside is shown. */
+  onInside?: (hex: string) => void;
+}) {
   const { t: tr } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(1);
@@ -78,6 +97,15 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton", tools = 
     faces: THREE.Object3D[];
   } | null>(null);
   const framed = useRef<string>("");
+  const insideRef = useRef(inside);
+  insideRef.current = inside;
+  // The inside colour changes without rebuilding the faces.
+  useEffect(() => {
+    for (const o of ctx.current?.faces ?? [])
+      o.traverse((x) => {
+        if (x instanceof THREE.Mesh && x.userData.inside) (x.material as THREE.MeshLambertMaterial).color.set(inside);
+      });
+  }, [inside]);
   const [angles, setAngles] = useState<Angle[]>([]);
   const [busy, setBusy] = useState<string | null>(null);
   useEffect(() => setAngles(loadAngles()), []);
@@ -175,7 +203,9 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton", tools = 
       const mat = (color: string, side: THREE.Side, map: THREE.Texture | null = null) =>
         new THREE.MeshLambertMaterial({ color: map ? "#ffffff" : color, map, side, transparent: true, polygonOffset: true, polygonOffsetFactor: -f.layer, polygonOffsetUnits: -f.layer * 4 });
       const o = new THREE.Group();
-      o.add(new THREE.Mesh(geo, mat(PRINT, THREE.FrontSide, tex)), new THREE.Mesh(geo, mat(INSIDE, THREE.BackSide)));
+      const back = new THREE.Mesh(geo, mat(insideRef.current, THREE.BackSide));
+      back.userData.inside = true;
+      o.add(new THREE.Mesh(geo, mat(PRINT, THREE.FrontSide, tex)), back);
       const edge = new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(f.poly.map((q) => new THREE.Vector3(q.x, q.y, 0))), new THREE.LineBasicMaterial({ color: EDGE, transparent: true }));
       edge.userData.line = true;
       o.add(edge);
@@ -389,6 +419,7 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton", tools = 
                 </button>
               ))}
             </div>
+            {onInside && <InsidePicker value={inside} onChange={onInside} />}
             {angles.length > 0 && (
               <ul className="flex flex-wrap justify-end gap-1" aria-label={tr("Saved angles")}>
                 {angles.map((a) => (
@@ -426,5 +457,36 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton", tools = 
         </div>
       </div>
     </div>
+  );
+}
+
+/** Colour of the inside (unprinted) face: a swatch and its hex code. */
+function InsidePicker({ value, onChange }: { value: string; onChange: (hex: string) => void }) {
+  const { t } = useLang();
+  const [text, setText] = useState(value);
+  useEffect(() => setText(value), [value]);
+  const commit = (v: string) => {
+    const hex = (v.startsWith("#") ? v : `#${v}`).toLowerCase();
+    if (/^#[0-9a-f]{6}$/.test(hex)) onChange(hex);
+    else if (/^#[0-9a-f]{3}$/.test(hex)) onChange(`#${hex[1]}${hex[1]}${hex[2]}${hex[2]}${hex[3]}${hex[3]}`);
+    else setText(value);
+  };
+  return (
+    <label className="flex h-9 items-center gap-2 rounded-md border border-rule bg-paper px-2 shadow-sm">
+      <span className="text-[12px] text-mute">{t("Inside")}</span>
+      <input type="color" value={value} onChange={(e) => onChange(e.target.value)} aria-label={t("Inside colour")} className="h-6 w-7 cursor-pointer rounded border border-rule bg-transparent p-0" />
+      <input
+        type="text"
+        dir="ltr"
+        value={text}
+        maxLength={7}
+        spellCheck={false}
+        aria-label={t("Inside colour, hex code")}
+        onChange={(e) => setText(e.target.value)}
+        onBlur={(e) => commit(e.target.value.trim())}
+        onKeyDown={(e) => e.key === "Enter" && commit((e.target as HTMLInputElement).value.trim())}
+        className="h-7 w-[76px] rounded border border-rule bg-bone px-1.5 font-mono text-[12px] uppercase"
+      />
+    </label>
   );
 }

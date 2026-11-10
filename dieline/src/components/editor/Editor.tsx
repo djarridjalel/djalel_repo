@@ -316,7 +316,7 @@ export function Editor({
           name={upload.fileName.replace(/\.pdf$/i, "")}
           model={corrected ? upload.corrected : upload.model}
           image={upload.art.image}
-          art={{ x0: upload.art.x0, y0: upload.art.y0, w: upload.art.w, h: upload.art.h }}
+          art={{ x0: upload.art.x0, y0: upload.art.y0, w: upload.art.w, h: upload.art.h, inside: params.insideColor }}
         />
       )}
       <div className="space-y-2 text-[12px] leading-relaxed text-mute">
@@ -439,6 +439,7 @@ export function Editor({
             onChooseFile={chooseFile}
             highlight={highlight}
             onPanelClick={onPanelClick}
+            onInside={(insideColor) => set({ insideColor })}
           />
         </main>
         {mode === "make" && (

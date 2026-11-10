@@ -121,6 +121,8 @@ export const AR: Record<string, string> = {
   "Drag to turn the carton; use the slider to fold and unfold it.": "اسحب لتدوير العلبة، واستخدم المنزلق لطيّها وفتحها.",
   "Shared links": "الروابط المشتركة",
   Open: "فتح",
+  "Inside colour": "لون الداخل",
+  "Inside colour, hex code": "لون الداخل، رمز hex",
   // Landing
   "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":
