@@ -61,7 +61,7 @@ const DEPTH = {
  * `mini` draws it closed and slowly turning, without controls, as a thumbnail.
  * Views can be saved as angles and exported as a product image or a depth map.
  */
-export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { model: Model3D; mini?: boolean; art?: Artwork | null; fileBase?: string }) {
+export function Fold3D({ model, mini = false, art, fileBase = "carton", tools = true }: { model: Model3D; mini?: boolean; art?: Artwork | null; fileBase?: string; /** Angle saving and image exports; off on a shared link. */ tools?: boolean }) {
   const { t: tr } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(1);
@@ -369,7 +369,7 @@ export function Fold3D({ model, mini = false, art, fileBase = "carton" }: { mode
         <div ref={host} className="absolute inset-0 cursor-grab overflow-hidden active:cursor-grabbing" aria-label={tr("Carton in 3D")} role="img">
           {noGl && <p className="p-4 text-[12px] text-mute">{tr("This browser cannot draw 3D (WebGL is off).")}</p>}
         </div>
-        {!noGl && (
+        {!noGl && tools && (
           <div className="absolute end-3 top-3 z-10 flex max-w-[70%] flex-col items-end gap-2 text-[13px]">
             <div className="flex flex-wrap justify-end gap-1.5">
               <button type="button" onClick={saveAngle} className="h-9 rounded-md border border-ink bg-paper px-3 font-medium shadow-sm hover:bg-bone">

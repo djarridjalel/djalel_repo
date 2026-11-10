@@ -5,7 +5,7 @@ import { Brand } from "./Brand";
 import { LangSwitch, useLang } from "./LangProvider";
 
 const CONTACT = "dielines@djarri.com";
-const UPDATED = { en: "2 November 2026", ar: "2 نوفمبر 2026" };
+const UPDATED = { en: "10 November 2026", ar: "10 نوفمبر 2026" };
 
 type Section = [string, React.ReactNode];
 
@@ -28,7 +28,8 @@ const EN: Section[] = [
       </ul>
     </>,
   ],
-  ["What we do not collect", <>Packaging PDFs you upload are read and folded in your browser; they are not sent to our servers. We do not use advertising or tracking cookies, and we do not sell or rent your data.</>],
+  ["What we do not collect", <>Packaging PDFs you upload are read and folded in your browser; they are not sent to our servers, unless you share a design by link (below). We do not use advertising or tracking cookies, and we do not sell or rent your data.</>],
+  ["Share links", <>When you create a share link for an uploaded design, we store an image of its artwork and its 3D shape so that anyone with the link can view it, without an account. They stay stored until you turn the link off (in the app, or in Projects under Shared links), which deletes them. The PDF itself is never stored.</>],
   ["Why we use it", <>To provide the service: sign-in, saving your cartons and versions, and contacting you about your account or the service. Your company and phone number, when you give them, help us understand who uses Dielines and reach you if needed.</>],
   ["Where it is stored", <>Accounts, profiles and projects are stored with Supabase (database in the European Union, Paris region). The app is hosted by Vercel. Both act on our behalf and only process data to run the service. Sign-in emails are sent through our email provider.</>],
   ["Cookies and local storage", <>We use one cookie to keep you signed in. Your browser also stores your language choice. A carton made before signing in is kept in your browser and moved to your account when you sign in.</>],
@@ -51,7 +52,8 @@ const AR: Section[] = [
       </ul>
     </>,
   ],
-  ["ما لا نجمعه", <>ملفات PDF للتغليف التي ترفعها تُقرأ وتُطوى داخل متصفحك ولا تُرسل إلى خوادمنا. لا نستخدم ملفات تعريف ارتباط إعلانية أو للتتبّع، ولا نبيع بياناتك ولا نؤجّرها.</>],
+  ["ما لا نجمعه", <>ملفات PDF للتغليف التي ترفعها تُقرأ وتُطوى داخل متصفحك ولا تُرسل إلى خوادمنا، إلا إذا شاركت تصميمًا برابط (أدناه). لا نستخدم ملفات تعريف ارتباط إعلانية أو للتتبّع، ولا نبيع بياناتك ولا نؤجّرها.</>],
+  ["روابط المشاركة", <>عند إنشاء رابط مشاركة لتصميم مرفوع، نحفظ صورة لتصميمه وشكله ثلاثي الأبعاد ليتمكن أي شخص لديه الرابط من مشاهدته دون حساب. تبقى محفوظة حتى توقف الرابط (في التطبيق، أو في المشاريع ضمن الروابط المشتركة)، فتُحذف. لا يُحفظ ملف PDF نفسه أبدًا.</>],
   ["لماذا نستخدمها", <>لتقديم الخدمة: تسجيل الدخول، وحفظ علبك ونسخها، والتواصل معك بشأن حسابك أو الخدمة. يساعدنا اسم الشركة ورقم الهاتف، إن قدّمتهما، على معرفة من يستخدم الخدمة والتواصل معك عند الحاجة.</>],
   ["أين تُحفظ", <>تُحفظ الحسابات والملفات الشخصية والمشاريع لدى Supabase (قاعدة بيانات في الاتحاد الأوروبي، منطقة باريس)، ويستضيف التطبيقَ Vercel. يعمل كلاهما لحسابنا ولا يعالجان البيانات إلا لتشغيل الخدمة. تُرسل رسائل الدخول عبر مزوّد البريد لدينا.</>],
   ["ملفات تعريف الارتباط والتخزين المحلي", <>نستخدم ملف تعريف ارتباط واحدًا لإبقائك مسجّل الدخول. ويحفظ متصفحك اختيارك للغة. العلبة التي تُنشئها قبل تسجيل الدخول تبقى في متصفحك ثم تُنقل إلى حسابك عند الدخول.</>],

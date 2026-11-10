@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Brand } from "@/components/Brand";
 import { DraftImport } from "@/components/DraftImport";
+import { ShareList } from "@/components/ShareList";
 import { LangSwitch } from "@/components/LangProvider";
 import { T } from "@/components/T";
 import { NewProjectButton, ProjectMenu } from "@/components/ProjectActions";
@@ -78,6 +79,7 @@ export default async function ProjectsPage() {
             );
           })}
         </ul>
+        <ShareList />
       </main>
     </div>
   );

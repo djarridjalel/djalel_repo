@@ -105,6 +105,22 @@ export const AR: Record<string, string> = {
   "Dust flaps meet under the lid without hitting the far wall": "أجنحة الغبار تلتقي تحت الغطاء دون أن تصطدم بالجدار المقابل",
   "The side panels are too narrow for their dust flaps. Increase the width.": "الألواح الجانبية أضيق من أن تحمل أجنحة الغبار. زد العرض.",
   "The thumb notch leaves little board either side on so narrow a back panel.": "تترك فتحة الإبهام القليل من الكرتون على جانبيها في لوح خلفي بهذا الضيق.",
+  // Share links
+  "Share link": "رابط المشاركة",
+  "Could not create the link.": "تعذّر إنشاء الرابط.",
+  "Could not turn the link off.": "تعذّر إيقاف الرابط.",
+  Copied: "نُسخ",
+  "Copy link": "نسخ الرابط",
+  "Turn off": "إيقاف",
+  "Creating the link…": "جارٍ إنشاء الرابط…",
+  "Create a share link": "إنشاء رابط مشاركة",
+  "Anyone with the link can turn this carton in 3D, without an account. The artwork is stored until you turn the link off, here or in Projects.":
+    "يمكن لأي شخص لديه الرابط تدوير هذه العلبة ثلاثية الأبعاد دون حساب. يُحفظ التصميم حتى توقف الرابط، هنا أو في المشاريع.",
+  "The artwork could not be loaded.": "تعذّر تحميل التصميم.",
+  "Loading the carton…": "جارٍ تحميل العلبة…",
+  "Drag to turn the carton; use the slider to fold and unfold it.": "اسحب لتدوير العلبة، واستخدم المنزلق لطيّها وفتحها.",
+  "Shared links": "الروابط المشتركة",
+  Open: "فتح",
   // Landing
   "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":

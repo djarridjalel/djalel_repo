@@ -15,6 +15,7 @@ import { Button, focusField } from "../ui";
 import { Checks } from "./Checks";
 import { ContentsDialog } from "./ContentsDialog";
 import { Controls } from "./Controls";
+import { ShareBox } from "../ShareBox";
 import { FIELD_SECTIONS, fieldOfPanel, panelsOfField } from "./focus";
 import { Preview, UploadPanel, typing } from "./Preview";
 
@@ -309,6 +310,15 @@ export function Editor({
           </Button>
         )}
       </div>
+      {!local && upload?.ok && (
+        <ShareBox
+          key={upload.fileName + String(corrected)}
+          name={upload.fileName.replace(/\.pdf$/i, "")}
+          model={corrected ? upload.corrected : upload.model}
+          image={upload.art.image}
+          art={{ x0: upload.art.x0, y0: upload.art.y0, w: upload.art.w, h: upload.art.h }}
+        />
+      )}
       <div className="space-y-2 text-[12px] leading-relaxed text-mute">
         <p>{t("Works with print-ready PDFs of tuck-end cartons, crash-lock and snap-lock bottoms, shelf-ready trays and more. The dieline can be on its own layer or not, drawn with lines or outlined.")}</p>
         <p>{t("In the 3D view, turn the carton to the angle you want, then save the angle or export a product image (transparent PNG) or a depth map.")}</p>

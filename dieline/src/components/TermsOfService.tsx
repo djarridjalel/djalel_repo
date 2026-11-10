@@ -5,7 +5,7 @@ import { Brand } from "./Brand";
 import { LangSwitch, useLang } from "./LangProvider";
 
 const CONTACT = "dielines@djarri.com";
-const UPDATED = { en: "2 November 2026", ar: "2 نوفمبر 2026" };
+const UPDATED = { en: "10 November 2026", ar: "10 نوفمبر 2026" };
 
 type Section = [string, React.ReactNode];
 
@@ -22,7 +22,7 @@ const EN: Section[] = [
   [
     "Your files and designs",
     <>
-      You keep all rights to the artwork, PDFs, cartons and files you create or upload. Uploaded PDFs are processed in your browser and are not sent to our servers. We store the cartons you save only to provide the service, as described in our <Link href="/privacy" className="text-ink underline">privacy policy</Link>. Only upload artwork you have the right to use.
+      You keep all rights to the artwork, PDFs, cartons and files you create or upload. Uploaded PDFs are processed in your browser and are not sent to our servers; when you share a design by link, its artwork image and 3D shape are stored until you turn the link off. Only share designs you may show to others. We store the cartons you save only to provide the service, as described in our <Link href="/privacy" className="text-ink underline">privacy policy</Link>. Only upload artwork you have the right to use.
     </>,
   ],
   ["Check before you produce", <>Dielines follow standard construction rules and are checked automatically, but packaging depends on your board, machines and printer. Always check dimensions and a physical sample on the production board, and have your printer or die-maker approve the dieline, before making cutting dies or printing. The 3D views, product images and depth maps are visual previews, not proofs.</>],
@@ -42,7 +42,7 @@ const AR: Section[] = [
   [
     "ملفاتك وتصاميمك",
     <>
-      تحتفظ بجميع الحقوق في التصاميم وملفات PDF والعلب والملفات التي تُنشئها أو ترفعها. تُعالَج ملفات PDF المرفوعة داخل متصفحك ولا تُرسل إلى خوادمنا. نحفظ العلب التي تحفظها فقط لتقديم الخدمة، كما تصف <Link href="/privacy" className="text-ink underline">سياسة الخصوصية</Link>. لا ترفع إلا تصاميم يحق لك استخدامها.
+      تحتفظ بجميع الحقوق في التصاميم وملفات PDF والعلب والملفات التي تُنشئها أو ترفعها. تُعالَج ملفات PDF المرفوعة داخل متصفحك ولا تُرسل إلى خوادمنا؛ وعند مشاركة تصميم برابط تُحفظ صورة تصميمه وشكله ثلاثي الأبعاد حتى توقف الرابط. لا تشارك إلا تصاميم يحق لك عرضها. نحفظ العلب التي تحفظها فقط لتقديم الخدمة، كما تصف <Link href="/privacy" className="text-ink underline">سياسة الخصوصية</Link>. لا ترفع إلا تصاميم يحق لك استخدامها.
     </>,
   ],
   ["تحقّق قبل الإنتاج", <>تتبع مخططات القطع قواعد الإنشاء المعيارية وتُفحص آليًا، لكن التغليف يعتمد على الكرتون والآلات والمطبعة لديك. تحقّق دائمًا من المقاسات ومن عيّنة فعلية على كرتون الإنتاج، واحصل على موافقة المطبعة أو صانع القوالب على المخطط، قبل صنع قوالب القطع أو الطباعة. العروض ثلاثية الأبعاد وصور المنتج وخرائط العمق معاينات بصرية وليست بروفات معتمدة.</>],
