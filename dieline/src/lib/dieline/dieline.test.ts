@@ -347,6 +347,23 @@ describe("Door box", () => {
     expect(d.stats.flatWidth).toBeCloseTo(369.2, 1);
     expect(d.stats.flatHeight).toBeCloseTo(299, 1);
   });
+
+  it("opens its door on its own slider, leaving the rest of the closed box in place", () => {
+    const d = generate({ ...DEFAULT_PARAMS, style: "doorbox", L: 60, W: 60, H: 150 });
+    const m = d.model3d;
+    expect(m.opener).toBe("Door");
+    const shut = pose(m, 1, 0);
+    const open = pose(m, 1, 1);
+    const moved = m.faces.map((f, i) => f.poly.some((q) => apply(shut[i], q).some((v, k) => Math.abs(v - apply(open[i], q)[k]) > 0.01)));
+    const door = m.faces.map((f) => !!f.open || (f.parent >= 0 && !!m.faces[f.parent].open));
+    // Only the door, its inner layer and its tab move.
+    expect(moved.map((v, i) => v && !door[i] && !m.faces[m.faces[i].parent]?.open)).toEqual(m.faces.map(() => false));
+    expect(moved.filter(Boolean).length).toBe(3);
+    // Half folded, the door slider changes nothing beyond the fold.
+    const half = pose(m, 0.5, 1);
+    const halfShut = pose(m, 0.5, 0);
+    expect(half.every((M, i) => M.every((v, k) => Math.abs(v - halfShut[i][k]) < 1e-9))).toBe(true);
+  });
 });
 
 describe("3D folding", () => {

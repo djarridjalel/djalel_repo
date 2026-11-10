@@ -123,6 +123,8 @@ export const AR: Record<string, string> = {
   Open: "فتح",
   "Inside colour": "لون الداخل",
   "Inside colour, hex code": "لون الداخل، رمز hex",
+  "Open the door": "افتح الباب",
+  "Close the carton first.": "أغلق العلبة أولًا.",
   // Landing
   "Djarri Design Studio · Pharma packaging": "استوديو جرّي للتصميم · تغليف الأدوية",
   "Make a true-scale dieline from the carton size and the board, checked and ready as PDF, SVG or DXF. Or upload your packaging PDF and see your design folded in 3D.":

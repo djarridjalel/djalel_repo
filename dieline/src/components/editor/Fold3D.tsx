@@ -84,6 +84,8 @@ export function Fold3D({
   const { t: tr } = useLang();
   const host = useRef<HTMLDivElement>(null);
   const [t, setT] = useState(1);
+  /** The model's second slider (a door): 0 closed … 1 open. */
+  const [e, setE] = useState(0);
   const [noGl, setNoGl] = useState(false);
   const steps = model.present ? 2 : 1;
   // Back to the closed carton when the style loses its presentation step.
@@ -271,7 +273,7 @@ export function Fold3D({
     const c = ctx.current;
     if (!c) return;
     const at = mini ? 1 : t;
-    const mats = pose(model, at);
+    const mats = pose(model, at, mini ? 0 : e);
     // The torn-away part fades once it has come clear of the tray.
     const fade = Math.max(0, Math.min(1, (at - 1.3) / 0.2));
     const gone = removedFaces(model);
@@ -297,12 +299,12 @@ export function Fold3D({
       c.controls.target.add(shift);
       c.camera.position.add(shift);
     }
-  }, [model, t, mini]);
+  }, [model, t, e, mini]);
 
   /** Centre and radius of the carton as it stands now, in scene coordinates. */
   const sphere = () => {
     const c = ctx.current!;
-    const mats = pose(model, t);
+    const mats = pose(model, t, e);
     const gone = removedFaces(model);
     const box = new THREE.Box3();
     model.faces.forEach((f, i) => {
@@ -455,6 +457,30 @@ export function Fold3D({
             </button>
           ))}
         </div>
+        {model.opener && (
+          <div className="flex flex-col gap-2 rounded-md border border-rule bg-paper p-2 sm:w-full">
+            <span className="text-[12px] font-medium">{tr(model.opener)}</span>
+            <input
+              type="range"
+              min={0}
+              max={1000}
+              value={Math.round(e * 1000)}
+              disabled={t < 0.999}
+              onChange={(ev) => setE(Number(ev.target.value) / 1000)}
+              aria-label={tr("Open the door")}
+              className="fold-slider fold-slider-h w-full disabled:opacity-40"
+              style={{ ["--fill" as string]: `${e * 100}%` }}
+            />
+            <div className="flex gap-1 text-[12px] font-medium">
+              {(["Closed", "Open"] as const).map((l, k) => (
+                <button key={l} type="button" disabled={t < 0.999} onClick={() => setE(k)} className={`h-7 flex-1 rounded px-1 disabled:opacity-40 ${Math.abs(e - k) < 0.02 ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
+                  {tr(l)}
+                </button>
+              ))}
+            </div>
+            {t < 0.999 && <span className="text-[11px] leading-snug text-mute">{tr("Close the carton first.")}</span>}
+          </div>
+        )}
       </div>
     </div>
   );

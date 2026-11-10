@@ -45,6 +45,8 @@ export interface Face3D {
    * it turns to is set by the centroid of face `ref`, and it lifts by `lift` board gaps.
    */
   via?: { hinge: [Pt, Pt]; angle: number; t0: number; t1: number; ref: number; lift: number }[];
+  /** Opened by the model's own second slider (`opener`), within its window e0 … e1 of that slider: degrees taken off the closed fold. */
+  open?: { angle: number; e0: number; e1: number };
 }
 
 export interface Model3D {
@@ -57,6 +59,8 @@ export interface Model3D {
   gap?: number;
   /** Where the torn-away part goes in the presentation step, in blank coordinates (mm). */
   away?: { x: number; y: number; z: number };
+  /** Name of a part with its own slider once the carton is closed, e.g. a door (faces with `open`). */
+  opener?: string;
 }
 
 /* ---------- building ---------- */
@@ -126,7 +130,7 @@ export function removedFaces(m: Model3D): boolean[] {
 const progress = (f: Face3D, t: number) => (f.t1 > f.t0 ? ease((t - f.t0) / (f.t1 - f.t0)) : t >= f.t1 ? 1 : 0);
 
 /** World matrices of every face at time t (0 flat … 1 closed … 2 presented, when the carton has a presentation step). */
-export function pose(m: Model3D, t: number): Mat4[] {
+export function pose(m: Model3D, t: number, e = 0): Mat4[] {
   const out: Mat4[] = new Array(m.faces.length);
   const at = (i: number): Mat4 => {
     if (out[i]) return out[i];
@@ -155,7 +159,9 @@ export function pose(m: Model3D, t: number): Mat4[] {
     const k = progress(f, t);
     const k2 = (f.angle2 || f.lift2) && t > 1 ? ease((t - 1 - (f.p0 ?? 0)) / ((f.p1 ?? 1) - (f.p0 ?? 0) || 1)) : 0;
     const own = f.cap ? Math.min(f.angle * k, f.cap.sum - m.faces[f.cap.face].angle * progress(m.faces[f.cap.face], t)) : f.angle * k;
-    const ang = (-side * (own + (f.angle2 ?? 0) * k2) * Math.PI) / 180;
+    // Opening by the second slider, in proportion to how far the face has closed, so a half-folded carton never folds backwards.
+    const opened = f.open ? f.open.angle * ease((e - f.open.e0) / (f.open.e1 - f.open.e0 || 1)) * k : 0;
+    const ang = (-side * (own - opened + (f.angle2 ?? 0) * k2) * Math.PI) / 180;
     // Stack on the parent by the difference in layers, towards the printed side (outwards once closed).
     const lift = (f.layer - m.faces[f.parent].layer) * (m.gap ?? 0) * Math.min(1, k) + (f.lift2 ?? 0) * Math.min(1, 3 * k2);
     let mat = mul(base, mul(rotAbout(a, u, ang), [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, lift, 1]));
