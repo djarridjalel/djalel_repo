@@ -438,6 +438,27 @@ export function Fold3D({
             )}
           </div>
         )}
+        {model.opener && !noGl && (
+          <div className="absolute inset-x-3 bottom-3 z-10 mx-auto flex max-w-md items-center gap-3 rounded-md border border-rule bg-paper/95 px-3 py-2 text-[12px] font-medium shadow-sm">
+            <span className="shrink-0">{tr(model.opener)}</span>
+            <button type="button" onClick={() => setE(0)} className={`shrink-0 rounded px-1.5 py-0.5 ${e < 0.02 ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
+              {tr("Closed")}
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1000}
+              value={Math.round(e * 1000)}
+              onChange={(ev) => setE(Number(ev.target.value) / 1000)}
+              aria-label={tr("Open the door")}
+              className="fold-slider fold-slider-h min-w-0 flex-1"
+              style={{ ["--fill" as string]: `${e * 100}%` }}
+            />
+            <button type="button" onClick={() => setE(1)} className={`shrink-0 rounded px-1.5 py-0.5 ${e > 0.98 ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
+              {tr("Open")}
+            </button>
+          </div>
+        )}
       </div>
       <div className="flex shrink-0 flex-col gap-3 border-t border-rule bg-bone px-4 py-3 sm:w-36 sm:flex-col-reverse sm:items-center sm:border-s sm:border-t-0 sm:px-3 sm:py-5">
         <input
@@ -457,30 +478,6 @@ export function Fold3D({
             </button>
           ))}
         </div>
-        {model.opener && (
-          <div className="flex flex-col gap-2 rounded-md border border-rule bg-paper p-2 sm:w-full">
-            <span className="text-[12px] font-medium">{tr(model.opener)}</span>
-            <input
-              type="range"
-              min={0}
-              max={1000}
-              value={Math.round(e * 1000)}
-              disabled={t < 0.999}
-              onChange={(ev) => setE(Number(ev.target.value) / 1000)}
-              aria-label={tr("Open the door")}
-              className="fold-slider fold-slider-h w-full disabled:opacity-40"
-              style={{ ["--fill" as string]: `${e * 100}%` }}
-            />
-            <div className="flex gap-1 text-[12px] font-medium">
-              {(["Closed", "Open"] as const).map((l, k) => (
-                <button key={l} type="button" disabled={t < 0.999} onClick={() => setE(k)} className={`h-7 flex-1 rounded px-1 disabled:opacity-40 ${Math.abs(e - k) < 0.02 ? "bg-ink text-paper" : "text-mute hover:text-ink"}`}>
-                  {tr(l)}
-                </button>
-              ))}
-            </div>
-            {t < 0.999 && <span className="text-[11px] leading-snug text-mute">{tr("Close the carton first.")}</span>}
-          </div>
-        )}
       </div>
     </div>
   );

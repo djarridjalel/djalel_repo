@@ -359,9 +359,9 @@ describe("Door box", () => {
     // Only the door, its inner layer and its tab move.
     expect(moved.map((v, i) => v && !door[i] && !m.faces[m.faces[i].parent]?.open)).toEqual(m.faces.map(() => false));
     expect(moved.filter(Boolean).length).toBe(3);
-    // Half folded, the door slider changes nothing beyond the fold.
-    const half = pose(m, 0.5, 1);
-    const halfShut = pose(m, 0.5, 0);
+    // Flat, the door slider changes nothing (it opens only what has been folded).
+    const half = pose(m, 0, 1);
+    const halfShut = pose(m, 0, 0);
     expect(half.every((M, i) => M.every((v, k) => Math.abs(v - halfShut[i][k]) < 1e-9))).toBe(true);
   });
 });
