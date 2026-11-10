@@ -1,0 +1,23 @@
+# Skill catalog
+
+All skills below are off by default (`.claude/settings.json` → `skillOverrides`). Turn one on by setting its value to "on".
+
+- **adobe-for-creativity**: adobe, adobe-anydocx, adobe-anyexcel, adobe-anypdf, adobe-anypptx, adobe-batch-edit-photos, adobe-before-and-after-image-edit, adobe-brand-kit, adobe-cleanup-audio, adobe-create-pdfs-from-data, adobe-create-social-variations, adobe-design-from-template, adobe-design-to-pdf, adobe-document-review, adobe-edit-quick-cut, adobe-expand-image, adobe-firefly-boards, adobe-fonts, adobe-match-style, adobe-product-photo-cutout, adobe-resize-photos-and-videos, adobe-retouch-portraits, adobe-standardize-headshots, adobe-stock-search-and-license, adobe-summarize-media, configure
+- **anthropic-skills**: apple-design-principles, built-in-browser, chrome-browser, computer-use, deep-research, docs, docx, editable-vector-artwork, google-workspace, graphify, import-memory, morning, pdf, pptx, skill-creator, watch, xlsx
+- **brand-studio**: brand-brief, brand-identity-system, brand-review, brand-strategy, brand-studio-router
+- **built-in**: session-start-hook, dataviz, artifact-design, artifact-diagramming, artifact-capabilities, update-config, keybindings-help, code-review, simplify, fewer-permission-prompts, loop, claude-api, run, plugin-authoring, init, security-review
+- **cowork-plugin-management**: cowork-plugin-customizer, create-cowork-plugin
+- **data**: analyze, build-dashboard, create-viz, data-context-extractor, data-visualization, explore-data, sql-queries, statistical-analysis, validate-data, write-query
+- **design**: accessibility-review, design-critique, design-handoff, design-system, research-synthesis, user-research, ux-copy
+- **design-council**: design-council
+- **design-skills**: accessibility-audit, design-critique, design-elevation, design-ops, design-systems, interaction-design, journey-mapping, ux-research, ux-strategy, ux-writing
+- **design-steward**: align, audit, brief, cleanup, execute, review, verify
+- **ffmpeg-llm**: ffmpeg, ffmpeg-command
+- **html-css-to-image**: hcti-image-generation, hcti-open-graph-images
+- **image-deep-research**: image-deep-research
+- **image-generation**: image-generation
+- **kling-ai-prompt-generator**: kling-ai
+- **liquid-glass**: liquid-glass, liquid-glass-motion
+- **marketing**: brand-review, campaign-plan, competitive-brief, content-creation, draft-content, email-sequence, performance-report, seo-audit
+- **render-visual-skill**: render-visual
+- **social-media-skills**: ai-image-editing, ai-music-and-sound, ai-search-optimization, ai-video, ai-voiceover, analytics-and-reporting, audience-research, batch-content-plan, before-after-and-transformation, behind-the-scenes-and-founder, brand-profile, campaign-and-launch-planning, canva, capcut, caption-writer, captions-and-clipping, carousel-writer, collabs-and-cross-promotion, community-management, competitor-analysis, content-audit, content-calendar, content-pillars, content-recycling, content-research-and-sourcing, contrarian-and-opinion, creator-monetization, crisis-and-moderation, cross-platform-repurposing, data-and-original-research, descript, design-and-templates, educational-content-and-how-to, email-and-newsletter, engagement-routine, experimentation-and-ab-testing, facebook-groups, facebook-strategy, flux, goals-and-kpis, hashtag-strategy, heygen, hook-writer, idea-generation-and-ideation, ideogram, image-prompt, infographic-and-data-viz, instagram-growth, instagram-reels-publishing, instagram-seo, interactive-content, kling, lead-magnets-and-funnels, link-in-bio-and-traffic, linkedin-company-pages, linkedin-growth, linkedin-post-writer, listicle-and-roundup, livestream-and-realtime, luma, meme-and-culture, nano-banana, opus-clip, pinterest-growth, pinterest-pin-design, pinterest-seo, platform-specs-and-validation, podcast-and-audiograms, profile-optimization, quote-cards-and-text-graphics, reddit-marketing, reels-script, reply-and-comment-writer, runway, scheduling-and-queue, scripting-and-storyboarding, seasonal-and-moment-marketing, short-form-video-script, social-proof-and-testimonials, social-selling-and-dm, social-seo, social-strategy, story-writer, storytelling-and-narrative, suno, synthesia, talking-head-and-piece-to-camera, text-post-and-microblog, thread-writer, threads-growth, threads-post, thumbnail-design, tiktok-growth, tiktok-photo-mode, tiktok-script, tiktok-video-publishing, trend-jacking, ugc-and-influencer, veo-3, viral-reverse-engineering, voice-builder, writing-style-and-tone, x-growth, youtube-long-form, youtube-publishing-and-metadata, youtube-shorts
