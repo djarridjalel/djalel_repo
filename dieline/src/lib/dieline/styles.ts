@@ -543,24 +543,27 @@ export function buildDoorBox(p: CartonParams, r: Resolved, issues: Issue[]): Bla
   F.add(P([[X[3], cy - tabH / 2], [X[3] + tabW, cy - tabH / 2], [X[3] + tabW, cy + tabH / 2], [X[3], cy + tabH / 2]]), f3, [pt(X[3], cy - tabH / 2), pt(X[3], cy + tabH / 2)], 90, 0.95, 1, -1);
   // Dust flaps overlap under the lid: side A's goes in first, side B's over it.
   for (const [face, xa, flap, y0, win, layer] of [
-    [f2, X[1], dustA, 0, [0.66, 0.71], 0],
-    [f6, X[5], dustB, 0, [0.7, 0.75], 0],
-    [f2, X[1], dustB, Hp, [0.42, 0.47], 0],
-    [f6, X[5], dustA, Hp, [0.46, 0.51], 0],
+    [f2, X[1], dustA, 0, [0.42, 0.47], 0],
+    [f6, X[5], dustB, 0, [0.46, 0.51], 0],
+    [f2, X[1], dustB, Hp, [0.66, 0.71], 0],
+    [f6, X[5], dustA, Hp, [0.7, 0.75], 0],
   ] as const) {
     const pts = y0 === 0 ? flap(xa, 0, -1) : flap(xa, Hp, 1);
     F.add([pt(xa, y0), ...pts, pt(xa + B, y0)], face, [pt(xa, y0), pt(xa + B, y0)], 90, win[0], win[1], layer);
   }
   // Lids and their tucks, split at the tuck crease.
   for (const [face, x0, x1, y0, dir, win, layer] of [
-    [f1, 0, X[1], Hp, 1, [0.52, 0.64], 2],
-    [f5, X[4], X[5], 0, -1, [0.74, 0.85], 1],
+    // The inner front's end closes first; the back's lid closes last, so unfolding opens it first.
+    [f5, X[4], X[5], 0, -1, [0.51, 0.64], 1],
+    [f1, 0, X[1], Hp, 1, [0.75, 0.85], 2],
   ] as const) {
     const yc = y0 + dir * (D - 0.5);
     const run = lidRun(x0, x1, y0, dir, true);
     const tuckPts = [pt(x0 + 0.5, yc), ...run.filter((q) => dir * (q.y - yc) > 1e-6), pt(x1 - 0.5, yc)];
-    const lid = F.add([pt(x0, y0), pt(x0, yc), pt(x1, yc), pt(x1, y0)], face, [pt(x0, y0), pt(x1, y0)], 90, win[0], win[0] + (win[1] - win[0]) * 0.7, layer);
-    F.add(tuckPts, lid, [pt(x0 + 4, yc), pt(x1 - 4, yc)], 90, win[0] + (win[1] - win[0]) * 0.5, win[1], layer - 2);
+    // The tuck is bent in first and held at an angle while the lid comes over (it opens the same way, tuck still bent).
+    const lid = F.add([pt(x0, y0), pt(x0, yc), pt(x1, yc), pt(x1, y0)], face, [pt(x0, y0), pt(x1, y0)], 90, win[0] + (win[1] - win[0]) * 0.35, win[1], layer);
+    const tuck = F.add(tuckPts, lid, [pt(x0 + 4, yc), pt(x1 - 4, yc)], 135, win[0], win[0] + (win[1] - win[0]) * 0.4, layer - 2);
+    if (tuck >= 0 && lid >= 0) F.faces[tuck].cap = { face: lid, sum: 180 };
   }
 
   return finish(p, outline, strokes, regions, panels, dims, checks, { faces: F.faces, root: "wall", gap: Math.max(0.15, t * 0.5) });
