@@ -90,7 +90,7 @@ function slotsFor(style: CartonParams["style"]): { top: Slot[]; bottom: Slot[]; 
  * industry-standard layout with the glue flap on the front's edge; the other
  * tubes put Side B next to the glue flap so the joint closes at a back corner.
  */
-const orderFor = (style: CartonParams["style"]): readonly number[] => (style === "rte" ? [0, 1, 2, 3] : [3, 0, 1, 2]);
+export const orderFor = (style: CartonParams["style"], joint: CartonParams["joint"] = "front"): readonly number[] => (style === "rte" && joint === "front" ? [0, 1, 2, 3] : [3, 0, 1, 2]);
 
 /** Flap outlines to use instead of the app's own, per panel (0 Front … 3 Side B), in each flap's local frame. */
 export interface FlapOverride {
@@ -100,7 +100,7 @@ export interface FlapOverride {
 
 export function buildBlank(p: CartonParams, r: Resolved, override?: FlapOverride): Blank {
   const { t, panelWidths: pw, bodyHeight: Hp } = r;
-  const ORDER = orderFor(p.style);
+  const ORDER = orderFor(p.style, p.joint);
   // X[i]: left edge of panel i on the blank.
   const X = [0, 0, 0, 0];
   let total = 0;

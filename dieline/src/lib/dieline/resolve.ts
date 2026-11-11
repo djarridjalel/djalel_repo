@@ -59,7 +59,7 @@ export function resolve(p: CartonParams): ResolveResult {
 
   // The panel carrying the glue flap is one caliper short: Side B on most
   // tubes, the front on the reverse tuck end (glue flap on the front's edge).
-  const panelWidths: [number, number, number, number] = p.style === "rte" ? [Li, Wi + t, Li + t, Wi + t] : [Li + t, Wi + t, Li + t, Wi];
+  const panelWidths: [number, number, number, number] = p.style === "rte" && p.joint !== "side" ? [Li, Wi + t, Li + t, Wi + t] : [Li + t, Wi + t, Li + t, Wi];
   const bodyHeight = Hi + t;
   const lidDepth = Wi - t / 2;
 

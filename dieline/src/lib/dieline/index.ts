@@ -47,6 +47,7 @@ export const DEFAULT_PARAMS: CartonParams = {
   display: { rise: 40, header: 60 },
   srp: { tearDepth: 0, fingerWidth: 60 },
   insideColor: "#f1f0ec",
+  joint: "front",
 };
 
 /** Fills in fields added after a project was saved. */
@@ -65,6 +66,7 @@ export function normalizeParams(raw: Partial<CartonParams> | null | undefined): 
   p.display = { ...DEFAULT_PARAMS.display, ...(raw?.display ?? {}) };
   p.srp = { ...DEFAULT_PARAMS.srp, ...(raw?.srp ?? {}) };
   if (!/^#[0-9a-f]{6}$/i.test(p.insideColor ?? "")) p.insideColor = DEFAULT_PARAMS.insideColor;
+  if (p.joint !== "side") p.joint = "front";
   return p;
 }
 

@@ -5,6 +5,7 @@
 import { DEFAULT_PARAMS, generate } from "../dieline";
 import { foldTube, type ClosurePiece, type FoldCheck } from "../dieline/fold";
 import { pt, samplePath, type Pt, type Seg } from "../dieline/geom";
+import { orderFor } from "../dieline/carton";
 import type { CartonParams, Dieline, StyleId } from "../dieline/types";
 import { distanceField, findBody, prepare, reach, region, type Body } from "./analyse";
 import type { DieSeg } from "./pdfDieline";
@@ -22,7 +23,7 @@ export interface Match {
 }
 
 /** Panel order on the blank after the glue flap: 0 Front, 1 Side A, 2 Back, 3 Side B. */
-const ORDER = (style: StyleId) => (style === "rte" ? [0, 1, 2, 3] : [3, 0, 1, 2]);
+const ORDER = (style: StyleId, joint: CartonParams["joint"] = "front") => orderFor(style, joint);
 
 export function matchTube(segs: DieSeg[], body: Body, inside: (p: Pt) => boolean, caliper = DEFAULT_PARAMS.caliper): Match[] {
   const t = caliper;
@@ -38,11 +39,13 @@ export function matchTube(segs: DieSeg[], body: Body, inside: (p: Pt) => boolean
   const glueW = body.xs[0] - body.left;
   const out: Match[] = [];
 
-  for (const style of familyOf(segs, body, inside)) {
-    const order = ORDER(style);
+  // A reverse tuck end can also have its glue flap on a side panel (lids then on the 2nd and 4th panels).
+  const variants = familyOf(segs, body, inside).flatMap((style) => (style === "rte" ? [[style, "front"], [style, "side"]] : [[style, "front"]]) as [StyleId, CartonParams["joint"]][]);
+  for (const [style, joint] of variants) {
+    const order = ORDER(style, joint);
     const w = body.widths;
     // Crease-to-crease widths: rte [Li, Wi+t, Li+t, Wi+t]; others [Wi, Li+t, Wi+t, Li+t].
-    const [Li, Wi] = style === "rte" ? [w[0], w[1] - t] : [w[1] - t, w[0]];
+    const [Li, Wi] = style === "rte" && joint === "front" ? [w[0], w[1] - t] : [w[1] - t, w[0]];
     if (Li < 10 || Wi < 5) continue;
     const xOf = (panel: number) => {
       const j = order.indexOf(panel);
@@ -54,6 +57,7 @@ export function matchTube(segs: DieSeg[], body: Body, inside: (p: Pt) => boolean
     const params: CartonParams = {
       ...DEFAULT_PARAMS,
       style,
+      joint,
       dimMode: "inside",
       L: Li,
       W: Wi,
@@ -90,7 +94,7 @@ export function matchTube(segs: DieSeg[], body: Body, inside: (p: Pt) => boolean
  */
 /** The uploaded flaps traced as profiles above their hinges: how far the blank reaches beyond the body along each panel. */
 export function traceFlaps(match: Match, body: Body, inside: (p: Pt) => boolean) {
-  const order = ORDER(match.style);
+  const order = ORDER(match.style, match.params.joint);
   const edges = [body.xs[0], ...body.xs.slice(1), body.right];
   const out = { top: [null, null, null, null] as (Seg[] | null)[], bottom: [null, null, null, null] as (Seg[] | null)[], pieces: [] as ClosurePiece[] };
   for (const which of ["top", "bottom"] as const) {

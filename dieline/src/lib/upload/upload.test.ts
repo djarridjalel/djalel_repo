@@ -63,4 +63,12 @@ describe("uploaded dielines", () => {
     expect(a.matches[0].score).toBeLessThan(2);
     expect(a.checks.filter((c) => !c.ok)).toEqual([]);
   }, 30000);
+
+  it("reads a reverse tuck end with its glue flap on a side panel (lids on the 2nd and 4th panels)", async () => {
+    const d = generate({ ...DEFAULT_PARAMS, style: "rte", joint: "side", dimMode: "inside", L: 52, W: 52, H: 160 });
+    const r = await read(await renderPdf(d, { meta: { projectName: "t", version: null, author: null } }));
+    const a = analyseTube(r.segs, r.width, r.height)!;
+    expect([a.matches[0].style, a.matches[0].params.joint]).toEqual(["rte", "side"]);
+  }, 30000);
 });
+

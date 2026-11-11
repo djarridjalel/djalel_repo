@@ -69,6 +69,8 @@ export interface CartonParams {
   srp: SrpParams;
   /** Colour of the unprinted (inside) face in 3D, as #rrggbb. */
   insideColor: string;
+  /** Reverse tuck end: the glue flap on the front's edge (standard) or on a side panel's. */
+  joint: "front" | "side";
 }
 
 export interface GableParams {
